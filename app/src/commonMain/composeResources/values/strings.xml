@@ -29,6 +29,7 @@
         <item quantity="one">%1$d available book</item>
         <item quantity="other">%1$d available books</item>
     </plurals>
+    <string name="search_in_library">Search in my bookshelf</string>
     <string name="new_book">New</string>
     <string name="format_title">Format</string>
     <string name="state">State</string>
@@ -42,6 +43,8 @@
 
     //SEARCH
     <string name="title_search">Search</string>
+    <string name="enter_title">Enter title</string>
+    <string name="enter_author">Enter author</string>
 
     //STATISTICS
     <string name="title_stats">Statistics</string>

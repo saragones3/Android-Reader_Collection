@@ -201,6 +201,7 @@ fun SearchBar(
     onSearch: (String) -> Unit,
     modifier: Modifier = Modifier,
     showLeadingIcon: Boolean = false,
+    inputHintText: String = stringResource(Res.string.search),
     inputHintTextColor: Color = MaterialTheme.colorScheme.tertiary,
     textColor: Color = MaterialTheme.colorScheme.primary,
     textStyle: TextStyle = MaterialTheme.typography.bodyLarge,
@@ -228,7 +229,7 @@ fun SearchBar(
 
     val placeholder: @Composable (() -> Unit) = {
         Text(
-            text = stringResource(Res.string.search),
+            text = inputHintText,
             color = inputHintTextColor,
             style = MaterialTheme.typography.bodyLarge,
         )

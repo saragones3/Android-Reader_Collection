@@ -68,6 +68,8 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
+import reader_collection.app.generated.resources.enter_author
+import reader_collection.app.generated.resources.enter_title
 import reader_collection.app.generated.resources.error_server
 import reader_collection.app.generated.resources.go_to_end
 import reader_collection.app.generated.resources.go_to_start
@@ -116,6 +118,11 @@ fun SearchScreen(
 
     val elevation = if (showTopButton && !isLoading) 4.dp else 0.dp
 
+    val searchPlaceholder = when (state.param) {
+        SearchParam.TITLE -> stringResource(Res.string.enter_title)
+        SearchParam.AUTHOR -> stringResource(Res.string.enter_author)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -123,6 +130,7 @@ fun SearchScreen(
     ) {
         CustomSearchBar(
             title = stringResource(Res.string.title_search),
+            placeholder = searchPlaceholder,
             query = query ?: "",
             onSearch = onSearch,
             modifier = Modifier.shadow(elevation),

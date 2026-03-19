@@ -86,6 +86,7 @@ import reader_collection.app.generated.resources.image_user_reading
 import reader_collection.app.generated.resources.not_reading_anything_yet
 import reader_collection.app.generated.resources.pending
 import reader_collection.app.generated.resources.read
+import reader_collection.app.generated.resources.search_in_library
 import reader_collection.app.generated.resources.show_all
 import reader_collection.app.generated.resources.sort_books
 import reader_collection.app.generated.resources.title_books
@@ -216,6 +217,7 @@ private fun BooksScreenContent(
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp),
             showLeadingIcon = true,
+            inputHintText = stringResource(Res.string.search_in_library),
             requestFocusByDefault = false,
             searchOnClear = true,
         )

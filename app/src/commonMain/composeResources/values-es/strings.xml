@@ -34,6 +34,7 @@
         <item quantity="many">%1$d libros disponibles</item>
         <item quantity="other">%1$d libros disponibles</item>
     </plurals>
+    <string name="search_in_library">Buscar en mi librería</string>
     <string name="new_book">Nuevo</string>
     <string name="format_title">Formato</string>
     <string name="state">Estado</string>
@@ -47,6 +48,8 @@
 
     //SEARCH
     <string name="title_search">Búsqueda</string>
+    <string name="enter_title">Escribe un título</string>
+    <string name="enter_author">Escribe un autor</string>
 
     //STATISTICS
     <string name="title_stats">Estadísticas</string>

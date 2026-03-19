@@ -49,6 +49,7 @@ import com.aragones.sergio.util.extensions.isNotBlank
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
+import reader_collection.app.generated.resources.enter_title
 import reader_collection.app.generated.resources.go_back
 import reader_collection.app.generated.resources.ic_arrow_back
 import reader_collection.app.generated.resources.ic_default_book_cover_blue
@@ -130,6 +131,7 @@ fun CustomToolbar(
 @Composable
 fun CustomSearchBar(
     title: String,
+    placeholder: String,
     query: String,
     onSearch: ((String) -> Unit),
     modifier: Modifier = Modifier,
@@ -171,6 +173,7 @@ fun CustomSearchBar(
                         modifier = Modifier
                             .weight(1f)
                             .padding(vertical = 4.dp),
+                        inputHintText = placeholder,
                     )
                     Spacer(modifier = Modifier.width(24.dp))
                 }
@@ -294,6 +297,7 @@ private fun CustomSearchBarPreview() {
     ReaderCollectionTheme {
         CustomSearchBar(
             title = stringResource(Res.string.title_search),
+            placeholder = stringResource(Res.string.enter_title),
             query = "",
             onSearch = {},
         )
