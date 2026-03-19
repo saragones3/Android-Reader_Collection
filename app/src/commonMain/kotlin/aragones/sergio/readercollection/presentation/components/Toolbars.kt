@@ -17,6 +17,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.layout.ContentScale
@@ -46,18 +53,12 @@ import androidx.compose.ui.zIndex
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import aragones.sergio.readercollection.presentation.theme.isLight
 import com.aragones.sergio.util.extensions.isNotBlank
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.enter_title
 import reader_collection.app.generated.resources.go_back
-import reader_collection.app.generated.resources.ic_arrow_back
 import reader_collection.app.generated.resources.ic_default_book_cover_blue
 import reader_collection.app.generated.resources.ic_default_book_cover_white
-import reader_collection.app.generated.resources.ic_edit_book
-import reader_collection.app.generated.resources.ic_remove_book
-import reader_collection.app.generated.resources.ic_search
-import reader_collection.app.generated.resources.ic_sort_books
 import reader_collection.app.generated.resources.search
 import reader_collection.app.generated.resources.title_search
 
@@ -113,8 +114,9 @@ fun CustomToolbar(
         navigationIcon = onBack?.let {
             {
                 TopAppBarIcon(
-                    accessibilityPainter = painterResource(Res.drawable.ic_arrow_back)
-                        .withDescription(stringResource(Res.string.go_back)),
+                    accessibilityPainter = rememberVectorPainter(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                    ).withDescription(stringResource(Res.string.go_back)),
                     onClick = it,
                     tint = backTintColor,
                 )
@@ -143,7 +145,7 @@ fun CustomSearchBar(
     val backIcon: @Composable (() -> Unit)? = if (isSearching || onBack != null) {
         {
             TopAppBarIcon(
-                accessibilityPainter = painterResource(Res.drawable.ic_arrow_back)
+                accessibilityPainter = rememberVectorPainter(Icons.AutoMirrored.Filled.ArrowBack)
                     .withDescription(stringResource(Res.string.go_back)),
                 onClick = {
                     if (isSearching) {
@@ -190,7 +192,7 @@ fun CustomSearchBar(
         actions = {
             if (!isSearching) {
                 TopAppBarIcon(
-                    accessibilityPainter = painterResource(Res.drawable.ic_search)
+                    accessibilityPainter = rememberVectorPainter(Icons.Default.Search)
                         .withDescription(stringResource(Res.string.search)),
                     onClick = { isSearching = true },
                 )
@@ -309,7 +311,7 @@ private fun CustomSearchBarPreview() {
 private fun TopAppBarIconPreview() {
     ReaderCollectionTheme {
         TopAppBarIcon(
-            accessibilityPainter = painterResource(Res.drawable.ic_sort_books)
+            accessibilityPainter = rememberVectorPainter(Icons.AutoMirrored.Filled.Sort)
                 .withDescription(null),
             onClick = {},
         )
@@ -325,8 +327,9 @@ private fun CollapsingToolbarPreview() {
             modifier = Modifier.size(300.dp),
             startContent = {
                 TopAppBarIcon(
-                    accessibilityPainter = painterResource(Res.drawable.ic_arrow_back)
-                        .withDescription(null),
+                    accessibilityPainter = rememberVectorPainter(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                    ).withDescription(null),
                     onClick = {},
                     tint = MaterialTheme.colorScheme.secondary,
                 )
@@ -346,13 +349,13 @@ private fun CollapsingToolbarPreview() {
             },
             endContent = {
                 TopAppBarIcon(
-                    accessibilityPainter = painterResource(Res.drawable.ic_edit_book)
+                    accessibilityPainter = rememberVectorPainter(Icons.Default.Edit)
                         .withDescription(null),
                     onClick = {},
                     tint = MaterialTheme.colorScheme.secondary,
                 )
                 TopAppBarIcon(
-                    accessibilityPainter = painterResource(Res.drawable.ic_remove_book)
+                    accessibilityPainter = rememberVectorPainter(Icons.Default.Delete)
                         .withDescription(null),
                     onClick = {},
                     tint = MaterialTheme.colorScheme.secondary,

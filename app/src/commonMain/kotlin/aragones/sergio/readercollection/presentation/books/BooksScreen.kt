@@ -25,6 +25,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.ArrowCircleRight
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -79,9 +81,7 @@ import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.accept
 import reader_collection.app.generated.resources.go_to_add_new_book
-import reader_collection.app.generated.resources.ic_arrow_circle_right
 import reader_collection.app.generated.resources.ic_save_book
-import reader_collection.app.generated.resources.ic_sort_books
 import reader_collection.app.generated.resources.image_user_reading
 import reader_collection.app.generated.resources.not_reading_anything_yet
 import reader_collection.app.generated.resources.pending
@@ -201,7 +201,7 @@ private fun BooksScreenContent(
             backgroundColor = MaterialTheme.colorScheme.background,
             actions = {
                 TopAppBarIcon(
-                    accessibilityPainter = painterResource(Res.drawable.ic_sort_books)
+                    accessibilityPainter = rememberVectorPainter(Icons.AutoMirrored.Filled.Sort)
                         .withDescription(stringResource(Res.string.sort_books)),
                     onClick = onSortClick,
                 )
@@ -477,9 +477,10 @@ private fun ShowAllItems(onClick: () -> Unit, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
-            painter = painterResource(Res.drawable.ic_arrow_circle_right),
+            painter = rememberVectorPainter(Icons.Default.ArrowCircleRight),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(vertical = 16.dp),
         )
         Text(
             text = text,

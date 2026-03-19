@@ -22,8 +22,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.StarHalf
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -76,11 +81,6 @@ import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.book_rating_description
 import reader_collection.app.generated.resources.clear_text
 import reader_collection.app.generated.resources.delete
-import reader_collection.app.generated.resources.ic_clear_text
-import reader_collection.app.generated.resources.ic_round_star_24
-import reader_collection.app.generated.resources.ic_round_star_border_24
-import reader_collection.app.generated.resources.ic_round_star_half_24
-import reader_collection.app.generated.resources.ic_search
 import reader_collection.app.generated.resources.image_no_results
 import reader_collection.app.generated.resources.no_results_text
 import reader_collection.app.generated.resources.search
@@ -146,15 +146,15 @@ fun StarRatingBar(
         for (i in 1..maxStars) {
             val (icon, tint) = when {
                 i <= rating -> Pair(
-                    Res.drawable.ic_round_star_24,
+                    Icons.Default.Star,
                     MaterialTheme.colorScheme.roseBud,
                 )
                 i.toFloat() == rating + 0.5f -> Pair(
-                    Res.drawable.ic_round_star_half_24,
+                    Icons.AutoMirrored.Filled.StarHalf,
                     MaterialTheme.colorScheme.roseBud,
                 )
                 else -> Pair(
-                    Res.drawable.ic_round_star_border_24,
+                    Icons.Default.StarBorder,
                     MaterialTheme.colorScheme.lightRoseBud,
                 )
             }
@@ -182,7 +182,7 @@ fun StarRatingBar(
                 enabled = isSelectable,
             ) {
                 Icon(
-                    painter = painterResource(icon),
+                    painter = rememberVectorPainter(icon),
                     contentDescription = starContentDescription.takeIf { isSelectable },
                     tint = tint,
                     modifier = Modifier.fillMaxSize(),
@@ -237,7 +237,7 @@ fun SearchBar(
     val leadingIcon: @Composable (() -> Unit)? = if (showLeadingIcon) {
         {
             Icon(
-                painter = painterResource(Res.drawable.ic_search),
+                painter = rememberVectorPainter(Icons.Default.Search),
                 contentDescription = stringResource(Res.string.search),
                 tint = MaterialTheme.colorScheme.primary,
             )
@@ -248,7 +248,7 @@ fun SearchBar(
     val trailingIcon: @Composable (() -> Unit)? = if (textFieldValueState.text.isNotBlank()) {
         {
             TopAppBarIcon(
-                accessibilityPainter = painterResource(Res.drawable.ic_clear_text)
+                accessibilityPainter = rememberVectorPainter(Icons.Default.Clear)
                     .withDescription(stringResource(Res.string.clear_text)),
                 onClick = {
                     textFieldValueState = TextFieldValue("")

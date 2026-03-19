@@ -21,6 +21,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.SwitchLeft
+import androidx.compose.material.icons.filled.SwitchRight
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,6 +38,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.hideFromAccessibility
@@ -53,10 +59,6 @@ import reader_collection.app.generated.resources.decrease_priority_description
 import reader_collection.app.generated.resources.dragging_enabled_description
 import reader_collection.app.generated.resources.ic_default_book_cover_blue
 import reader_collection.app.generated.resources.ic_default_book_cover_white
-import reader_collection.app.generated.resources.ic_enable_drag
-import reader_collection.app.generated.resources.ic_remove_book
-import reader_collection.app.generated.resources.ic_round_switch_left
-import reader_collection.app.generated.resources.ic_round_switch_right
 import reader_collection.app.generated.resources.ic_save_book
 import reader_collection.app.generated.resources.increase_priority_description
 import reader_collection.app.generated.resources.new_book
@@ -94,7 +96,7 @@ fun BookItem(
             if (isDraggingEnabled) {
                 Spacer(Modifier.width(24.dp))
                 Icon(
-                    painter = painterResource(Res.drawable.ic_enable_drag),
+                    painter = rememberVectorPainter(Icons.Default.DragHandle),
                     contentDescription = stringResource(Res.string.dragging_enabled_description),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.align(Alignment.CenterVertically),
@@ -275,7 +277,7 @@ fun VerticalBookItem(
             if (isSwitchLeftIconEnabled) {
                 IconButton(onClick = onSwitchToLeft) {
                     Icon(
-                        painter = painterResource(Res.drawable.ic_round_switch_left),
+                        painter = rememberVectorPainter(Icons.Default.SwitchLeft),
                         contentDescription = stringResource(
                             Res.string.increase_priority_description,
                             book.title ?: "",
@@ -288,7 +290,7 @@ fun VerticalBookItem(
             if (isSwitchRightIconEnabled) {
                 IconButton(onClick = onSwitchToRight) {
                     Icon(
-                        painter = painterResource(Res.drawable.ic_round_switch_right),
+                        painter = rememberVectorPainter(Icons.Default.SwitchRight),
                         contentDescription = stringResource(
                             Res.string.decrease_priority_description,
                             book.title ?: "",
@@ -500,7 +502,7 @@ private fun SwipeItemToRightPreview() {
                 SwipeItemBackground(
                     direction = SwipeDirection.RIGHT,
                     color = MaterialTheme.colorScheme.roseBud,
-                    accessibilityPainter = painterResource(Res.drawable.ic_remove_book)
+                    accessibilityPainter = rememberVectorPainter(Icons.Default.Delete)
                         .withDescription(null),
                 )
             },

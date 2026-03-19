@@ -24,9 +24,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -78,7 +84,6 @@ import com.aragones.sergio.util.CustomInputType
 import com.aragones.sergio.util.extensions.currentLocalDate
 import com.aragones.sergio.util.extensions.isNotBlank
 import com.aragones.sergio.util.extensions.toLocalDate
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.add_author
@@ -98,15 +103,8 @@ import reader_collection.app.generated.resources.delete
 import reader_collection.app.generated.resources.description
 import reader_collection.app.generated.resources.edit_book
 import reader_collection.app.generated.resources.format_title
-import reader_collection.app.generated.resources.ic_add_a_photo
-import reader_collection.app.generated.resources.ic_cancel_changes
-import reader_collection.app.generated.resources.ic_clear_text
 import reader_collection.app.generated.resources.ic_default_book_cover_blue
 import reader_collection.app.generated.resources.ic_default_book_cover_white
-import reader_collection.app.generated.resources.ic_edit_book
-import reader_collection.app.generated.resources.ic_remove_book
-import reader_collection.app.generated.resources.ic_save_book
-import reader_collection.app.generated.resources.ic_save_changes
 import reader_collection.app.generated.resources.isbn
 import reader_collection.app.generated.resources.pages
 import reader_collection.app.generated.resources.published_date
@@ -148,13 +146,13 @@ fun BookDetailScreen(
                 state.isAlreadySaved && !state.isEditable -> {
                     {
                         TopAppBarIcon(
-                            accessibilityPainter = painterResource(Res.drawable.ic_edit_book)
+                            accessibilityPainter = rememberVectorPainter(Icons.Default.Edit)
                                 .withDescription(stringResource(Res.string.edit_book)),
                             onClick = onEdit,
                             tint = MaterialTheme.colorScheme.secondary,
                         )
                         TopAppBarIcon(
-                            accessibilityPainter = painterResource(Res.drawable.ic_remove_book)
+                            accessibilityPainter = rememberVectorPainter(Icons.Default.Delete)
                                 .withDescription(stringResource(Res.string.remove_book)),
                             onClick = onRemove,
                             tint = MaterialTheme.colorScheme.secondary,
@@ -164,13 +162,13 @@ fun BookDetailScreen(
                 state.isAlreadySaved && state.isEditable -> {
                     {
                         TopAppBarIcon(
-                            accessibilityPainter = painterResource(Res.drawable.ic_cancel_changes)
+                            accessibilityPainter = rememberVectorPainter(Icons.Default.Cancel)
                                 .withDescription(stringResource(Res.string.cancel_changes)),
                             onClick = onCancel,
                             tint = MaterialTheme.colorScheme.secondary,
                         )
                         TopAppBarIcon(
-                            accessibilityPainter = painterResource(Res.drawable.ic_save_changes)
+                            accessibilityPainter = rememberVectorPainter(Icons.Default.Save)
                                 .withDescription(stringResource(Res.string.save_changes)),
                             onClick = {
                                 onSave(state.book)
@@ -182,7 +180,7 @@ fun BookDetailScreen(
                 else -> {
                     {
                         TopAppBarIcon(
-                            accessibilityPainter = painterResource(Res.drawable.ic_save_book)
+                            accessibilityPainter = rememberVectorPainter(Icons.Default.Save)
                                 .withDescription(stringResource(Res.string.add_book)),
                             onClick = {
                                 onSave(state.book)
@@ -233,7 +231,7 @@ fun BookDetailScreen(
                             containerColor = MaterialTheme.colorScheme.primary,
                         ) {
                             Icon(
-                                painter = painterResource(Res.drawable.ic_add_a_photo),
+                                painter = rememberVectorPainter(Icons.Default.AddAPhoto),
                                 contentDescription = stringResource(Res.string.add_photo),
                                 tint = MaterialTheme.colorScheme.secondary,
                             )
@@ -305,7 +303,7 @@ private fun BookDetailContent(
             modifier = Modifier.fillMaxWidth(),
             placeholderText = stringResource(Res.string.add_title),
             textStyle = MaterialTheme.typography.displayLarge,
-            endIcon = painterResource(Res.drawable.ic_clear_text)
+            endIcon = rememberVectorPainter(Icons.Default.Clear)
                 .withDescription(stringResource(Res.string.clear_text))
                 .takeIf { isEditable && book.title?.isNotBlank() == true },
             inputType = CustomInputType.MULTI_LINE_TEXT,
@@ -323,7 +321,7 @@ private fun BookDetailContent(
             },
             modifier = Modifier.fillMaxWidth(),
             placeholderText = stringResource(Res.string.add_author),
-            endIcon = painterResource(Res.drawable.ic_clear_text)
+            endIcon = rememberVectorPainter(Icons.Default.Clear)
                 .withDescription(stringResource(Res.string.clear_text))
                 .takeIf { isEditable && book.authorsToString().isNotBlank() },
             inputType = CustomInputType.MULTI_LINE_TEXT,
@@ -388,7 +386,7 @@ private fun BookDetailContent(
             },
             modifier = Modifier.fillMaxWidth(),
             placeholderText = stringResource(Res.string.add_description),
-            endIcon = painterResource(Res.drawable.ic_clear_text)
+            endIcon = rememberVectorPainter(Icons.Default.Clear)
                 .withDescription(stringResource(Res.string.clear_text))
                 .takeIf { isEditable && book.description?.isNotBlank() == true },
             maxLength = 10240,
@@ -407,7 +405,7 @@ private fun BookDetailContent(
             },
             modifier = Modifier.fillMaxWidth(),
             placeholderText = stringResource(Res.string.add_summary),
-            endIcon = painterResource(Res.drawable.ic_clear_text)
+            endIcon = rememberVectorPainter(Icons.Default.Clear)
                 .withDescription(stringResource(Res.string.clear_text))
                 .takeIf { isEditable && book.summary?.isNotBlank() == true },
             maxLength = 10240,
@@ -461,7 +459,7 @@ private fun BookDetailContent(
             },
             modifier = Modifier.fillMaxWidth(),
             placeholderText = stringResource(Res.string.select_a_date),
-            endIcon = painterResource(Res.drawable.ic_clear_text)
+            endIcon = rememberVectorPainter(Icons.Default.Clear)
                 .withDescription(stringResource(Res.string.clear_text))
                 .takeIf { isEditable && book.readingDate != null },
             enabled = isEditable,
@@ -503,7 +501,7 @@ private fun BookDetailContent(
             },
             modifier = Modifier.fillMaxWidth(),
             placeholderText = stringResource(Res.string.add_pages),
-            endIcon = painterResource(Res.drawable.ic_clear_text)
+            endIcon = rememberVectorPainter(Icons.Default.Clear)
                 .withDescription(stringResource(Res.string.clear_text))
                 .takeIf { isEditable && book.pageCount > 0 },
             inputType = CustomInputType.NUMBER,
@@ -522,7 +520,7 @@ private fun BookDetailContent(
             },
             modifier = Modifier.fillMaxWidth(),
             placeholderText = stringResource(Res.string.add_isbn),
-            endIcon = painterResource(Res.drawable.ic_clear_text)
+            endIcon = rememberVectorPainter(Icons.Default.Clear)
                 .withDescription(stringResource(Res.string.clear_text))
                 .takeIf { isEditable && book.isbn?.isNotBlank() == true },
             inputType = CustomInputType.NUMBER,
@@ -540,7 +538,7 @@ private fun BookDetailContent(
             },
             modifier = Modifier.fillMaxWidth(),
             placeholderText = stringResource(Res.string.add_publisher),
-            endIcon = painterResource(Res.drawable.ic_clear_text)
+            endIcon = rememberVectorPainter(Icons.Default.Clear)
                 .withDescription(stringResource(Res.string.clear_text))
                 .takeIf { isEditable && book.publisher?.isNotBlank() == true },
             inputType = CustomInputType.MULTI_LINE_TEXT,
@@ -564,7 +562,7 @@ private fun BookDetailContent(
             },
             modifier = Modifier.fillMaxWidth(),
             placeholderText = stringResource(Res.string.select_a_date),
-            endIcon = painterResource(Res.drawable.ic_clear_text)
+            endIcon = rememberVectorPainter(Icons.Default.Clear)
                 .withDescription(stringResource(Res.string.clear_text))
                 .takeIf { isEditable && book.publishedDate != null },
             enabled = isEditable,

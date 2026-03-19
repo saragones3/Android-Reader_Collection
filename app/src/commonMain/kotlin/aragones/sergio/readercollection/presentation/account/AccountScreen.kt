@@ -19,8 +19,11 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.PublicOff
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -36,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -51,7 +55,6 @@ import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import com.aragones.sergio.util.CustomInputType
 import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.account_details_title
@@ -61,9 +64,6 @@ import reader_collection.app.generated.resources.delete_account_action
 import reader_collection.app.generated.resources.delete_account_description
 import reader_collection.app.generated.resources.delete_account_title
 import reader_collection.app.generated.resources.hide_password
-import reader_collection.app.generated.resources.ic_hide_password
-import reader_collection.app.generated.resources.ic_show_info
-import reader_collection.app.generated.resources.ic_show_password
 import reader_collection.app.generated.resources.invalid_password
 import reader_collection.app.generated.resources.password
 import reader_collection.app.generated.resources.public_profile_description
@@ -174,7 +174,7 @@ private fun ProfileInfo(
         labelText = stringResource(Res.string.username),
         onTextChanged = {},
         modifier = Modifier.fillMaxWidth(),
-        endIcon = painterResource(Res.drawable.ic_show_info)
+        endIcon = rememberVectorPainter(Icons.Default.Info)
             .withDescription(stringResource(Res.string.show_info)),
         enabled = false,
         onEndIconClicked = onShowInfo,
@@ -189,10 +189,10 @@ private fun ProfileInfo(
             .padding(horizontal = 12.dp),
         errorText = passwordError?.let { stringResource(it) },
         endIcon = if (passwordVisibility) {
-            painterResource(Res.drawable.ic_hide_password)
+            rememberVectorPainter(Icons.Default.VisibilityOff)
                 .withDescription(stringResource(Res.string.hide_password))
         } else {
-            painterResource(Res.drawable.ic_show_password)
+            rememberVectorPainter(Icons.Default.Visibility)
                 .withDescription(stringResource(Res.string.show_password))
         },
         inputType = CustomInputType.PASSWORD,

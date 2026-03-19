@@ -23,6 +23,10 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -73,9 +77,6 @@ import reader_collection.app.generated.resources.enter_title
 import reader_collection.app.generated.resources.error_server
 import reader_collection.app.generated.resources.go_to_end
 import reader_collection.app.generated.resources.go_to_start
-import reader_collection.app.generated.resources.ic_add_circle_outline
-import reader_collection.app.generated.resources.ic_double_arrow_down
-import reader_collection.app.generated.resources.ic_double_arrow_up
 import reader_collection.app.generated.resources.ic_save_book
 import reader_collection.app.generated.resources.image_no_search
 import reader_collection.app.generated.resources.load_more
@@ -339,7 +340,7 @@ private fun SearchContent(
         )
 
         ListButton(
-            painter = painterResource(Res.drawable.ic_double_arrow_up)
+            painter = rememberVectorPainter(Icons.Default.KeyboardDoubleArrowUp)
                 .withDescription(stringResource(Res.string.go_to_start)),
             onClick = onTopButtonClick,
             modifier = Modifier
@@ -348,7 +349,7 @@ private fun SearchContent(
         )
 
         ListButton(
-            painter = painterResource(Res.drawable.ic_double_arrow_down)
+            painter = rememberVectorPainter(Icons.Default.KeyboardDoubleArrowDown)
                 .withDescription(stringResource(Res.string.go_to_end)),
             onClick = onBottomButtonClick,
             modifier = Modifier
@@ -370,7 +371,7 @@ private fun LoadMoreButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                painter = painterResource(Res.drawable.ic_add_circle_outline),
+                painter = rememberVectorPainter(Icons.Default.AddCircle),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.secondary,
             )
