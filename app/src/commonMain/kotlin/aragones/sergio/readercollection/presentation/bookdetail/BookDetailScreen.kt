@@ -48,9 +48,11 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.data.remote.model.FORMATS
+import aragones.sergio.readercollection.data.remote.model.FormatResponse
 import aragones.sergio.readercollection.data.remote.model.GENRES
 import aragones.sergio.readercollection.data.remote.model.GenreResponse
 import aragones.sergio.readercollection.data.remote.model.STATES
+import aragones.sergio.readercollection.data.remote.model.StateResponse
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.presentation.LocalLanguage
 import aragones.sergio.readercollection.presentation.components.CustomDropdownMenu
@@ -607,6 +609,8 @@ private fun InputChipWithDropdownMenu(onChangeData: (String) -> Unit) {
 fun BookDetailScreenPreview(
     @PreviewParameter(BookDetailScreenPreviewParameterProvider::class) state: BookDetailUiState,
 ) {
+    FORMATS = listOf(FormatResponse("PHYSICAL", "Physical"))
+    STATES = listOf(StateResponse("READING", "Reading"))
     ReaderCollectionTheme {
         CompositionLocalProvider(LocalLanguage provides "en") {
             BookDetailScreen(
