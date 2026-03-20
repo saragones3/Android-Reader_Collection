@@ -141,18 +141,18 @@ private fun FriendDetailContent(
             onBookClick = onBookClick,
         )
         BooksSection(
+            title = pendingTitle,
+            books = books.books
+                .filter { it.isPending() }
+                .sortedBy { it.priority },
+            onBookClick = onBookClick,
+        )
+        BooksSection(
             title = readTitle,
             books = books.books
                 .filter { !it.isReading() && !it.isPending() }
                 .sortedBy { it.readingDate }
                 .reversed(),
-            onBookClick = onBookClick,
-        )
-        BooksSection(
-            title = pendingTitle,
-            books = books.books
-                .filter { it.isPending() }
-                .sortedBy { it.priority },
             onBookClick = onBookClick,
         )
         item {
