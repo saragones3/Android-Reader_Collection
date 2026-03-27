@@ -5,7 +5,6 @@
 
 package aragones.sergio.readercollection.presentation.statistics
 
-import android.content.Context
 import android.graphics.Color
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -34,7 +33,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.res.ResourcesCompat
 import aragones.sergio.readercollection.data.remote.model.FORMATS
 import aragones.sergio.readercollection.data.remote.model.GENRES
 import aragones.sergio.readercollection.domain.model.Book
@@ -350,20 +348,18 @@ private fun BooksByMonth(entries: Entries, onMonthSelected: (Int?) -> Unit) {
 }
 
 @Composable
-private fun BooksByAuthor(entries: MapEntries, onAuthorSelected: (String?) -> Unit) {
+private fun BooksByAuthor(entries: Entries, onAuthorSelected: (String?) -> Unit) {
     val colorPrimary = MaterialTheme.colorScheme.primary.toArgb()
     val roseBud = MaterialTheme.colorScheme.roseBud.toArgb()
+    val chartHeight = (entries.entries.size * 50).dp.coerceAtLeast(250.dp)
     Spacer(Modifier.height(24.dp))
     AndroidView(
         factory = { context ->
             val customColors = arrayListOf(colorPrimary)
-            val barEntries = mutableListOf<BarEntry>()
-            for ((index, entry) in entries.entries.toList().withIndex()) {
-                barEntries.add(
-                    BarEntry(
-                        index.toFloat(),
-                        entry.second.size.toFloat(),
-                    ),
+            val barEntries = entries.entries.mapIndexed { index, entry ->
+                BarEntry(
+                    index.toFloat(),
+                    entry.size.toFloat(),
                 )
             }
             val dataSet = BarDataSet(barEntries, "").apply {
@@ -385,10 +381,15 @@ private fun BooksByAuthor(entries: MapEntries, onAuthorSelected: (String?) -> Un
                     textColor = colorPrimary
                     textSize = 14.sp.value
                     setDrawGridLines(false)
+                    valueFormatter = StringValueFormatter(entries.entries.map { it.key })
+                    labelCount = entries.entries.size
+                    granularity = 1F
                 }
                 axisLeft.apply {
                     setDrawLabels(false)
                     setDrawGridLines(false)
+                    axisMinimum = 0F
+                    axisMaximum = data.yMax
                 }
                 axisRight.apply {
                     setDrawLabels(false)
@@ -400,26 +401,18 @@ private fun BooksByAuthor(entries: MapEntries, onAuthorSelected: (String?) -> Un
                 setExtraOffsets(0F, 0F, 20F, 0F)
                 setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
                     override fun onValueSelected(e: Entry?, h: Highlight?) {
-                        val author = entries.entries.keys.toMutableList()[e?.x?.toInt() ?: 0]
-                        onAuthorSelected(author)
+                        val author = entries.entries[e?.x?.toInt() ?: 0]
+                        onAuthorSelected(author.key)
                     }
 
                     override fun onNothingSelected() {}
                 })
-                xAxis.apply {
-                    valueFormatter = StringValueFormatter(entries.entries)
-                    labelCount = entries.entries.size
-                }
-                axisLeft.apply {
-                    axisMinimum = 0F
-                    axisMaximum = data.yMax
-                }
                 this.data = data
                 invalidate()
                 animateY(1500)
             }
         },
-        modifier = Modifier.height(250.dp).fillMaxWidth(),
+        modifier = Modifier.height(chartHeight).fillMaxWidth(),
     )
 }
 
@@ -647,10 +640,10 @@ private class StatisticsScreenPreviewParameterProvider :
                         Entry("AGO", 20),
                     ),
                 ),
-                booksByAuthorStats = MapEntries(
-                    mapOf(
-                        "Author 1" to listOf(book),
-                        "Author 1" to listOf(book, book),
+                booksByAuthorStats = Entries(
+                    listOf(
+                        Entry("Author 1", 1),
+                        Entry("Author 1", 2),
                     ),
                 ),
                 shorterBook = book.copy(title = "Shortest read book"),
@@ -673,7 +666,7 @@ private class StatisticsScreenPreviewParameterProvider :
                 totalBooksRead = 12345,
                 booksByYearEntries = Entries(),
                 booksByMonthEntries = Entries(),
-                booksByAuthorStats = MapEntries(),
+                booksByAuthorStats = Entries(),
                 shorterBook = book.copy(title = "Shortest read book"),
                 longerBook = book.copy(title = "Longest read book"),
                 booksByFormatEntries = Entries(),
@@ -688,13 +681,10 @@ private class NumberValueFormatter : ValueFormatter() {
     override fun getFormattedValue(value: Float): String = value.toInt().toString()
 }
 
-private class StringValueFormatter(private val map: Map<String, List<Any>>) : ValueFormatter() {
+private class StringValueFormatter(private val values: List<String>) : ValueFormatter() {
     override fun getFormattedValue(value: Float): String =
-        if (value < 0 || value > map.size - 1) "" else map.keys.elementAt(value.toInt())
+        if (value < 0 || value >= values.size) "" else values[value.toInt()]
 }
-
-private fun Context.getCustomColor(colorId: Int): Int =
-    ResourcesCompat.getColor(resources, colorId, null)
 
 private fun String.toLocalFormattedDate(language: String): LocalDate? {
     val locale = Locale.forLanguageTag(language)

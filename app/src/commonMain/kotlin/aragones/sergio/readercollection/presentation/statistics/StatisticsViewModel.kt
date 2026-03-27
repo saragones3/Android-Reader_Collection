@@ -153,14 +153,17 @@ class StatisticsViewModel(
         return Entries(entries)
     }
 
-    private fun createBooksByAuthorStats(books: List<Book>): MapEntries = MapEntries(
+    private fun createBooksByAuthorStats(books: List<Book>): Entries = Entries(
         books
             .filter { it.authorsToString().isNotBlank() }
             .groupBy { it.authorsToString() }
-            .toList()
-            .sortedBy { it.second.size }
-            .takeLast(5)
-            .toMap(),
+            .map {
+                Entry(
+                    key = it.key,
+                    size = it.value.size,
+                )
+            }.sortedBy { it.size }
+            .takeLast(5),
     )
 
     private fun createFormatStats(books: List<Book>): Entries {

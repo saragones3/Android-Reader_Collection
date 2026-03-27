@@ -23,7 +23,6 @@ import aragones.sergio.readercollection.domain.model.ErrorModel
 import aragones.sergio.readercollection.domain.toLocalData
 import aragones.sergio.readercollection.presentation.statistics.Entries
 import aragones.sergio.readercollection.presentation.statistics.Entry
-import aragones.sergio.readercollection.presentation.statistics.MapEntries
 import aragones.sergio.readercollection.presentation.statistics.StatisticsUiState
 import aragones.sergio.readercollection.presentation.statistics.StatisticsViewModel
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
@@ -120,10 +119,10 @@ class StatisticsViewModelTest {
                             Entry("Oct", 1),
                         ),
                     ),
-                    booksByAuthorStats = MapEntries(
-                        mapOf(
-                            "Author 1" to listOf(book1),
-                            "Author 2" to listOf(book2),
+                    booksByAuthorStats = Entries(
+                        listOf(
+                            Entry("Author 1", 1),
+                            Entry("Author 2", 1),
                         ),
                     ),
                     shorterBook = book2,

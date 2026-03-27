@@ -175,10 +175,10 @@ private class StatisticsScreenPreviewParameterProvider :
                         Entry("AGO", 20),
                     ),
                 ),
-                booksByAuthorStats = MapEntries(
-                    mapOf(
-                        "Author 1" to listOf(book),
-                        "Author 1" to listOf(book, book),
+                booksByAuthorStats = Entries(
+                    listOf(
+                        Entry("Author 1", 1),
+                        Entry("Author 1", 2),
                     ),
                 ),
                 shorterBook = book.copy(title = "Shortest read book"),
@@ -201,7 +201,7 @@ private class StatisticsScreenPreviewParameterProvider :
                 totalBooksRead = 12345,
                 booksByYearEntries = Entries(),
                 booksByMonthEntries = Entries(),
-                booksByAuthorStats = MapEntries(),
+                booksByAuthorStats = Entries(),
                 shorterBook = book.copy(title = "Shortest read book"),
                 longerBook = book.copy(title = "Longest read book"),
                 booksByFormatEntries = Entries(),

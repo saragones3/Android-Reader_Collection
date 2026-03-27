@@ -1,12 +1,6 @@
 import com.diffplug.gradle.spotless.SpotlessExtension
 import com.diffplug.spotless.LineEnding
 
-buildscript {
-    dependencies {
-        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:${libs.versions.navigation.get()}")
-    }
-}
-
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.kotlin.multiplatform.library) apply false
