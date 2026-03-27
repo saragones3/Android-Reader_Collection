@@ -79,6 +79,7 @@ fun NavGraphBuilder.booksGraph(navController: NavHostController) {
                             month = -1,
                             author = null,
                             format = null,
+                            genre = null,
                         ),
                     )
                 },
@@ -144,7 +145,7 @@ fun NavGraphBuilder.statisticsGraph(navController: NavHostController) {
                         Route.BookDetail(bookId),
                     )
                 },
-                onShowAll = { sortParam, isSortDescending, year, month, author, format ->
+                onShowAll = { sortParam, isSortDescending, year, month, author, format, genre ->
                     navController.navigate(
                         Route.BookList(
                             state = BookState.READ,
@@ -155,6 +156,7 @@ fun NavGraphBuilder.statisticsGraph(navController: NavHostController) {
                             month = month,
                             author = author,
                             format = format,
+                            genre = genre,
                         ),
                     )
                 },

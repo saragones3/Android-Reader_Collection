@@ -42,7 +42,7 @@ actual fun StatisticsScreen(
     state: StatisticsUiState,
     onImportClick: () -> Unit,
     onExportClick: () -> Unit,
-    onGroupClick: (Int?, Int?, String?, String?) -> Unit,
+    onGroupClick: (Int?, Int?, String?, String?, String?) -> Unit,
     onBookClick: (String) -> Unit,
     modifier: Modifier,
 ) {
@@ -96,7 +96,7 @@ private fun StatisticsToolbar(
 private fun StatisticsContent(
     state: StatisticsUiState,
     scrollState: ScrollState,
-    onGroupClick: (Int?, Int?, String?, String?) -> Unit,
+    onGroupClick: (Int?, Int?, String?, String?, String?) -> Unit,
     onBookClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -121,7 +121,7 @@ private fun StatisticsContent(
 @Composable
 private fun StatisticsComponent(
     state: StatisticsUiState.Success,
-    onGroupClick: (Int?, Int?, String?, String?) -> Unit,
+    onGroupClick: (Int?, Int?, String?, String?, String?) -> Unit,
     onBookClick: (String) -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -143,7 +143,7 @@ private fun StatisticsScreenPreview(
             state = state,
             onImportClick = {},
             onExportClick = {},
-            onGroupClick = { _, _, _, _ -> },
+            onGroupClick = { _, _, _, _, _ -> },
             onBookClick = {},
         )
     }
@@ -189,6 +189,12 @@ private class StatisticsScreenPreviewParameterProvider :
                         Entry("Digital", 20),
                     ),
                 ),
+                booksByGenreEntries = Entries(
+                    listOf(
+                        Entry("Fiction", 5),
+                        Entry("Thriller", 8),
+                    ),
+                ),
                 isLoading = false,
             ),
             StatisticsUiState.Success(
@@ -199,6 +205,7 @@ private class StatisticsScreenPreviewParameterProvider :
                 shorterBook = book.copy(title = "Shortest read book"),
                 longerBook = book.copy(title = "Longest read book"),
                 booksByFormatEntries = Entries(),
+                booksByGenreEntries = Entries(),
                 isLoading = true,
             ),
             StatisticsUiState.Empty,

@@ -17,6 +17,8 @@ import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.data.remote.model.FORMATS
 import aragones.sergio.readercollection.data.remote.model.FormatResponse
+import aragones.sergio.readercollection.data.remote.model.GENRES
+import aragones.sergio.readercollection.data.remote.model.GenreResponse
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.Books
 import aragones.sergio.readercollection.domain.model.ErrorModel
@@ -262,6 +264,7 @@ class BookListViewModelTest {
     fun `GIVEN params pass to view model WHEN fetchBooks THEN return Success state with books filtered and subtitle formed`() =
         runTest {
             FORMATS = listOf(FormatResponse("PHYSICAL", "Physical"))
+            GENRES = listOf(GenreResponse("FICTION", "Fiction"))
             val testState = BookState.READ
             val testSortParam = "rating"
             val testIsSortDescending = true
@@ -269,6 +272,7 @@ class BookListViewModelTest {
             val testYear = 2025
             val testAuthor = "writer"
             val testFormat = "PHYSICAL"
+            val testGenre = "FICTION"
             val savedStateHandle: SavedStateHandle = SavedStateHandle().apply {
                 this["state"] = testState
                 this["sortParam"] = testSortParam
@@ -277,6 +281,7 @@ class BookListViewModelTest {
                 this["year"] = testYear
                 this["author"] = testAuthor
                 this["format"] = testFormat
+                this["genre"] = testGenre
             }
             val viewModel = BookListViewModel(
                 savedStateHandle,
@@ -295,6 +300,7 @@ class BookListViewModelTest {
                 title = testQuery,
                 authors = listOf(testAuthor, "another author"),
                 readingDate = LocalDate(2025, 11, 22),
+                categories = listOf(GenreResponse(testGenre, "Fiction")),
                 rating = 0.0,
                 format = testFormat,
                 state = testState,
@@ -331,7 +337,7 @@ class BookListViewModelTest {
                     BookListUiState(
                         isLoading = true,
                         books = Books(),
-                        subtitle = "2025,writer,Physical",
+                        subtitle = "2025,writer,Physical,Fiction",
                         isDraggingEnabled = false,
                     ),
                     awaitItem(),
@@ -340,7 +346,7 @@ class BookListViewModelTest {
                     BookListUiState(
                         isLoading = false,
                         books = Books(listOf(book2, book3, book1)),
-                        subtitle = "2025,writer,Physical",
+                        subtitle = "2025,writer,Physical,Fiction",
                         isDraggingEnabled = false,
                     ),
                     awaitItem(),

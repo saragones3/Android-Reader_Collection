@@ -11,6 +11,6 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 expect fun StatisticsView(
     onBookClick: (String) -> Unit,
-    onShowAll: (String?, Boolean, Int, Int, String?, String?) -> Unit,
+    onShowAll: (String?, Boolean, Int, Int, String?, String?, String?) -> Unit,
     viewModel: StatisticsViewModel = koinViewModel(),
 )

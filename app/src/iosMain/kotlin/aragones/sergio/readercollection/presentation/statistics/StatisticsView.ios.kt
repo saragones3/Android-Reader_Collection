@@ -14,7 +14,7 @@ import aragones.sergio.readercollection.presentation.theme.ReaderCollectionApp
 @Composable
 actual fun StatisticsView(
     onBookClick: (String) -> Unit,
-    onShowAll: (String?, Boolean, Int, Int, String?, String?) -> Unit,
+    onShowAll: (String?, Boolean, Int, Int, String?, String?, String?) -> Unit,
     viewModel: StatisticsViewModel,
 ) {
     val state by viewModel.state.collectAsState()
@@ -24,7 +24,7 @@ actual fun StatisticsView(
             state = state,
             onImportClick = {},
             onExportClick = {},
-            onGroupClick = { year, month, author, format ->
+            onGroupClick = { year, month, author, format, genre ->
                 onShowAll(
                     viewModel.sortParam,
                     viewModel.isSortDescending,
@@ -32,6 +32,7 @@ actual fun StatisticsView(
                     month ?: -1,
                     author,
                     format,
+                    genre,
                 )
             },
             onBookClick = onBookClick,

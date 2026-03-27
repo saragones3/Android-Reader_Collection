@@ -20,6 +20,7 @@ sealed class StatisticsUiState {
         val shorterBook: Book?,
         val longerBook: Book?,
         val booksByFormatEntries: Entries,
+        val booksByGenreEntries: Entries,
         val isLoading: Boolean,
     ) : StatisticsUiState() {
         companion object {
@@ -31,6 +32,7 @@ sealed class StatisticsUiState {
                 shorterBook = null,
                 longerBook = null,
                 booksByFormatEntries = Entries(),
+                booksByGenreEntries = Entries(),
                 isLoading = false,
             )
         }

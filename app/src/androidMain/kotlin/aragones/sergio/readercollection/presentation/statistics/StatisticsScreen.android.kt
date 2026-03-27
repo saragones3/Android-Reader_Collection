@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.res.ResourcesCompat
 import aragones.sergio.readercollection.data.remote.model.FORMATS
+import aragones.sergio.readercollection.data.remote.model.GENRES
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.presentation.LocalLanguage
 import aragones.sergio.readercollection.presentation.components.CustomCircularProgressIndicator
@@ -88,7 +89,7 @@ actual fun StatisticsScreen(
     state: StatisticsUiState,
     onImportClick: () -> Unit,
     onExportClick: () -> Unit,
-    onGroupClick: (Int?, Int?, String?, String?) -> Unit,
+    onGroupClick: (Int?, Int?, String?, String?, String?) -> Unit,
     onBookClick: (String) -> Unit,
     modifier: Modifier,
 ) {
@@ -154,7 +155,7 @@ private fun StatisticsToolbar(
 private fun StatisticsContent(
     state: StatisticsUiState,
     scrollState: ScrollState,
-    onGroupClick: (Int?, Int?, String?, String?) -> Unit,
+    onGroupClick: (Int?, Int?, String?, String?, String?) -> Unit,
     onBookClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -179,25 +180,25 @@ private fun StatisticsContent(
 @Composable
 private fun StatisticsComponent(
     state: StatisticsUiState.Success,
-    onGroupClick: (Int?, Int?, String?, String?) -> Unit,
+    onGroupClick: (Int?, Int?, String?, String?, String?) -> Unit,
     onBookClick: (String) -> Unit,
 ) {
     if (state.booksByYearEntries.entries.isNotEmpty()) {
         BooksByYear(
             entries = state.booksByYearEntries,
-            onYearSelected = { onGroupClick(it, null, null, null) },
+            onYearSelected = { onGroupClick(it, null, null, null, null) },
         )
     }
     if (state.booksByMonthEntries.entries.isNotEmpty()) {
         BooksByMonth(
             entries = state.booksByMonthEntries,
-            onMonthSelected = { onGroupClick(null, it, null, null) },
+            onMonthSelected = { onGroupClick(null, it, null, null, null) },
         )
     }
     if (state.booksByAuthorStats.entries.isNotEmpty()) {
         BooksByAuthor(
             entries = state.booksByAuthorStats,
-            onAuthorSelected = { onGroupClick(null, null, it, null) },
+            onAuthorSelected = { onGroupClick(null, null, it, null, null) },
         )
     }
     BooksByPages(
@@ -208,7 +209,13 @@ private fun StatisticsComponent(
     if (state.booksByFormatEntries.entries.isNotEmpty()) {
         BooksByFormat(
             entries = state.booksByFormatEntries,
-            onFormatSelected = { onGroupClick(null, null, null, it) },
+            onFormatSelected = { onGroupClick(null, null, null, it, null) },
+        )
+    }
+    if (state.booksByGenreEntries.entries.isNotEmpty()) {
+        BooksByGenre(
+            entries = state.booksByGenreEntries,
+            onGenreSelected = { onGroupClick(null, null, null, null, it) },
         )
     }
 }
@@ -526,6 +533,77 @@ private fun BooksByFormat(entries: Entries, onFormatSelected: (String?) -> Unit)
     )
 }
 
+@Composable
+private fun BooksByGenre(entries: Entries, onGenreSelected: (String?) -> Unit) {
+    val colorPrimary = MaterialTheme.colorScheme.primary.toArgb()
+    val roseBud = MaterialTheme.colorScheme.roseBud.toArgb()
+    val chartHeight = (entries.entries.size * 50).dp.coerceAtLeast(250.dp)
+    Spacer(Modifier.height(24.dp))
+    AndroidView(
+        factory = { context ->
+            val customColors = arrayListOf(colorPrimary)
+            val barEntries = entries.entries.mapIndexed { index, entry ->
+                BarEntry(
+                    index.toFloat(),
+                    entry.size.toFloat(),
+                )
+            }
+            val dataSet = BarDataSet(barEntries, "").apply {
+                valueTextColor = colorPrimary
+                valueTextSize = 12.sp.value
+                valueFormatter = NumberValueFormatter()
+                colors = customColors
+                highLightColor = roseBud
+                setDrawValues(true)
+            }
+            val data = BarData(dataSet)
+            HorizontalBarChart(context).apply {
+                isDoubleTapToZoomEnabled = false
+                isHighlightPerDragEnabled = false
+                legend.isEnabled = false
+                description.isEnabled = false
+                xAxis.apply {
+                    position = XAxisPosition.BOTTOM
+                    textColor = colorPrimary
+                    textSize = 14.sp.value
+                    setDrawGridLines(false)
+                    valueFormatter = StringValueFormatter(entries.entries.map { it.key })
+                    labelCount = entries.entries.size
+                    granularity = 1F
+                }
+                axisLeft.apply {
+                    setDrawLabels(false)
+                    setDrawGridLines(false)
+                    axisMinimum = 0F
+                    axisMaximum = data.yMax
+                }
+                axisRight.apply {
+                    setDrawLabels(false)
+                    setDrawGridLines(false)
+                }
+                setDrawGridBackground(false)
+                setDrawBarShadow(false)
+                setFitBars(true)
+                setExtraOffsets(0F, 0F, 20F, 0F)
+                setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
+                    override fun onValueSelected(e: Entry?, h: Highlight?) {
+                        val genre = entries.entries[e?.x?.toInt() ?: 0]
+                        onGenreSelected(
+                            GENRES.first { it.name == genre.key }.id,
+                        )
+                    }
+
+                    override fun onNothingSelected() {}
+                })
+                this.data = data
+                invalidate()
+                animateY(1500)
+            }
+        },
+        modifier = Modifier.height(chartHeight).fillMaxWidth(),
+    )
+}
+
 @CustomPreviewLightDark
 @Composable
 private fun StatisticsScreenPreview(
@@ -536,7 +614,7 @@ private fun StatisticsScreenPreview(
             state = state,
             onImportClick = {},
             onExportClick = {},
-            onGroupClick = { _, _, _, _ -> },
+            onGroupClick = { _, _, _, _, _ -> },
             onBookClick = {},
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
@@ -583,6 +661,12 @@ private class StatisticsScreenPreviewParameterProvider :
                         Entry("Digital", 20),
                     ),
                 ),
+                booksByGenreEntries = Entries(
+                    listOf(
+                        Entry("Fiction", 5),
+                        Entry("Thriller", 8),
+                    ),
+                ),
                 isLoading = false,
             ),
             StatisticsUiState.Success(
@@ -593,6 +677,7 @@ private class StatisticsScreenPreviewParameterProvider :
                 shorterBook = book.copy(title = "Shortest read book"),
                 longerBook = book.copy(title = "Longest read book"),
                 booksByFormatEntries = Entries(),
+                booksByGenreEntries = Entries(),
                 isLoading = true,
             ),
             StatisticsUiState.Empty,
