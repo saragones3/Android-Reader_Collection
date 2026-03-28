@@ -344,6 +344,25 @@ class SearchViewModelTest {
         confirmVerified(booksRemoteDataSource)
     }
 
+    @Test
+    fun `GIVEN new param WHEN changeFilter THEN update state with new param`() = runTest {
+        viewModel.state.test {
+            assertEquals(SearchUiState.Empty, awaitItem())
+
+            viewModel.changeFilter(SearchParam.TITLE)
+
+            assertEquals(
+                SearchUiState.Success(
+                    isLoading = false,
+                    query = "",
+                    books = Books(),
+                    param = SearchParam.TITLE,
+                ),
+                awaitItem(),
+            )
+        }
+    }
+
     private fun getDefaultGoogleBook(bookId: String) = GoogleBookResponse(
         id = bookId,
         volumeInfo = GoogleVolumeResponse(
