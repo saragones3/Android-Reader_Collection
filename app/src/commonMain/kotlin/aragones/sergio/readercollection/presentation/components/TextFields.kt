@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.Icon
@@ -40,6 +41,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
@@ -58,12 +60,10 @@ import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import aragones.sergio.readercollection.utils.UiDateMapper.toLong
 import com.aragones.sergio.util.CustomInputType
 import com.aragones.sergio.util.extensions.isNotBlank
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.dropdown_text_field_description
 import reader_collection.app.generated.resources.field_required
-import reader_collection.app.generated.resources.ic_show_password
 import reader_collection.app.generated.resources.invalid_username
 import reader_collection.app.generated.resources.read_more
 import reader_collection.app.generated.resources.show_password
@@ -463,7 +463,7 @@ private fun PasswordOutlinedTextFieldPreview() {
             labelText = "Label",
             onTextChanged = {},
             modifier = Modifier.padding(12.dp),
-            endIcon = painterResource(Res.drawable.ic_show_password)
+            endIcon = rememberVectorPainter(Icons.Default.Visibility)
                 .withDescription(null),
             isRequired = true,
             onEndIconClicked = {},

@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import aragones.sergio.readercollection.data.remote.model.FORMATS
+import aragones.sergio.readercollection.data.remote.model.GENRES
 import aragones.sergio.readercollection.domain.BooksRepository
 import aragones.sergio.readercollection.domain.UserRepository
 import aragones.sergio.readercollection.domain.model.Book
@@ -55,6 +56,9 @@ class BookListViewModel(
             }
             params.format?.let { format ->
                 subtitle += "${FORMATS.firstOrNull { it.id == format }?.name ?: ""},"
+            }
+            params.genre?.let { genre ->
+                subtitle += "${GENRES.firstOrNull { it.id == genre }?.name ?: ""},"
             }
             return subtitle.dropLast(1)
         }
@@ -149,6 +153,9 @@ class BookListViewModel(
                 }
                 if (params.state.isNotEmpty()) {
                     condition = condition && book.state == params.state
+                }
+                params.genre?.let { genre ->
+                    condition = condition && book.categories?.any { it.id == genre } == true
                 }
                 condition
             }.filter { book ->

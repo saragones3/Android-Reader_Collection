@@ -17,6 +17,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -27,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -45,8 +49,6 @@ import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.create_account
 import reader_collection.app.generated.resources.hide_password
-import reader_collection.app.generated.resources.ic_hide_password
-import reader_collection.app.generated.resources.ic_show_password
 import reader_collection.app.generated.resources.invalid_password
 import reader_collection.app.generated.resources.invalid_username
 import reader_collection.app.generated.resources.login_register_image
@@ -109,10 +111,10 @@ fun LoginScreen(
                 .padding(horizontal = 12.dp),
             errorText = state.formState.passwordError?.let { stringResource(it) },
             endIcon = if (passwordVisibility) {
-                painterResource(Res.drawable.ic_hide_password)
+                rememberVectorPainter(Icons.Default.VisibilityOff)
                     .withDescription(stringResource(Res.string.hide_password))
             } else {
-                painterResource(Res.drawable.ic_show_password)
+                rememberVectorPainter(Icons.Default.Visibility)
                     .withDescription(stringResource(Res.string.show_password))
             },
             inputType = CustomInputType.PASSWORD,

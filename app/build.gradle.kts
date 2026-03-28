@@ -9,7 +9,6 @@ plugins {
     alias(libs.plugins.google.services)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
-    id("androidx.navigation.safeargs.kotlin")
 }
 
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")

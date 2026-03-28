@@ -13,7 +13,7 @@ expect fun StatisticsScreen(
     state: StatisticsUiState,
     onImportClick: () -> Unit,
     onExportClick: () -> Unit,
-    onGroupClick: (Int?, Int?, String?, String?) -> Unit,
+    onGroupClick: (Int?, Int?, String?, String?, String?) -> Unit,
     onBookClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 )

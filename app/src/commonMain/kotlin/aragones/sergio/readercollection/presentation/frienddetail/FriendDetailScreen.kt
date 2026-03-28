@@ -24,13 +24,20 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
@@ -54,7 +61,9 @@ import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import com.aragones.sergio.util.BookState
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
+import reader_collection.app.generated.resources.collapse_section_description
 import reader_collection.app.generated.resources.delete
+import reader_collection.app.generated.resources.expand_section_description
 import reader_collection.app.generated.resources.pending
 import reader_collection.app.generated.resources.read
 import reader_collection.app.generated.resources.reading
@@ -109,6 +118,10 @@ private fun FriendDetailContent(
     val readingTitle = stringResource(Res.string.reading)
     val readTitle = stringResource(Res.string.read)
     val pendingTitle = stringResource(Res.string.pending)
+
+    var isPendingExpanded by rememberSaveable { mutableStateOf(true) }
+    var isReadExpanded by rememberSaveable { mutableStateOf(true) }
+
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = modifier
@@ -141,19 +154,23 @@ private fun FriendDetailContent(
             onBookClick = onBookClick,
         )
         BooksSection(
+            title = pendingTitle,
+            books = books.books
+                .filter { it.isPending() }
+                .sortedBy { it.priority },
+            onBookClick = onBookClick,
+            isExpanded = isPendingExpanded,
+            onExpandClick = { isPendingExpanded = !isPendingExpanded },
+        )
+        BooksSection(
             title = readTitle,
             books = books.books
                 .filter { !it.isReading() && !it.isPending() }
                 .sortedBy { it.readingDate }
                 .reversed(),
             onBookClick = onBookClick,
-        )
-        BooksSection(
-            title = pendingTitle,
-            books = books.books
-                .filter { it.isPending() }
-                .sortedBy { it.priority },
-            onBookClick = onBookClick,
+            isExpanded = isReadExpanded,
+            onExpandClick = { isReadExpanded = !isReadExpanded },
         )
         item {
             Spacer(Modifier.height(24.dp))
@@ -196,46 +213,78 @@ private fun LazyGridScope.BooksSection(
     title: String,
     books: List<Book>,
     onBookClick: (String) -> Unit,
+    isExpanded: Boolean? = null,
+    onExpandClick: () -> Unit = {},
 ) {
     if (books.isNotEmpty()) {
         stickyHeader {
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.background),
             ) {
-                Spacer(Modifier.height(24.dp))
-                Text(
-                    text = title,
-                    modifier = Modifier.semantics { heading() },
-                    textAlign = TextAlign.Start,
-                    style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
+                HorizontalDivider(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.tertiary,
                 )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = title,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(vertical = 12.dp)
+                            .semantics { heading() },
+                        textAlign = TextAlign.Start,
+                        style = MaterialTheme.typography.displayMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                    )
+                    isExpanded?.let {
+                        IconButton(onClick = onExpandClick) {
+                            Icon(
+                                imageVector =
+                                    if (isExpanded) {
+                                        Icons.Default.KeyboardArrowUp
+                                    } else {
+                                        Icons.Default.KeyboardArrowDown
+                                    },
+                                contentDescription =
+                                    if (isExpanded) {
+                                        stringResource(Res.string.collapse_section_description)
+                                    } else {
+                                        stringResource(Res.string.expand_section_description)
+                                    },
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                }
+                HorizontalDivider(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
+                Spacer(Modifier.height(12.dp))
             }
         }
-        items(
-            items = books,
-            key = { book -> book.id },
-        ) { book ->
-            VerticalBookItem(
-                book = book,
-                isSwitchLeftIconEnabled = false,
-                isSwitchRightIconEnabled = false,
-                onClick = { onBookClick(book.id) },
-                onSwitchToLeft = {},
-                onSwitchToRight = {},
-                onLongClick = {},
-            )
-        }
-        item(span = { GridItemSpan(2) }) {
-            Spacer(Modifier.height(16.dp))
-            HorizontalDivider(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.tertiary,
-            )
+        if (isExpanded != false) {
+            items(
+                items = books,
+                key = { book -> book.id },
+            ) { book ->
+                VerticalBookItem(
+                    book = book,
+                    isSwitchLeftIconEnabled = false,
+                    isSwitchRightIconEnabled = false,
+                    onClick = { onBookClick(book.id) },
+                    onSwitchToLeft = {},
+                    onSwitchToRight = {},
+                    onLongClick = {},
+                )
+            }
         }
     }
 }

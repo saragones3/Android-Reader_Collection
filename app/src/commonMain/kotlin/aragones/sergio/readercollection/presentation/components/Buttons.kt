@@ -7,6 +7,8 @@ package aragones.sergio.readercollection.presentation.components
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -16,13 +18,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.delete
-import reader_collection.app.generated.resources.ic_double_arrow_up
 import reader_collection.app.generated.resources.sign_in
 
 @Composable
@@ -120,7 +121,7 @@ private fun MainDestructiveActionButtonPreview() {
 private fun ListButtonPreview() {
     ReaderCollectionTheme {
         ListButton(
-            painter = painterResource(Res.drawable.ic_double_arrow_up)
+            painter = rememberVectorPainter(Icons.Default.KeyboardDoubleArrowUp)
                 .withDescription(null),
             onClick = {},
         )
