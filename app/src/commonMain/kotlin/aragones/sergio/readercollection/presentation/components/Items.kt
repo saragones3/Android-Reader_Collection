@@ -8,21 +8,17 @@ package aragones.sergio.readercollection.presentation.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.SwitchLeft
 import androidx.compose.material.icons.filled.SwitchRight
@@ -30,14 +26,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
@@ -51,15 +43,12 @@ import aragones.sergio.readercollection.presentation.theme.isLight
 import aragones.sergio.readercollection.presentation.theme.roseBud
 import aragones.sergio.readercollection.presentation.theme.selector
 import com.aragones.sergio.util.extensions.isNotBlank
-import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.decrease_priority_description
 import reader_collection.app.generated.resources.dragging_enabled_description
 import reader_collection.app.generated.resources.ic_default_book_cover_blue
 import reader_collection.app.generated.resources.ic_default_book_cover_white
-import reader_collection.app.generated.resources.ic_save_book
 import reader_collection.app.generated.resources.increase_priority_description
 import reader_collection.app.generated.resources.new_book
 import reader_collection.app.generated.resources.no_rated_description
@@ -328,78 +317,6 @@ fun VerticalBookItem(
     }
 }
 
-@Composable
-fun SwipeItem(
-    direction: SwipeDirection,
-    threshold: Float,
-    onSwipe: () -> Unit,
-    background: @Composable RowScope.() -> Unit,
-    content: @Composable RowScope.() -> Unit,
-) {
-    val coroutineScope = rememberCoroutineScope()
-    val swipeState = rememberSwipeToDismissBoxState(
-        positionalThreshold = { it * threshold },
-    )
-    SwipeToDismissBox(
-        state = swipeState,
-        enableDismissFromStartToEnd = direction == SwipeDirection.RIGHT,
-        enableDismissFromEndToStart = direction == SwipeDirection.LEFT,
-        backgroundContent = background,
-        onDismiss = {
-            onSwipe()
-            coroutineScope.launch {
-                swipeState.reset()
-            }
-        },
-        content = content,
-    )
-}
-
-@Composable
-fun SwipeItemBackground(
-    direction: SwipeDirection,
-    color: Color,
-    accessibilityPainter: AccessibilityPainter? = null,
-) {
-    Row(modifier = Modifier.fillMaxSize()) {
-        val alignment = when (direction) {
-            SwipeDirection.RIGHT -> Alignment.CenterStart
-            SwipeDirection.LEFT -> Alignment.CenterEnd
-        }
-        if (direction == SwipeDirection.LEFT) {
-            Spacer(modifier = Modifier.fillMaxWidth(.1f))
-        }
-        Box(
-            modifier = Modifier
-                .background(color)
-                .fillMaxHeight()
-                .run {
-                    if (direction == SwipeDirection.RIGHT) {
-                        fillMaxWidth(0.9f)
-                    } else {
-                        fillMaxWidth()
-                    }
-                },
-            contentAlignment = alignment,
-        ) {
-            if (accessibilityPainter != null) {
-                Icon(
-                    accessibilityPainter.painter,
-                    contentDescription = accessibilityPainter.contentDescription,
-                    modifier = Modifier
-                        .size(200.dp)
-                        .padding(48.dp),
-                )
-            }
-        }
-    }
-}
-
-enum class SwipeDirection {
-    LEFT,
-    RIGHT,
-}
-
 @CustomPreviewLightDarkWithBackground
 @Composable
 private fun BookItemPreview() {
@@ -463,52 +380,6 @@ private fun VerticalBookItemPreview() {
             onSwitchToLeft = {},
             onSwitchToRight = {},
             onLongClick = {},
-        )
-    }
-}
-
-@CustomPreviewLightDarkWithBackground
-@Composable
-private fun SwipeItemToLeftPreview() {
-    ReaderCollectionTheme {
-        SwipeItem(
-            direction = SwipeDirection.LEFT,
-            threshold = 0.6f,
-            onSwipe = {},
-            background = {
-                SwipeItemBackground(
-                    direction = SwipeDirection.LEFT,
-                    color = MaterialTheme.colorScheme.roseBud,
-                    accessibilityPainter = painterResource(Res.drawable.ic_save_book)
-                        .withDescription(null),
-                )
-            },
-            content = {
-                Box(Modifier.size(200.dp))
-            },
-        )
-    }
-}
-
-@CustomPreviewLightDarkWithBackground
-@Composable
-private fun SwipeItemToRightPreview() {
-    ReaderCollectionTheme {
-        SwipeItem(
-            direction = SwipeDirection.RIGHT,
-            threshold = 0.6f,
-            onSwipe = {},
-            background = {
-                SwipeItemBackground(
-                    direction = SwipeDirection.RIGHT,
-                    color = MaterialTheme.colorScheme.roseBud,
-                    accessibilityPainter = rememberVectorPainter(Icons.Default.Delete)
-                        .withDescription(null),
-                )
-            },
-            content = {
-                Box(Modifier.size(200.dp))
-            },
         )
     }
 }

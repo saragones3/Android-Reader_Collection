@@ -11,16 +11,11 @@ import aragones.sergio.readercollection.domain.BooksRepository
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.Books
 import aragones.sergio.readercollection.domain.model.ErrorModel
-import com.aragones.sergio.util.BookState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.StringResource
 import reader_collection.app.generated.resources.Res
-import reader_collection.app.generated.resources.book_saved
-import reader_collection.app.generated.resources.error_database
-import reader_collection.app.generated.resources.error_resource_found
 import reader_collection.app.generated.resources.error_search
 
 class SearchViewModel(
@@ -31,22 +26,11 @@ class SearchViewModel(
     private var query = ""
     private var page: Int = 1
     private val books = mutableListOf<Book>()
-    private var savedBooks = mutableListOf<Book>()
-    private val pendingBooks: List<Book>
-        get() = savedBooks.filter { it.isPending() }
     private val _state: MutableStateFlow<SearchUiState> = MutableStateFlow(SearchUiState.Empty)
-    private val _infoDialogMessageId = MutableStateFlow<StringResource?>(null)
     //endregion
 
     //region Public properties
     var state: StateFlow<SearchUiState> = _state
-    val infoDialogMessageId: StateFlow<StringResource?> = _infoDialogMessageId
-    //endregion
-
-    //region Lifecycle methods
-    fun onResume() {
-        fetchSavedBooks()
-    }
     //endregion
 
     //region Public methods
@@ -123,40 +107,6 @@ class SearchViewModel(
                 is SearchUiState.Success -> it.copy(param = param)
                 is SearchUiState.Error -> it.copy(param = param)
             }
-        }
-    }
-
-    fun addBook(bookId: String) {
-        if (savedBooks.firstOrNull { it.id == bookId } != null) {
-            _infoDialogMessageId.value = Res.string.error_resource_found
-            return
-        }
-
-        val newBook = books.firstOrNull { it.id == bookId } ?: return
-        newBook.state = BookState.PENDING
-        newBook.priority = (pendingBooks.maxByOrNull { it.priority }?.priority ?: -1) + 1
-
-        viewModelScope.launch {
-            booksRepository.createBook(newBook).fold(
-                onSuccess = {
-                    _infoDialogMessageId.value = Res.string.book_saved
-                },
-                onFailure = {
-                    _infoDialogMessageId.value = Res.string.error_database
-                },
-            )
-        }
-    }
-
-    fun closeDialogs() {
-        _infoDialogMessageId.value = null
-    }
-    //endregion
-
-    //region Private methods
-    private fun fetchSavedBooks() = viewModelScope.launch {
-        booksRepository.getBooks().collect {
-            savedBooks = it.toMutableList()
         }
     }
     //endregion

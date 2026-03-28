@@ -46,9 +46,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.semantics.CustomAccessibilityAction
-import androidx.compose.ui.semantics.customActions
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.IntOffset
@@ -62,14 +59,9 @@ import aragones.sergio.readercollection.presentation.components.CustomPreviewLig
 import aragones.sergio.readercollection.presentation.components.CustomSearchBar
 import aragones.sergio.readercollection.presentation.components.ListButton
 import aragones.sergio.readercollection.presentation.components.NoResultsComponent
-import aragones.sergio.readercollection.presentation.components.SwipeDirection
-import aragones.sergio.readercollection.presentation.components.SwipeItem
-import aragones.sergio.readercollection.presentation.components.SwipeItemBackground
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
-import aragones.sergio.readercollection.presentation.theme.roseBud
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.enter_author
@@ -77,11 +69,9 @@ import reader_collection.app.generated.resources.enter_title
 import reader_collection.app.generated.resources.error_server
 import reader_collection.app.generated.resources.go_to_end
 import reader_collection.app.generated.resources.go_to_start
-import reader_collection.app.generated.resources.ic_save_book
 import reader_collection.app.generated.resources.image_no_search
 import reader_collection.app.generated.resources.load_more
 import reader_collection.app.generated.resources.no_search_yet_text
-import reader_collection.app.generated.resources.save
 import reader_collection.app.generated.resources.title_search
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,7 +81,6 @@ fun SearchScreen(
     onSearch: (String) -> Unit,
     onFilter: (SearchParam) -> Unit,
     onBookClick: (String) -> Unit,
-    onSwipe: (String) -> Unit,
     onLoadMoreClick: () -> Unit,
     onRefresh: () -> Unit,
     onBack: () -> Unit,
@@ -188,7 +177,6 @@ fun SearchScreen(
                                 }
                             },
                             onBookClick = onBookClick,
-                            onSwipe = onSwipe,
                             onLoadMoreClick = onLoadMoreClick,
                             modifier = Modifier.fillMaxSize(),
                         )
@@ -283,7 +271,6 @@ private fun SearchContent(
     onTopButtonClick: () -> Unit,
     onBottomButtonClick: () -> Unit,
     onBookClick: (String) -> Unit,
-    onSwipe: (String) -> Unit,
     onLoadMoreClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -294,35 +281,10 @@ private fun SearchContent(
         ) {
             itemsIndexed(books.books) { index, book ->
                 if (book.id.isNotBlank()) {
-                    val swipeActionLabel = stringResource(Res.string.save)
-                    val direction = SwipeDirection.LEFT
-                    SwipeItem(
-                        direction = direction,
-                        threshold = 0.6f,
-                        onSwipe = { onSwipe(book.id) },
-                        background = {
-                            SwipeItemBackground(
-                                direction = direction,
-                                color = MaterialTheme.colorScheme.roseBud,
-                                accessibilityPainter = painterResource(Res.drawable.ic_save_book)
-                                    .withDescription(swipeActionLabel),
-                            )
-                        },
-                        content = {
-                            BookItem(
-                                book = book,
-                                onBookClick = onBookClick,
-                                showDivider = index < books.books.size - 1,
-                                modifier = Modifier.semantics {
-                                    customActions = listOf(
-                                        CustomAccessibilityAction(swipeActionLabel) {
-                                            onSwipe(book.id)
-                                            true
-                                        },
-                                    )
-                                },
-                            )
-                        },
+                    BookItem(
+                        book = book,
+                        onBookClick = onBookClick,
+                        showDivider = index < books.books.size - 1,
                     )
                 } else {
                     LoadMoreButton(onLoadMoreClick)
@@ -403,7 +365,6 @@ private fun SearchScreenPreview(
             onSearch = {},
             onFilter = {},
             onBookClick = {},
-            onSwipe = {},
             onLoadMoreClick = {},
             onRefresh = {},
             onBack = {},
