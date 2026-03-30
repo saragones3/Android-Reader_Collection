@@ -16,13 +16,13 @@ import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.data.remote.model.FORMATS
 import aragones.sergio.readercollection.data.remote.model.FormatResponse
+import aragones.sergio.readercollection.data.remote.model.GENRES
 import aragones.sergio.readercollection.data.remote.model.GenreResponse
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.ErrorModel
 import aragones.sergio.readercollection.domain.toLocalData
 import aragones.sergio.readercollection.presentation.statistics.Entries
 import aragones.sergio.readercollection.presentation.statistics.Entry
-import aragones.sergio.readercollection.presentation.statistics.MapEntries
 import aragones.sergio.readercollection.presentation.statistics.StatisticsUiState
 import aragones.sergio.readercollection.presentation.statistics.StatisticsViewModel
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
@@ -83,10 +83,12 @@ class StatisticsViewModelTest {
     fun `GIVEN read books WHEN fetch books THEN return Success state with statistics data`() =
         runTest {
             FORMATS = listOf(FormatResponse("PHYSICAL", "Physical"))
+            GENRES = listOf(GenreResponse("FICTION", "Fiction"))
             val book1 = Book(id = "bookId1").copy(
                 authors = listOf("Author 1"),
                 readingDate = LocalDate(2025, 10, 5),
                 pageCount = 100,
+                categories = listOf(GenreResponse("FICTION", "Fiction")),
                 format = "PHYSICAL",
             )
             val book2 = Book(id = "bookId2").copy(
@@ -117,15 +119,16 @@ class StatisticsViewModelTest {
                             Entry("Oct", 1),
                         ),
                     ),
-                    booksByAuthorStats = MapEntries(
-                        mapOf(
-                            "Author 1" to listOf(book1),
-                            "Author 2" to listOf(book2),
+                    booksByAuthorStats = Entries(
+                        listOf(
+                            Entry("Author 1", 1),
+                            Entry("Author 2", 1),
                         ),
                     ),
                     shorterBook = book2,
                     longerBook = book1,
                     booksByFormatEntries = Entries(listOf(Entry("Physical", 1))),
+                    booksByGenreEntries = Entries(listOf(Entry("Fiction", 1))),
                     isLoading = false,
                 )
                 val result = awaitItem()
@@ -158,6 +161,10 @@ class StatisticsViewModelTest {
                 assertEquals(
                     expected.booksByFormatEntries.entries.map { it.key to it.size },
                     result.booksByFormatEntries.entries.map { it.key to it.size },
+                )
+                assertEquals(
+                    expected.booksByGenreEntries.entries.map { it.key to it.size },
+                    result.booksByGenreEntries.entries.map { it.key to it.size },
                 )
                 assertEquals(
                     expected.isLoading,

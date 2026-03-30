@@ -8,6 +8,7 @@ package aragones.sergio.readercollection.presentation.statistics
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import aragones.sergio.readercollection.data.remote.model.FORMATS
+import aragones.sergio.readercollection.data.remote.model.GENRES
 import aragones.sergio.readercollection.domain.BooksRepository
 import aragones.sergio.readercollection.domain.UserRepository
 import aragones.sergio.readercollection.domain.model.Book
@@ -72,6 +73,7 @@ class StatisticsViewModel(
                         .filter { it.pageCount > 0 }
                         .maxByOrNull { it.pageCount },
                     booksByFormatEntries = createFormatStats(books),
+                    booksByGenreEntries = createGenreStats(books),
                     isLoading = false,
                 )
             }
@@ -151,14 +153,17 @@ class StatisticsViewModel(
         return Entries(entries)
     }
 
-    private fun createBooksByAuthorStats(books: List<Book>): MapEntries = MapEntries(
+    private fun createBooksByAuthorStats(books: List<Book>): Entries = Entries(
         books
             .filter { it.authorsToString().isNotBlank() }
             .groupBy { it.authorsToString() }
-            .toList()
-            .sortedBy { it.second.size }
-            .takeLast(5)
-            .toMap(),
+            .map {
+                Entry(
+                    key = it.key,
+                    size = it.value.size,
+                )
+            }.sortedBy { it.size }
+            .takeLast(5),
     )
 
     private fun createFormatStats(books: List<Book>): Entries {
@@ -177,5 +182,20 @@ class StatisticsViewModel(
         }
         return Entries(entries)
     }
+
+    private fun createGenreStats(books: List<Book>): Entries = Entries(
+        books
+            .flatMap { it.categories ?: emptyList() }
+            .filter { category -> GENRES.any { it.id == category.id } }
+            .groupBy { it.id }
+            .entries
+            .map { entry ->
+                Entry(
+                    key = entry.value.first().name,
+                    size = entry.value.size,
+                )
+            }.sortedBy { it.size }
+            .takeLast(5),
+    )
     //endregion
 }

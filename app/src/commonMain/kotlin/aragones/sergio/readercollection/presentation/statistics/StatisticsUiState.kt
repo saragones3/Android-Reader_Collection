@@ -16,10 +16,11 @@ sealed class StatisticsUiState {
         val totalBooksRead: Int,
         val booksByYearEntries: Entries,
         val booksByMonthEntries: Entries,
-        val booksByAuthorStats: MapEntries,
+        val booksByAuthorStats: Entries,
         val shorterBook: Book?,
         val longerBook: Book?,
         val booksByFormatEntries: Entries,
+        val booksByGenreEntries: Entries,
         val isLoading: Boolean,
     ) : StatisticsUiState() {
         companion object {
@@ -27,10 +28,11 @@ sealed class StatisticsUiState {
                 totalBooksRead = 0,
                 booksByYearEntries = Entries(),
                 booksByMonthEntries = Entries(),
-                booksByAuthorStats = MapEntries(),
+                booksByAuthorStats = Entries(),
                 shorterBook = null,
                 longerBook = null,
                 booksByFormatEntries = Entries(),
+                booksByGenreEntries = Entries(),
                 isLoading = false,
             )
         }
@@ -41,6 +43,3 @@ data class Entry(val key: String, val size: Int)
 
 @Immutable
 data class Entries(val entries: List<Entry> = listOf())
-
-@Immutable
-data class MapEntries(val entries: Map<String, List<Book>> = mapOf())

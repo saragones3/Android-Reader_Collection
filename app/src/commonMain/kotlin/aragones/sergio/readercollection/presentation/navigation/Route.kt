@@ -56,6 +56,7 @@ sealed class Route {
         val month: Int = -1,
         val author: String? = null,
         val format: String? = null,
+        val genre: String? = null,
     ) : Route()
 
     @Serializable

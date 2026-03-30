@@ -1,1 +1,4 @@
-- Se ha añadido la posibilidad de buscar libros por título o autor específicamente.
+- Se han modificado algunos iconos para adaptarlos más al estilo.
+- Se ha añadido la opción de colapsar y expandir los libros de tus amigos, para que sea más fácil ver las diferentes secciones.
+- Se han añadido los géneros más leídos a las Estadísticas.
+- Se ha eliminado la opción de añadir un libro deslizándolo en el listado de búsqueda, para no interferir con el scroll.

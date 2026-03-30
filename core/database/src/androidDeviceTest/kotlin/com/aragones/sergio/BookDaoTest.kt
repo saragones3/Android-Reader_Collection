@@ -325,7 +325,7 @@ class BookDaoTest {
         priority = cursor.getInt(19),
     )
 
-    private fun Book.toSql(): Array<out Any?> = arrayOf(
+    private fun Book.toSql(): Array<out Any?> = arrayOf<Any?>(
         id,
         title,
         subtitle,

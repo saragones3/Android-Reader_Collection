@@ -28,7 +28,7 @@ import reader_collection.app.generated.resources.import_confirmation
 @Composable
 actual fun StatisticsView(
     onBookClick: (String) -> Unit,
-    onShowAll: (String?, Boolean, Int, Int, String?, String?) -> Unit,
+    onShowAll: (String?, Boolean, Int, Int, String?, String?, String?) -> Unit,
     viewModel: StatisticsViewModel,
 ) {
     val context = LocalContext.current
@@ -84,7 +84,7 @@ actual fun StatisticsView(
             onExportClick = {
                 viewModel.showConfirmationDialog(Res.string.export_confirmation)
             },
-            onGroupClick = { year, month, author, format ->
+            onGroupClick = { year, month, author, format, genre ->
                 onShowAll(
                     viewModel.sortParam,
                     viewModel.isSortDescending,
@@ -92,6 +92,7 @@ actual fun StatisticsView(
                     month ?: -1,
                     author,
                     format,
+                    genre,
                 )
             },
             onBookClick = onBookClick,

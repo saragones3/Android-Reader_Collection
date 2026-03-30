@@ -17,6 +17,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -32,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -62,10 +68,6 @@ import reader_collection.app.generated.resources.enable_dragging
 import reader_collection.app.generated.resources.go_to_end
 import reader_collection.app.generated.resources.go_to_start
 import reader_collection.app.generated.resources.ic_disable_drag
-import reader_collection.app.generated.resources.ic_double_arrow_down
-import reader_collection.app.generated.resources.ic_double_arrow_up
-import reader_collection.app.generated.resources.ic_enable_drag
-import reader_collection.app.generated.resources.ic_sort_books
 import reader_collection.app.generated.resources.sort_books
 import reader_collection.app.generated.resources.title_books_count
 
@@ -107,14 +109,14 @@ fun BookListScreen(
                     painterResource(Res.drawable.ic_disable_drag)
                         .withDescription(stringResource(Res.string.disable_dragging))
                 } else {
-                    painterResource(Res.drawable.ic_enable_drag)
+                    rememberVectorPainter(Icons.Default.DragHandle)
                         .withDescription(stringResource(Res.string.enable_dragging))
                 },
                 onClick = onDragClick,
             )
         } else {
             TopAppBarIcon(
-                accessibilityPainter = painterResource(Res.drawable.ic_sort_books)
+                accessibilityPainter = rememberVectorPainter(Icons.AutoMirrored.Filled.Sort)
                     .withDescription(stringResource(Res.string.sort_books)),
                 onClick = onSortClick,
             )
@@ -253,7 +255,7 @@ private fun BookListContent(
             }
         }
         ListButton(
-            painter = painterResource(Res.drawable.ic_double_arrow_up)
+            painter = rememberVectorPainter(Icons.Default.KeyboardDoubleArrowUp)
                 .withDescription(stringResource(Res.string.go_to_start)),
             onClick = {
                 coroutineScope.launch {
@@ -265,7 +267,7 @@ private fun BookListContent(
                 .offset { IntOffset(topOffset.toInt(), 0) },
         )
         ListButton(
-            painter = painterResource(Res.drawable.ic_double_arrow_down)
+            painter = rememberVectorPainter(Icons.Default.KeyboardDoubleArrowDown)
                 .withDescription(stringResource(Res.string.go_to_end)),
             onClick = {
                 coroutineScope.launch {

@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +26,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -38,9 +43,6 @@ import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.confirm_password
 import reader_collection.app.generated.resources.hide_password
-import reader_collection.app.generated.resources.ic_hide_password
-import reader_collection.app.generated.resources.ic_show_info
-import reader_collection.app.generated.resources.ic_show_password
 import reader_collection.app.generated.resources.invalid_repeat_password
 import reader_collection.app.generated.resources.invalid_username
 import reader_collection.app.generated.resources.login_register_image
@@ -91,7 +93,7 @@ fun RegisterScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp),
             errorText = state.formState.usernameError?.let { stringResource(it) },
-            endIcon = painterResource(Res.drawable.ic_show_info)
+            endIcon = rememberVectorPainter(Icons.Default.Info)
                 .withDescription(stringResource(Res.string.show_info)),
             isLastTextField = false,
             isRequired = true,
@@ -115,10 +117,10 @@ fun RegisterScreen(
                 .padding(horizontal = 12.dp),
             errorText = state.formState.passwordError?.let { stringResource(it) },
             endIcon = if (passwordVisibility) {
-                painterResource(Res.drawable.ic_hide_password)
+                rememberVectorPainter(Icons.Default.VisibilityOff)
                     .withDescription(stringResource(Res.string.hide_password))
             } else {
-                painterResource(Res.drawable.ic_show_password)
+                rememberVectorPainter(Icons.Default.Visibility)
                     .withDescription(stringResource(Res.string.show_password))
             },
             inputType = CustomInputType.PASSWORD,
@@ -144,10 +146,10 @@ fun RegisterScreen(
                 .padding(horizontal = 12.dp),
             errorText = state.formState.passwordError?.let { stringResource(it) },
             endIcon = if (confirmPasswordVisibility) {
-                painterResource(Res.drawable.ic_hide_password)
+                rememberVectorPainter(Icons.Default.VisibilityOff)
                     .withDescription(stringResource(Res.string.hide_password))
             } else {
-                painterResource(Res.drawable.ic_show_password)
+                rememberVectorPainter(Icons.Default.Visibility)
                     .withDescription(stringResource(Res.string.show_password))
             },
             inputType = CustomInputType.PASSWORD,
