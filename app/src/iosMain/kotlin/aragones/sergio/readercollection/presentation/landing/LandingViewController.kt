@@ -27,6 +27,7 @@ import aragones.sergio.readercollection.presentation.MainView
 import aragones.sergio.readercollection.presentation.MainViewModel
 import aragones.sergio.readercollection.presentation.di.initKoin
 import aragones.sergio.readercollection.presentation.navigation.Navigator
+import aragones.sergio.readercollection.utils.InstallStatus
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -92,14 +93,25 @@ fun LandingViewController(firebaseProvider: FirebaseProvider) = ComposeUIViewCon
 @Composable
 private fun Landing(navigator: Navigator) {
     val viewModel = remember { getKoin().get<LandingViewModel>() }
+    val appUpdateChecker = remember { getKoin().get<AppUpdateChecker>() }
+    var appUpdated by remember { mutableStateOf(false) }
+
+    when (appUpdateChecker.installStatus) {
+        InstallStatus.UNKNOWN -> {}
+        InstallStatus.INSTALLED -> appUpdated = true
+        InstallStatus.MANDATORY_UPDATE -> TODO()
+        InstallStatus.OPTIONAL_UPDATE -> TODO()
+    }
+
     LandingView(
         navigator = navigator,
         viewModel = viewModel,
         skipAnimation = true,
-        isAppUpdated = true,
+        isAppUpdated = appUpdated,
     )
     LaunchedEffect(Unit) {
         viewModel.fetchRemoteConfigValues()
+        appUpdateChecker.checkForUpdate()
     }
 }
 
