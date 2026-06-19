@@ -190,6 +190,7 @@ kotlin {
 
         val webMain by getting {
             dependencies {
+                implementation(npm("firebase", "10.12.0"))
             }
             kotlin.srcDir(tasks.register("generateWebConfig") {
                 description = ""
