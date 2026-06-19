@@ -11,18 +11,17 @@ package aragones.sergio.readercollection.presentation
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import aragones.sergio.readercollection.data.BooksRepositoryImpl
+import aragones.sergio.readercollection.data.local.BooksLocalDataSource
 import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.model.GoogleBookResponse
 import aragones.sergio.readercollection.data.remote.model.GoogleVolumeResponse
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.ErrorModel
 import aragones.sergio.readercollection.domain.toDomain
-import aragones.sergio.readercollection.domain.toLocalData
 import aragones.sergio.readercollection.domain.toRemoteData
 import aragones.sergio.readercollection.presentation.bookdetail.BookDetailUiState
 import aragones.sergio.readercollection.presentation.bookdetail.BookDetailViewModel
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
-import com.aragones.sergio.BooksLocalDataSource
 import com.aragones.sergio.util.BookState
 import com.aragones.sergio.util.Constants
 import io.mockk.Runs
@@ -36,7 +35,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -61,7 +59,7 @@ class BookDetailViewModelTest {
     }
     private val booksFlow = MutableSharedFlow<List<Book>>(replay = Int.MAX_VALUE)
     private val booksLocalDataSource: BooksLocalDataSource = mockk {
-        every { getAllBooks() } returns booksFlow.map { it.map { book -> book.toLocalData() } }
+        every { getAllBooks() } returns booksFlow
     }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()
     private val viewModel = BookDetailViewModel(
@@ -156,7 +154,7 @@ class BookDetailViewModelTest {
     fun `GIVEN no friend id and saved book WHEN onCreate THEN update state with book and isAlreadySaved true and isEditable false`() =
         runTest {
             val book = Book(testBookId)
-            coEvery { booksLocalDataSource.getBook(any()) } returns book.toLocalData()
+            coEvery { booksLocalDataSource.getBook(any()) } returns book
 
             viewModel.state.test {
                 assertEquals(
@@ -344,7 +342,7 @@ class BookDetailViewModelTest {
                     awaitItem(),
                 )
             }
-            coVerify { booksLocalDataSource.updateBooks(listOf(book.toLocalData())) }
+            coVerify { booksLocalDataSource.updateBooks(listOf(book)) }
         }
 
     @Test
@@ -448,7 +446,7 @@ class BookDetailViewModelTest {
             verify { booksLocalDataSource.getAllBooks() }
             coVerify { booksLocalDataSource.getBook(testBookId) }
             coVerify { booksRemoteDataSource.getBook(testBookId) }
-            coVerify { booksLocalDataSource.insertBooks(listOf(newBook.toLocalData())) }
+            coVerify { booksLocalDataSource.insertBooks(listOf(newBook)) }
         }
 
     @Test
@@ -521,7 +519,7 @@ class BookDetailViewModelTest {
             verify { booksLocalDataSource.getAllBooks() }
             coVerify { booksLocalDataSource.getBook(testBookId) }
             coVerify { booksRemoteDataSource.getBook(testBookId) }
-            coVerify { booksLocalDataSource.insertBooks(listOf(newBook.toLocalData())) }
+            coVerify { booksLocalDataSource.insertBooks(listOf(newBook)) }
         }
 
     @Test
@@ -572,7 +570,7 @@ class BookDetailViewModelTest {
         verify { booksLocalDataSource.getAllBooks() }
         coVerify { booksLocalDataSource.getBook(testBookId) }
         coVerify { booksRemoteDataSource.getBook(testBookId) }
-        coVerify { booksLocalDataSource.insertBooks(listOf(newBook.toLocalData())) }
+        coVerify { booksLocalDataSource.insertBooks(listOf(newBook)) }
     }
 
     @Test
@@ -601,7 +599,7 @@ class BookDetailViewModelTest {
                     awaitItem(),
                 )
             }
-            coVerify { booksLocalDataSource.updateBooks(listOf(book.toLocalData())) }
+            coVerify { booksLocalDataSource.updateBooks(listOf(book)) }
         }
 
     @Test
@@ -623,7 +621,7 @@ class BookDetailViewModelTest {
                 awaitItem(),
             )
         }
-        coVerify { booksLocalDataSource.updateBooks(listOf(book.toLocalData())) }
+        coVerify { booksLocalDataSource.updateBooks(listOf(book)) }
     }
 
     @Test
@@ -632,7 +630,7 @@ class BookDetailViewModelTest {
             val deletedBook = Book(testBookId)
             coEvery {
                 booksLocalDataSource.getBook(any())
-            } returns deletedBook.toLocalData()
+            } returns deletedBook
             coEvery {
                 booksLocalDataSource.deleteBooks(any())
             } just Runs
@@ -667,7 +665,7 @@ class BookDetailViewModelTest {
                 }
             }
             coVerify { booksLocalDataSource.getBook(testBookId) }
-            coVerify { booksLocalDataSource.deleteBooks(listOf(deletedBook.toLocalData())) }
+            coVerify { booksLocalDataSource.deleteBooks(listOf(deletedBook)) }
         }
 
     @Test
@@ -767,7 +765,7 @@ class BookDetailViewModelTest {
                 awaitItem(),
             )
         }
-        coVerify { booksLocalDataSource.updateBooks(listOf(book.toLocalData())) }
+        coVerify { booksLocalDataSource.updateBooks(listOf(book)) }
     }
 
     @Test
@@ -805,7 +803,7 @@ class BookDetailViewModelTest {
                     awaitItem(),
                 )
             }
-            coVerify { booksLocalDataSource.updateBooks(listOf(book.toLocalData())) }
+            coVerify { booksLocalDataSource.updateBooks(listOf(book)) }
         }
 
     @Test

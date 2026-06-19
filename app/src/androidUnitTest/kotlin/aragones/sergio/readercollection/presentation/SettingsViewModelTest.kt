@@ -11,15 +11,14 @@ package aragones.sergio.readercollection.presentation
 import app.cash.turbine.test
 import aragones.sergio.readercollection.data.BooksRepositoryImpl
 import aragones.sergio.readercollection.data.UserRepositoryImpl
+import aragones.sergio.readercollection.data.local.BooksLocalDataSource
 import aragones.sergio.readercollection.data.local.UserLocalDataSource
 import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.domain.model.Book
-import aragones.sergio.readercollection.domain.toLocalData
 import aragones.sergio.readercollection.presentation.settings.SettingsUiState
 import aragones.sergio.readercollection.presentation.settings.SettingsViewModel
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
-import com.aragones.sergio.BooksLocalDataSource
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -84,8 +83,8 @@ class SettingsViewModelTest {
     @Test
     fun `WHEN logout THEN data sources are invoked and logOut state returns true`() = runTest {
         val books = listOf(
-            Book(id = "bookId1").toLocalData(),
-            Book(id = "bookId2").toLocalData(),
+            Book(id = "bookId1"),
+            Book(id = "bookId2"),
         )
         every { userLocalDataSource.logout() } just Runs
         every { userRemoteDataSource.logout() } just Runs
@@ -113,8 +112,8 @@ class SettingsViewModelTest {
     fun `GIVEN error on reset database WHEN logout THEN data sources are invoked and logOut state returns true`() =
         runTest {
             val books = listOf(
-                Book(id = "bookId1").toLocalData(),
-                Book(id = "bookId2").toLocalData(),
+                Book(id = "bookId1"),
+                Book(id = "bookId2"),
             )
             every { userLocalDataSource.logout() } just Runs
             every { userRemoteDataSource.logout() } just Runs

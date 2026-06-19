@@ -11,14 +11,12 @@ import aragones.sergio.readercollection.data.local.di.storageModule
 import aragones.sergio.readercollection.data.remote.di.networkModule
 import aragones.sergio.readercollection.domain.BooksRepository
 import aragones.sergio.readercollection.domain.UserRepository
-import com.aragones.sergio.di.databaseModule
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val domainModule = module {
     includes(
         coroutineDispatcherModule,
-        databaseModule,
         networkModule,
         storageModule,
     )

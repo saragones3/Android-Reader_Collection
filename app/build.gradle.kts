@@ -120,7 +120,6 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(projects.core.database)
                 implementation(projects.core.util)
 
                 implementation(project.dependencies.platform(libs.firebase.bom))
@@ -139,6 +138,7 @@ kotlin {
 
         val mobileMain by getting {
             dependencies {
+                implementation(projects.core.database)
             }
         }
 

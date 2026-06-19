@@ -12,6 +12,7 @@ import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import aragones.sergio.readercollection.data.BooksRepositoryImpl
 import aragones.sergio.readercollection.data.UserRepositoryImpl
+import aragones.sergio.readercollection.data.local.BooksLocalDataSource
 import aragones.sergio.readercollection.data.local.UserLocalDataSource
 import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
@@ -24,7 +25,6 @@ import aragones.sergio.readercollection.domain.toRemoteData
 import aragones.sergio.readercollection.presentation.frienddetail.FriendDetailUiState
 import aragones.sergio.readercollection.presentation.frienddetail.FriendDetailViewModel
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
-import com.aragones.sergio.BooksLocalDataSource
 import com.aragones.sergio.util.Constants
 import io.mockk.coEvery
 import io.mockk.coVerify
