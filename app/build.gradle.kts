@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -105,6 +106,10 @@ kotlin {
                     withIosSimulatorArm64()
                 }
             }
+            group("web") {
+                withJs()
+                withWasmJs()
+            }
         }
     }
 
@@ -119,6 +124,17 @@ kotlin {
             baseName = "App"
             isStatic = true
         }
+    }
+
+    js {
+        browser()
+        binaries.executable()
+    }
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+        binaries.executable()
     }
 
     jvmToolchain(libs.versions.jdk.get().toInt())
@@ -170,6 +186,25 @@ kotlin {
 
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+        }
+
+        val webMain by getting {
+            dependencies {
+            }
+            kotlin.srcDir(tasks.register("generateWebConfig") {
+                description = ""
+                val outputDir = layout.buildDirectory.dir("generated/webConfig")
+                outputs.dir(outputDir)
+                doLast {
+                    val configFile = outputDir.get().file("WebConfig.kt").asFile
+                    configFile.parentFile.mkdirs()
+                    configFile.writeText("""
+                        package aragones.sergio.readercollection.data.local
+                        
+                        internal const val WEB_APP_VERSION = "${"$versionMajor.$versionMinor.$versionPatch"}"
+                    """.trimIndent())
+                }
+            })
         }
 
         val commonTest by getting {

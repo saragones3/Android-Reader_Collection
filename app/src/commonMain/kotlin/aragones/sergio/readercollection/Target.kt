@@ -10,6 +10,7 @@ expect fun getCurrentTarget(): Target
 enum class Target {
     ANDROID,
     IOS,
+    WEB,
 }
 
 fun isAndroid() = getCurrentTarget() == Target.ANDROID
