@@ -13,14 +13,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import aragones.sergio.readercollection.Target
+import aragones.sergio.readercollection.getCurrentTarget
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import coil3.compose.AsyncImage
+import io.ktor.http.encodeURLParameter
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -39,9 +43,18 @@ fun ImageWithLoading(
 ) {
     var isLoading by rememberSaveable { mutableStateOf(true) }
 
+    val model = remember(imageUrl) {
+        val url = imageUrl?.replace("http:", "https:")
+        if (getCurrentTarget() == Target.WEB && url != null) {
+            "https://images.weserv.nl/?url=${url.encodeURLParameter()}"
+        } else {
+            url
+        }
+    }
+
     Box(modifier) {
         AsyncImage(
-            model = imageUrl?.replace("http:", "https:"),
+            model = model,
             contentDescription = stringResource(
                 Res.string.book_cover_description,
                 contentDescription ?: "",
