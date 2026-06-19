@@ -1,3 +1,6 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -83,6 +86,19 @@ android {
 }
 
 kotlin {
+    applyHierarchyTemplate {
+        common {
+            group("mobile") {
+                withAndroidTarget()
+                group("ios") {
+                    withIosX64()
+                    withIosArm64()
+                    withIosSimulatorArm64()
+                }
+            }
+        }
+    }
+
     androidTarget()
 
     listOf(
@@ -118,6 +134,11 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.navigation.compose)
+            }
+        }
+
+        val mobileMain by getting {
+            dependencies {
             }
         }
 
