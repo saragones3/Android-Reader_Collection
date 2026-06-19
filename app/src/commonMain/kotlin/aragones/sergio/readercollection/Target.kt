@@ -14,3 +14,5 @@ enum class Target {
 }
 
 fun isAndroid() = getCurrentTarget() == Target.ANDROID
+
+fun isiOS() = getCurrentTarget() == Target.IOS
