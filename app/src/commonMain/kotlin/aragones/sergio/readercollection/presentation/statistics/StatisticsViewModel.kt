@@ -186,12 +186,12 @@ class StatisticsViewModel(
     private fun createGenreStats(books: List<Book>): Entries = Entries(
         books
             .flatMap { it.categories ?: emptyList() }
-            .filter { category -> GENRES.any { it.id == category.id } }
             .groupBy { it.id }
             .entries
-            .map { entry ->
+            .mapNotNull { entry ->
+                val genre = GENRES.firstOrNull { it.id == entry.key } ?: return@mapNotNull null
                 Entry(
-                    key = entry.value.first().name,
+                    key = genre.name,
                     size = entry.value.size,
                 )
             }.sortedBy { it.size }
