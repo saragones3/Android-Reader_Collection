@@ -8,31 +8,34 @@ package aragones.sergio.readercollection.data.remote
 import aragones.sergio.readercollection.data.remote.model.BookResponse
 import kotlinx.datetime.LocalDate
 
-fun Map<String, Any?>.toBook(id: String): BookResponse? = try {
-    BookResponse(
-        id = id,
-        title = getValue("title") as? String,
-        subtitle = getValue("subtitle") as? String,
-        authors = getValue("authors") as? List<String>,
-        publisher = getValue("publisher") as? String,
-        publishedDate = getValue("publishedDate")?.fromNativeDate(),
-        readingDate = getValue("readingDate")?.fromNativeDate(),
-        description = getValue("description") as? String,
-        summary = getValue("summary") as? String,
-        isbn = getValue("isbn") as? String,
-        pageCount = (getValue("pageCount") as? Number)?.toInt() ?: 0,
-        categories = getValue("categories") as? List<String>,
-        averageRating = (getValue("averageRating") as? Double) ?: 0.0,
-        ratingsCount = (getValue("ratingsCount") as? Number)?.toInt() ?: 0,
-        rating = (getValue("rating") as? Double) ?: 0.0,
-        thumbnail = getValue("thumbnail") as? String,
-        image = getValue("image") as? String,
-        format = getValue("format") as? String,
-        state = getValue("state") as? String,
-        priority = (getValue("priority") as? Number)?.toInt() ?: -1,
-    )
-} catch (_: Exception) {
-    null
+fun Map<String, Any?>.toBook(id: String): BookResponse? {
+    if (isEmpty()) return null
+    return try {
+        BookResponse(
+            id = id,
+            title = getValueOrNull<String>("title"),
+            subtitle = getValueOrNull<String>("subtitle"),
+            authors = getValueOrNull<List<String>>("authors"),
+            publisher = getValueOrNull<String>("publisher"),
+            publishedDate = getValueOrNull<Any>("publishedDate")?.fromNativeDate(),
+            readingDate = getValueOrNull<Any>("readingDate")?.fromNativeDate(),
+            description = getValueOrNull<String>("description"),
+            summary = getValueOrNull<String>("summary"),
+            isbn = getValueOrNull<String>("isbn"),
+            pageCount = getValueOrNull<Number>("pageCount")?.toInt() ?: 0,
+            categories = getValueOrNull<List<String>>("categories"),
+            averageRating = getValueOrNull<Double>("averageRating") ?: 0.0,
+            ratingsCount = getValueOrNull<Number>("ratingsCount")?.toInt() ?: 0,
+            rating = getValueOrNull<Double>("rating") ?: 0.0,
+            thumbnail = getValueOrNull<String>("thumbnail"),
+            image = getValueOrNull<String>("image"),
+            format = getValueOrNull<String>("format"),
+            state = getValueOrNull("state"),
+            priority = getValueOrNull<Number>("priority")?.toInt() ?: -1,
+        )
+    } catch (_: Exception) {
+        null
+    }
 }
 
 fun BookResponse.toMap(): Map<String, Any?> = mapOf(
@@ -57,6 +60,11 @@ fun BookResponse.toMap(): Map<String, Any?> = mapOf(
     "state" to state,
     "priority" to priority,
 )
+
+private fun <V> Map<String, Any?>.getValueOrNull(key: String): V? {
+    if (!keys.contains(key)) return null
+    return (getValue(key) as? V).takeIf { it != "null" }
+}
 
 expect fun Any?.fromNativeDate(): LocalDate?
 
