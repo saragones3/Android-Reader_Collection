@@ -23,9 +23,5 @@ internal val Red = Color(0xFFEE0000) // should be 0xFF7A7A7A
 @Composable
 fun ColorScheme.isLight() = this.background.luminance() > 0.5
 
-val ColorScheme.roseBud: Color
-    @Composable get() = if (isLight()) RoseBud else RoseBud
-val ColorScheme.lightRoseBud: Color
-    @Composable get() = if (isLight()) LightRoseBud else LightRoseBud
 val ColorScheme.selector: Color
     @Composable get() = if (isLight()) PaleSlate else Boulder

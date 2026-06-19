@@ -41,6 +41,7 @@ import io.mockk.verify
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 
@@ -425,13 +426,13 @@ class BooksRemoteDataSourceTest {
                 "priority" to null,
             ),
         )
-        coEvery { firebaseProvider.getBooks(any()) } returns response
+        every { firebaseProvider.getBooks(any()) } returns flowOf(response)
 
         val result = dataSource.getBooks(userId)
 
         assertEquals(true, result.isSuccess)
         assertEquals(books, result.getOrNull())
-        coVerify(exactly = 1) { firebaseProvider.getBooks(userId) }
+        verify(exactly = 1) { firebaseProvider.getBooks(userId) }
         confirmVerified(firebaseProvider)
     }
 
@@ -439,13 +440,13 @@ class BooksRemoteDataSourceTest {
     fun `GIVEN failure response WHEN get books THEN return failure`() = runTest {
         val userId = "testUserId"
         val exception = RuntimeException("Firestore error")
-        coEvery { firebaseProvider.getBooks(any()) } throws exception
+        every { firebaseProvider.getBooks(any()) } throws exception
 
         val result = dataSource.getBooks(userId)
 
         assertEquals(true, result.isFailure)
         assertEquals(exception, result.exceptionOrNull())
-        coVerify(exactly = 1) { firebaseProvider.getBooks(userId) }
+        verify(exactly = 1) { firebaseProvider.getBooks(userId) }
         confirmVerified(firebaseProvider)
     }
 

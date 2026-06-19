@@ -45,7 +45,7 @@ import aragones.sergio.readercollection.presentation.components.TopAppBarIcon
 import aragones.sergio.readercollection.presentation.components.VerticalBookItem
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
-import aragones.sergio.readercollection.presentation.theme.roseBud
+import aragones.sergio.readercollection.presentation.theme.RoseBud
 import com.aragones.sergio.util.BookState
 import com.aragones.sergio.util.Constants
 import com.aragones.sergio.util.extensions.getMonthNumber
@@ -227,7 +227,7 @@ private fun BooksByYear(entries: Entries, onYearSelected: (Int?) -> Unit) {
         )
     }
     val colorPrimary = MaterialTheme.colorScheme.primary.toArgb()
-    val roseBud = MaterialTheme.colorScheme.roseBud.toArgb()
+    val roseBud = RoseBud.toArgb()
     AndroidView(
         factory = { context ->
             val customColors = arrayListOf(colorPrimary)
@@ -350,7 +350,7 @@ private fun BooksByMonth(entries: Entries, onMonthSelected: (Int?) -> Unit) {
 @Composable
 private fun BooksByAuthor(entries: Entries, onAuthorSelected: (String?) -> Unit) {
     val colorPrimary = MaterialTheme.colorScheme.primary.toArgb()
-    val roseBud = MaterialTheme.colorScheme.roseBud.toArgb()
+    val roseBud = RoseBud.toArgb()
     val chartHeight = (entries.entries.size * 50).dp.coerceAtLeast(250.dp)
     Spacer(Modifier.height(24.dp))
     AndroidView(
@@ -529,7 +529,7 @@ private fun BooksByFormat(entries: Entries, onFormatSelected: (String?) -> Unit)
 @Composable
 private fun BooksByGenre(entries: Entries, onGenreSelected: (String?) -> Unit) {
     val colorPrimary = MaterialTheme.colorScheme.primary.toArgb()
-    val roseBud = MaterialTheme.colorScheme.roseBud.toArgb()
+    val roseBud = RoseBud.toArgb()
     val chartHeight = (entries.entries.size * 50).dp.coerceAtLeast(250.dp)
     Spacer(Modifier.height(24.dp))
     AndroidView(

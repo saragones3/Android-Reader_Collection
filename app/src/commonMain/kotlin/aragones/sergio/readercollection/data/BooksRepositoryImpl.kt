@@ -12,6 +12,7 @@ import aragones.sergio.readercollection.domain.BooksRepository
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.toDomain
 import aragones.sergio.readercollection.domain.toRemoteData
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -197,4 +198,4 @@ class BooksRepositoryImpl(
     //endregion
 }
 
-private const val TIMEOUT = 10_000L
+private val TIMEOUT = 10.seconds

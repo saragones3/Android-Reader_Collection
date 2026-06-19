@@ -15,6 +15,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 
 class FirebaseProviderAndroid(
@@ -242,13 +244,17 @@ class FirebaseProviderAndroid(
             .await()
     }
 
-    override suspend fun getBooks(userId: String): List<Pair<String, Map<String, Any?>>> = firestore
-        .collection(USERS_PATH)
-        .document(userId)
-        .collection(BOOKS_PATH)
-        .get()
-        .await()
-        .map { it.id to it.toMap() }
+    override fun getBooks(userId: String): Flow<List<Pair<String, Map<String, Any?>>>> = flow {
+        emit(
+            firestore
+                .collection(USERS_PATH)
+                .document(userId)
+                .collection(BOOKS_PATH)
+                .get()
+                .await()
+                .map { it.id to it.toMap() },
+        )
+    }
 
     override suspend fun getBook(userId: String, bookId: String): Map<String, Any?> = firestore
         .collection(USERS_PATH)

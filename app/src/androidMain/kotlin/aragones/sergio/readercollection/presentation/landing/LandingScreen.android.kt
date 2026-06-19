@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.toArgb
 import aragones.sergio.readercollection.R
 import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDarkWithBackground
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
-import aragones.sergio.readercollection.presentation.theme.roseBud
+import aragones.sergio.readercollection.presentation.theme.RoseBud
 import com.airbnb.lottie.LottieProperty
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -69,7 +69,7 @@ actual fun LandingScreen(onAnimationFinished: () -> Unit) {
         ),
         rememberLottieDynamicProperty(
             property = LottieProperty.COLOR,
-            value = MaterialTheme.colorScheme.roseBud.toArgb(),
+            value = RoseBud.toArgb(),
             keyPath = arrayOf(
                 "obj_02",
                 "**",

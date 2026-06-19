@@ -16,7 +16,9 @@ plugins {
 
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
-keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
 
 val appName = "aragones.sergio.readercollection"
 
@@ -49,7 +51,14 @@ android {
         versionCode = versionMajor * 100000 + versionMinor * 1000 + versionPatch * 10 + versionBuild
         versionName = "$versionMajor.$versionMinor.$versionPatch"
 
-        buildConfigField("String", "API_KEY", keystoreProperties.getProperty("api.key"))
+        val apiKey = if(keystorePropertiesFile.exists()) {
+            keystoreProperties.getProperty("api.key")
+        } else {
+            """
+                "-"
+            """.trimIndent()
+        }
+        buildConfigField("String", "API_KEY", apiKey)
     }
     
     androidResources {

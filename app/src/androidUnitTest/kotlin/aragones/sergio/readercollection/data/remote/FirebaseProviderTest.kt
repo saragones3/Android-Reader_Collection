@@ -39,6 +39,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.time.ExperimentalTime
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
@@ -695,7 +696,7 @@ class FirebaseProviderTest {
         val userId = "testUserId"
         givenGetBooksSuccess(userId)
 
-        val result = firebaseProvider.getBooks(userId)
+        val result = firebaseProvider.getBooks(userId).first()
 
         assertEquals(true, result.isEmpty())
         verify(exactly = 1) { firestore.collection("users") }
@@ -709,7 +710,7 @@ class FirebaseProviderTest {
         givenGetBooksFailure(userId, exception)
 
         try {
-            firebaseProvider.getBooks(userId)
+            firebaseProvider.getBooks(userId).first()
         } catch (e: Exception) {
             assertEquals(exception, e)
         }
