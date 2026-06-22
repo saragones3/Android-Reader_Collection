@@ -39,8 +39,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
+import aragones.sergio.readercollection.presentation.theme.RoseBud
 import aragones.sergio.readercollection.presentation.theme.isLight
-import aragones.sergio.readercollection.presentation.theme.roseBud
 import aragones.sergio.readercollection.presentation.theme.selector
 import com.aragones.sergio.util.extensions.isNotBlank
 import org.jetbrains.compose.resources.stringResource
@@ -156,7 +156,7 @@ private fun BookInfo(book: Book, modifier: Modifier = Modifier) {
             Text(
                 text = stringResource(Res.string.new_book),
                 style = MaterialTheme.typography.displayLarge,
-                color = MaterialTheme.colorScheme.roseBud,
+                color = RoseBud,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
                 modifier = Modifier.semantics {
@@ -181,7 +181,7 @@ private fun RatingStars(rating: Double, modifier: Modifier = Modifier) {
         Text(
             text = rating.toInt().toString(),
             style = MaterialTheme.typography.displayMedium,
-            color = MaterialTheme.colorScheme.roseBud,
+            color = RoseBud,
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
             modifier = Modifier.semantics { hideFromAccessibility() },

@@ -19,6 +19,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 
@@ -106,7 +107,7 @@ class BooksRemoteDataSource(
     }
 
     suspend fun getBooks(uuid: String): Result<List<BookResponse>> = runCatching {
-        firebaseProvider.getBooks(uuid).mapNotNull { it.second.toBook(it.first) }
+        firebaseProvider.getBooks(uuid).first().mapNotNull { it.second.toBook(it.first) }
     }
 
     suspend fun getFriendBook(friendId: String, bookId: String): Result<BookResponse> =

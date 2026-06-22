@@ -1,3 +1,7 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -13,7 +17,9 @@ plugins {
 
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
-keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
 
 val appName = "aragones.sergio.readercollection"
 
@@ -46,7 +52,14 @@ android {
         versionCode = versionMajor * 100000 + versionMinor * 1000 + versionPatch * 10 + versionBuild
         versionName = "$versionMajor.$versionMinor.$versionPatch"
 
-        buildConfigField("String", "API_KEY", keystoreProperties.getProperty("api.key"))
+        val apiKey = if(keystorePropertiesFile.exists()) {
+            keystoreProperties.getProperty("api.key")
+        } else {
+            """
+                "-"
+            """.trimIndent()
+        }
+        buildConfigField("String", "API_KEY", apiKey)
     }
     
     androidResources {
@@ -83,6 +96,23 @@ android {
 }
 
 kotlin {
+    applyHierarchyTemplate {
+        common {
+            group("mobile") {
+                withAndroidTarget()
+                group("ios") {
+                    withIosX64()
+                    withIosArm64()
+                    withIosSimulatorArm64()
+                }
+            }
+            group("web") {
+                withJs()
+                withWasmJs()
+            }
+        }
+    }
+
     androidTarget()
 
     listOf(
@@ -96,6 +126,17 @@ kotlin {
         }
     }
 
+    js {
+        browser()
+        binaries.executable()
+    }
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+        binaries.executable()
+    }
+
     jvmToolchain(libs.versions.jdk.get().toInt())
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
@@ -104,7 +145,6 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(projects.core.database)
                 implementation(projects.core.util)
 
                 implementation(project.dependencies.platform(libs.firebase.bom))
@@ -118,6 +158,12 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.navigation.compose)
+            }
+        }
+
+        val mobileMain by getting {
+            dependencies {
+                implementation(projects.core.database)
             }
         }
 
@@ -140,6 +186,26 @@ kotlin {
 
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+        }
+
+        val webMain by getting {
+            dependencies {
+                implementation(npm("firebase", "10.12.0"))
+            }
+            kotlin.srcDir(tasks.register("generateWebConfig") {
+                description = ""
+                val outputDir = layout.buildDirectory.dir("generated/webConfig")
+                outputs.dir(outputDir)
+                doLast {
+                    val configFile = outputDir.get().file("WebConfig.kt").asFile
+                    configFile.parentFile.mkdirs()
+                    configFile.writeText("""
+                        package aragones.sergio.readercollection.data.local
+                        
+                        internal const val WEB_APP_VERSION = "${"$versionMajor.$versionMinor.$versionPatch"}"
+                    """.trimIndent())
+                }
+            })
         }
 
         val commonTest by getting {

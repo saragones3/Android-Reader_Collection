@@ -42,8 +42,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import aragones.sergio.readercollection.presentation.theme.AppUiProvider.isPortrait
+import aragones.sergio.readercollection.presentation.theme.EbonyClay
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
-import aragones.sergio.readercollection.presentation.theme.roseBud
+import aragones.sergio.readercollection.presentation.theme.RoseBud
 import com.aragones.sergio.util.extensions.currentTime
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringArrayResource
@@ -245,11 +246,16 @@ fun SortingPickerAlertDialog(
                         Picker(
                             items = PickerItems(sortParamValues),
                             onSelect = {
-                                newSortParam = sortParamKeys[it]
+                                newSortParam =
+                                    if (it < sortParamKeys.size) {
+                                        sortParamKeys[it]
+                                    } else {
+                                        null
+                                    }
                             },
                             modifier = Modifier.weight(1f),
                             currentIndexSelected = state.sortParam?.let {
-                                sortParamKeys.indexOf(it)
+                                if (sortParamKeys.contains(it)) sortParamKeys.indexOf(it) else 0
                             } ?: 0,
                         )
                         Picker(
@@ -342,13 +348,13 @@ fun CustomDatePickerDialog(
                 currentYearContentColor = MaterialTheme.colorScheme.primary,
                 selectedYearContentColor = MaterialTheme.colorScheme.primary,
                 disabledSelectedYearContentColor = MaterialTheme.colorScheme.primary,
-                selectedYearContainerColor = MaterialTheme.colorScheme.roseBud,
+                selectedYearContainerColor = RoseBud,
                 disabledSelectedYearContainerColor = MaterialTheme.colorScheme.primary,
                 dayContentColor = MaterialTheme.colorScheme.primary,
                 disabledDayContentColor = MaterialTheme.colorScheme.primary,
-                selectedDayContentColor = MaterialTheme.colorScheme.primary,
+                selectedDayContentColor = EbonyClay,
                 disabledSelectedDayContentColor = MaterialTheme.colorScheme.primary,
-                selectedDayContainerColor = MaterialTheme.colorScheme.roseBud,
+                selectedDayContainerColor = RoseBud,
                 disabledSelectedDayContainerColor = MaterialTheme.colorScheme.primary,
                 todayContentColor = MaterialTheme.colorScheme.primary,
                 todayDateBorderColor = MaterialTheme.colorScheme.primary,

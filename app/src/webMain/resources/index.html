@@ -1,0 +1,222 @@
+<!--
+  ~ Copyright (c) 2026 Sergio Aragonés. All rights reserved.
+  ~ Created by Sergio Aragonés on 19/6/2026
+  -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reader Collection</title>
+    <link type="text/css" rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body style="text-align: center; align-content: center">
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 50 50" role="presentation">
+    <circle cx="25" cy="25" r="20" stroke="#ccc" stroke-width="4" fill="none"/>
+    <circle cx="25" cy="25" r="20" stroke="#333" stroke-width="4" fill="none" stroke-linecap="round"
+            stroke-dasharray="90 125">
+        <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="1s"
+                          repeatCount="indefinite"/>
+    </circle>
+</svg>
+<script type="module">
+    // Importar las funciones necesarias del CDN oficial
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import * as auth from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import * as firestore from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import * as remoteConfig from "https://www.gstatic.com/firebasejs/10.12.0/firebase-remote-config.js";
+
+    // Tu configuración de Firebase (obtenida de la consola de Firebase)
+    const firebaseConfig = {
+        apiKey: "AIzaSyBCkX5WZwpEXwWeFmsJB4PGqzILJWXMOa0",
+          authDomain: "reader-collection-17944.firebaseapp.com",
+          projectId: "reader-collection-17944",
+          storageBucket: "reader-collection-17944.firebasestorage.app",
+          messagingSenderId: "592792053764",
+          appId: "1:592792053764:web:7d8ece317fa414d8be6d51"
+    };
+    const app = initializeApp(firebaseConfig);
+
+    // Auth setup
+    window.firebaseAuth = auth.getAuth(app);
+    window.firebaseAuthModule = auth;
+
+    // Firestore setup with helper functions
+    const db = firestore.getFirestore(app);
+    window.firebaseFirestore = db;
+    window.firebaseFirestoreModule = {
+        ...firestore,
+        setDocument: async (db, collectionPath, documentPath, json) => {
+            const docRef = firestore.doc(db, `${collectionPath}/${documentPath}`);
+            return await firestore.setDoc(docRef, JSON.parse(json));
+        },
+        getDocument: async (db, collectionPath, documentPath) => {
+            const docRef = firestore.doc(db, `${collectionPath}/${documentPath}`);
+            const docSnap = await firestore.getDoc(docRef);
+            return docSnap.exists() ? JSON.stringify({ id: docSnap.id, ...docSnap.data() }) : null;
+        },
+        deleteDocument: async (db, collectionPath, documentPath) => {
+            const docRef = firestore.doc(db, `${collectionPath}/${documentPath}`);
+            return await firestore.deleteDoc(docRef);
+        },
+        getDocuments: async (db, collectionPath) => {
+            const q = firestore.query(firestore.collection(db, collectionPath));
+            const querySnapshot = await firestore.getDocs(q);
+            const docs = [];
+            querySnapshot.forEach((doc) => {
+                docs.push({ id: doc.id, ...doc.data() });
+            });
+            return JSON.stringify(docs);
+        },
+        queryDocuments: async (db, collectionPath, field, value) => {
+            const q = firestore.query(firestore.collection(db, collectionPath), firestore.where(field, "==", value));
+            const querySnapshot = await firestore.getDocs(q);
+            const docs = [];
+            querySnapshot.forEach((doc) => {
+                docs.push({ id: doc.id, ...doc.data() });
+            });
+            return JSON.stringify(docs);
+        },
+        saveBook: async (db, userId, bookId, json) => {
+            const docRef = firestore.doc(db, `users/${userId}/books/${bookId}`);
+            const book = JSON.parse(json);
+
+            const parseDate = (dateStr) => {
+                if (!dateStr || typeof dateStr !== 'string') return dateStr;
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    return firestore.Timestamp.fromDate(new Date(parts[2], parts[1] - 1, parts[0]));
+                }
+                const isoDate = Date.parse(dateStr);
+                if (!isNaN(isoDate)) {
+                    return firestore.Timestamp.fromDate(new Date(isoDate));
+                }
+                return dateStr;
+            };
+
+            if (book.publishedDate) book.publishedDate = parseDate(book.publishedDate);
+            if (book.readingDate) book.readingDate = parseDate(book.readingDate);
+
+            return await firestore.setDoc(docRef, book);
+        },
+        getBook: async (db, userId, bookId) => {
+            const docRef = firestore.doc(db, `users/${userId}/books/${bookId}`);
+            const docSnap = await firestore.getDoc(docRef);
+            return docSnap.exists() ? JSON.stringify(docSnap.data()) : null;
+        },
+        getBooks: async (db, userId) => {
+            const q = firestore.query(firestore.collection(db, `users/${userId}/books`));
+            const querySnapshot = await firestore.getDocs(q);
+            const books = [];
+            querySnapshot.forEach((doc) => {
+                books.push({ id: doc.id, ...doc.data() });
+            });
+            return JSON.stringify(books);
+        },
+        onBooksSnapshot: (db, userId, callback) => {
+            const q = firestore.query(firestore.collection(db, `users/${userId}/books`));
+            return firestore.onSnapshot(q, (querySnapshot) => {
+                const books = [];
+                querySnapshot.forEach((doc) => {
+                    books.push({ id: doc.id, ...doc.data() });
+                });
+                callback(JSON.stringify(books));
+            });
+        },
+        deleteBooks: async (db, userId) => {
+            const q = firestore.query(firestore.collection(db, `users/${userId}/books`));
+            const querySnapshot = await firestore.getDocs(q);
+            const batch = firestore.writeBatch(db);
+            querySnapshot.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+            return await batch.commit();
+        },
+        syncBooks: async (db, userId, booksToSaveJson, booksToRemoveJson) => {
+            const batch = firestore.writeBatch(db);
+            const booksToSave = JSON.parse(booksToSaveJson);
+            const booksToRemove = JSON.parse(booksToRemoveJson);
+            const booksRef = firestore.collection(db, `users/${userId}/books`);
+
+            const parseDate = (dateStr) => {
+                if (!dateStr || typeof dateStr !== 'string') return dateStr;
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    return firestore.Timestamp.fromDate(new Date(parts[2], parts[1] - 1, parts[0]));
+                }
+                const isoDate = Date.parse(dateStr);
+                if (!isNaN(isoDate)) {
+                    return firestore.Timestamp.fromDate(new Date(isoDate));
+                }
+                return dateStr;
+            };
+
+            booksToSave.forEach((book) => {
+                if (book.publishedDate) book.publishedDate = parseDate(book.publishedDate);
+                if (book.readingDate) book.readingDate = parseDate(book.readingDate);
+                const docRef = firestore.doc(booksRef, book.googleId);
+                batch.set(docRef, book);
+            });
+            booksToRemove.forEach((book) => {
+                const docRef = firestore.doc(booksRef, book.googleId);
+                batch.delete(docRef);
+            });
+            return await batch.commit();
+        },
+        requestFriendship: async (db, userJson, friendJson) => {
+            const batch = firestore.writeBatch(db);
+            const user = JSON.parse(userJson);
+            const friend = JSON.parse(friendJson);
+
+            const userRef = firestore.doc(db, `users/${user.id}/friends/${friend.id}`);
+            batch.set(userRef, friend);
+
+            const friendRef = firestore.doc(db, `users/${friend.id}/friends/${user.id}`);
+            batch.set(friendRef, user);
+
+            return await batch.commit();
+        },
+        updateFriendStatus: async (db, userId, friendId, status) => {
+            const batch = firestore.writeBatch(db);
+            const userRef = firestore.doc(db, `users/${userId}/friends/${friendId}`);
+            const friendRef = firestore.doc(db, `users/${friendId}/friends/${userId}`);
+
+            if (status === "REJECTED") {
+                batch.delete(userRef);
+                batch.update(friendRef, { status: status });
+            } else {
+                batch.update(userRef, { status: status });
+                batch.update(friendRef, { status: status });
+            }
+            return await batch.commit();
+        },
+        deleteFriendship: async (db, userId, friendId) => {
+            const batch = firestore.writeBatch(db);
+            const userRef = firestore.doc(db, `users/${userId}/friends/${friendId}`);
+            const friendRef = firestore.doc(db, `users/${friendId}/friends/${userId}`);
+            batch.delete(userRef);
+            batch.delete(friendRef);
+            return await batch.commit();
+        },
+        deleteFriends: async (db, userId) => {
+            const q = firestore.query(firestore.collection(db, `users/${userId}/friends`));
+            const querySnapshot = await firestore.getDocs(q);
+            const batch = firestore.writeBatch(db);
+            querySnapshot.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+            return await batch.commit();
+        }
+    };
+
+    // Remote Config setup
+    const config = remoteConfig.getRemoteConfig(app);
+    window.firebaseRemoteConfig = config;
+    window.firebaseRemoteConfigModule = remoteConfig;
+
+</script>
+<script type="application/javascript" src="app.js" defer></script>
+</body>
+</html>

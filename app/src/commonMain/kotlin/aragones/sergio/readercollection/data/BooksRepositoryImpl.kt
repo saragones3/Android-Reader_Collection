@@ -5,19 +5,18 @@
 
 package aragones.sergio.readercollection.data
 
+import aragones.sergio.readercollection.data.local.BooksLocalDataSource
 import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.model.BookResponse
 import aragones.sergio.readercollection.domain.BooksRepository
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.toDomain
-import aragones.sergio.readercollection.domain.toLocalData
 import aragones.sergio.readercollection.domain.toRemoteData
-import com.aragones.sergio.BooksLocalDataSource
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
@@ -35,7 +34,7 @@ class BooksRepositoryImpl(
         }.fold(
             onSuccess = { remoteBooks ->
                 booksLocalDataSource.insertBooks(
-                    remoteBooks.map { it.toDomain().toLocalData() },
+                    remoteBooks.map { it.toDomain() },
                 )
                 Result.success(Unit)
             },
@@ -61,7 +60,7 @@ class BooksRepositoryImpl(
             }
         }
         val currentBooks = localBooks.map {
-            it.toDomain().toRemoteData()
+            it.toRemoteData()
         }
         withTimeout(TIMEOUT) {
             booksRemoteDataSource.syncBooks(
@@ -82,24 +81,21 @@ class BooksRepositoryImpl(
     override fun getBooks(): Flow<List<Book>> = booksLocalDataSource
         .getAllBooks()
         .distinctUntilChanged()
-        .map { it.map { book -> book.toDomain() } }
 
     override fun getReadBooks(): Flow<List<Book>> = booksLocalDataSource
         .getReadBooks()
         .distinctUntilChanged()
-        .map { it.map { book -> book.toDomain() } }
 
     override suspend fun importDataFrom(jsonData: String): Result<Unit> = runCatching {
         val books = Json.decodeFromString<List<BookResponse?>>(jsonData).mapNotNull { it }
-        booksLocalDataSource
-            .importDataFrom(books.map { it.toDomain().toLocalData() })
+        booksLocalDataSource.importDataFrom(books.map { it.toDomain() })
     }
 
     override suspend fun exportDataTo(): Result<String> = runCatching {
         val books = booksLocalDataSource
             .getAllBooks()
             .firstOrNull()
-            ?.map { it.toDomain().toRemoteData() }
+            ?.map { it.toRemoteData() }
             ?: emptyList()
         val jsonString = Json.encodeToString(books)
         return Result.success(jsonString)
@@ -110,7 +106,7 @@ class BooksRepositoryImpl(
     }.fold(
         onSuccess = { localBook ->
             if (localBook != null) {
-                Result.success(localBook.toDomain() to true)
+                Result.success(localBook to true)
             } else {
                 withTimeout(TIMEOUT) {
                     booksRemoteDataSource.getBook(id)
@@ -130,18 +126,16 @@ class BooksRepositoryImpl(
     )
 
     override suspend fun createBook(newBook: Book): Result<Unit> = runCatching {
-        booksLocalDataSource
-            .insertBooks(listOf(newBook.toLocalData()))
+        booksLocalDataSource.insertBooks(listOf(newBook))
     }
 
     override suspend fun setBook(book: Book): Result<Book> = runCatching {
-        booksLocalDataSource.updateBooks(listOf(book.toLocalData()))
+        booksLocalDataSource.updateBooks(listOf(book))
         return Result.success(book)
     }
 
     override suspend fun setBooks(books: List<Book>): Result<Unit> = runCatching {
-        booksLocalDataSource
-            .updateBooks(books.map { it.toLocalData() })
+        booksLocalDataSource.updateBooks(books)
     }
 
     override suspend fun deleteBook(bookId: String): Result<Unit> = runCatching {
@@ -204,4 +198,4 @@ class BooksRepositoryImpl(
     //endregion
 }
 
-private const val TIMEOUT = 10_000L
+private val TIMEOUT = 10.seconds

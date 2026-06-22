@@ -15,6 +15,7 @@ import aragones.sergio.readercollection.domain.UserRepository
 import aragones.sergio.readercollection.domain.model.User
 import aragones.sergio.readercollection.domain.toDomain
 import aragones.sergio.readercollection.domain.toRemoteData
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -285,4 +286,4 @@ class UserRepositoryImpl(
     //endregion
 }
 
-private const val TIMEOUT = 10_000L
+private val TIMEOUT = 10.seconds

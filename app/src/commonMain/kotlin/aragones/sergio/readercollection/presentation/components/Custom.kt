@@ -70,9 +70,9 @@ import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_TYPE_NORMAL
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import aragones.sergio.readercollection.presentation.theme.LightRoseBud
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
-import aragones.sergio.readercollection.presentation.theme.lightRoseBud
-import aragones.sergio.readercollection.presentation.theme.roseBud
+import aragones.sergio.readercollection.presentation.theme.RoseBud
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
@@ -147,15 +147,15 @@ fun StarRatingBar(
             val (icon, tint) = when {
                 i <= rating -> Pair(
                     Icons.Default.Star,
-                    MaterialTheme.colorScheme.roseBud,
+                    RoseBud,
                 )
                 i.toFloat() == rating + 0.5f -> Pair(
                     Icons.AutoMirrored.Filled.StarHalf,
-                    MaterialTheme.colorScheme.roseBud,
+                    RoseBud,
                 )
                 else -> Pair(
                     Icons.Default.StarBorder,
-                    MaterialTheme.colorScheme.lightRoseBud,
+                    LightRoseBud,
                 )
             }
             val stateText = stringResource(

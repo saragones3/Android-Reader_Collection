@@ -11,6 +11,7 @@ package aragones.sergio.readercollection.presentation
 import app.cash.turbine.test
 import aragones.sergio.readercollection.data.BooksRepositoryImpl
 import aragones.sergio.readercollection.data.UserRepositoryImpl
+import aragones.sergio.readercollection.data.local.BooksLocalDataSource
 import aragones.sergio.readercollection.data.local.UserLocalDataSource
 import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
@@ -20,13 +21,11 @@ import aragones.sergio.readercollection.data.remote.model.GENRES
 import aragones.sergio.readercollection.data.remote.model.GenreResponse
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.ErrorModel
-import aragones.sergio.readercollection.domain.toLocalData
 import aragones.sergio.readercollection.presentation.statistics.Entries
 import aragones.sergio.readercollection.presentation.statistics.Entry
 import aragones.sergio.readercollection.presentation.statistics.StatisticsUiState
 import aragones.sergio.readercollection.presentation.statistics.StatisticsViewModel
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
-import com.aragones.sergio.BooksLocalDataSource
 import com.aragones.sergio.util.extensions.toString
 import io.mockk.Called
 import io.mockk.Runs
@@ -37,7 +36,6 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
-import kotlin.String
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -97,9 +95,7 @@ class StatisticsViewModelTest {
                 pageCount = 10,
             )
             val books = listOf(book1, book2)
-            every { booksLocalDataSource.getReadBooks() } returns flowOf(
-                books.map { it.toLocalData() },
-            )
+            every { booksLocalDataSource.getReadBooks() } returns flowOf(books)
 
             viewModel.state.test {
                 assertEquals(StatisticsUiState.Empty, awaitItem())
@@ -306,7 +302,7 @@ class StatisticsViewModelTest {
 
             assertEquals(Res.string.data_imported, awaitItem())
         }
-        coVerify { booksLocalDataSource.importDataFrom(listOf(book.toLocalData())) }
+        coVerify { booksLocalDataSource.importDataFrom(listOf(book)) }
         confirmVerified(booksLocalDataSource)
     }
 
@@ -354,7 +350,7 @@ class StatisticsViewModelTest {
                 awaitItem(),
             )
         }
-        coVerify { booksLocalDataSource.importDataFrom(listOf(book.toLocalData())) }
+        coVerify { booksLocalDataSource.importDataFrom(listOf(book)) }
         confirmVerified(booksLocalDataSource)
     }
 
@@ -383,7 +379,7 @@ class StatisticsViewModelTest {
             state = "state",
             priority = 8,
         )
-        every { booksLocalDataSource.getAllBooks() } returns flowOf(listOf(book.toLocalData()))
+        every { booksLocalDataSource.getAllBooks() } returns flowOf(listOf(book))
 
         viewModel.infoDialogMessageId.test {
             assertEquals(null, awaitItem())

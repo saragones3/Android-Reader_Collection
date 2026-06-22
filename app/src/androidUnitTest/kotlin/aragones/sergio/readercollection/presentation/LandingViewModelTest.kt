@@ -11,12 +11,12 @@ package aragones.sergio.readercollection.presentation
 import app.cash.turbine.test
 import aragones.sergio.readercollection.data.BooksRepositoryImpl
 import aragones.sergio.readercollection.data.UserRepositoryImpl
+import aragones.sergio.readercollection.data.local.BooksLocalDataSource
 import aragones.sergio.readercollection.data.local.UserLocalDataSource
 import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.presentation.landing.LandingViewModel
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
-import com.aragones.sergio.BooksLocalDataSource
 import io.mockk.Called
 import io.mockk.Runs
 import io.mockk.confirmVerified

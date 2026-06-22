@@ -48,34 +48,34 @@ fun BookListView(
                 viewModel.setPriorityFor(it)
             },
         )
-    }
 
-    SortingPickerAlertDialog(
-        state = sortingPickerState,
-        onCancel = {
-            viewModel.updatePickerState(
-                sortingPickerState.sortParam,
-                sortingPickerState.isSortDescending,
-            )
-        },
-        onAccept = { newSortParam, newIsSortDescending ->
-            viewModel.updatePickerState(newSortParam, newIsSortDescending)
-        },
-    )
+        SortingPickerAlertDialog(
+            state = sortingPickerState,
+            onCancel = {
+                viewModel.updatePickerState(
+                    sortingPickerState.sortParam,
+                    sortingPickerState.isSortDescending,
+                )
+            },
+            onAccept = { newSortParam, newIsSortDescending ->
+                viewModel.updatePickerState(newSortParam, newIsSortDescending)
+            },
+        )
 
-    val text = if (error != null) {
-        val errorText = StringBuilder()
-        if (requireNotNull(error).error.isNotEmpty()) {
-            errorText.append(requireNotNull(error).error)
+        val text = if (error != null) {
+            val errorText = StringBuilder()
+            if (requireNotNull(error).error.isNotEmpty()) {
+                errorText.append(requireNotNull(error).error)
+            } else {
+                errorText.append(stringResource(requireNotNull(error).errorKey))
+            }
+            errorText.toString()
         } else {
-            errorText.append(stringResource(requireNotNull(error).errorKey))
+            ""
         }
-        errorText.toString()
-    } else {
-        ""
-    }
-    InformationAlertDialog(show = text.isNotEmpty(), text = text) {
-        onBack()
+        InformationAlertDialog(show = text.isNotEmpty(), text = text) {
+            onBack()
+        }
     }
 
     LaunchedEffectOnce {

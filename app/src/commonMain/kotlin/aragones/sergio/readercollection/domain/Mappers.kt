@@ -15,32 +15,6 @@ import aragones.sergio.readercollection.data.remote.model.STATES
 import aragones.sergio.readercollection.data.remote.model.UserResponse
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.User
-import com.aragones.sergio.model.Book as BookLocal
-import com.aragones.sergio.util.extensions.toLocalDate
-import com.aragones.sergio.util.extensions.toLong
-
-fun Book.toLocalData(): BookLocal = BookLocal(
-    id = id,
-    title = title,
-    subtitle = subtitle,
-    authors = authors,
-    publisher = publisher,
-    publishedDate = publishedDate?.toLong(),
-    readingDate = readingDate?.toLong(),
-    description = description,
-    summary = summary,
-    isbn = isbn,
-    pageCount = pageCount,
-    categories = categories?.map { it.id },
-    averageRating = averageRating,
-    ratingsCount = ratingsCount,
-    rating = rating,
-    thumbnail = thumbnail,
-    image = image,
-    format = format,
-    state = state,
-    priority = priority,
-)
 
 fun Book.toRemoteData(): BookResponse = BookResponse(
     id = id,
@@ -55,34 +29,6 @@ fun Book.toRemoteData(): BookResponse = BookResponse(
     isbn = isbn,
     pageCount = pageCount,
     categories = categories?.map { it.id },
-    averageRating = averageRating,
-    ratingsCount = ratingsCount,
-    rating = rating,
-    thumbnail = thumbnail,
-    image = image,
-    format = format,
-    state = state,
-    priority = priority,
-)
-
-fun BookLocal.toDomain(): Book = Book(
-    id = id,
-    title = title,
-    subtitle = subtitle,
-    authors = authors,
-    publisher = publisher,
-    publishedDate = publishedDate?.toLocalDate(),
-    readingDate = readingDate?.toLocalDate(),
-    description = description,
-    summary = summary,
-    isbn = isbn,
-    pageCount = pageCount,
-    categories = categories?.map { categoryId ->
-        GENRES.firstOrNull { it.id == categoryId } ?: GenreResponse(
-            categoryId,
-            categoryId.lowercase(),
-        )
-    },
     averageRating = averageRating,
     ratingsCount = ratingsCount,
     rating = rating,

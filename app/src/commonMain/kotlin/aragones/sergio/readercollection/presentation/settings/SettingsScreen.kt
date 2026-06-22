@@ -40,6 +40,8 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import aragones.sergio.readercollection.isAndroid
+import aragones.sergio.readercollection.isiOS
 import aragones.sergio.readercollection.presentation.components.CustomCircularProgressIndicator
 import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDark
 import aragones.sergio.readercollection.presentation.components.CustomToolbar
@@ -96,14 +98,16 @@ fun SettingsScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
             HeaderText(text = stringResource(Res.string.preferences))
-            SettingItem(
-                icon = Icons.Default.Backup,
-                title = stringResource(Res.string.data_sync_title),
-                subtitle = stringResource(Res.string.data_sync_description),
-                onClick = {
-                    onClickOption(SettingsOption.DataSync)
-                },
-            )
+            if (isAndroid() || isiOS()) {
+                SettingItem(
+                    icon = Icons.Default.Backup,
+                    title = stringResource(Res.string.data_sync_title),
+                    subtitle = stringResource(Res.string.data_sync_description),
+                    onClick = {
+                        onClickOption(SettingsOption.DataSync)
+                    },
+                )
+            }
             SettingItem(
                 icon = Icons.Default.DisplaySettings,
                 title = stringResource(Res.string.display_settings_title),

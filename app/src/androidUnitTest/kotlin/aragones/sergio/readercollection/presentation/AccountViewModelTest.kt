@@ -11,6 +11,7 @@ package aragones.sergio.readercollection.presentation
 import app.cash.turbine.test
 import aragones.sergio.readercollection.data.BooksRepositoryImpl
 import aragones.sergio.readercollection.data.UserRepositoryImpl
+import aragones.sergio.readercollection.data.local.BooksLocalDataSource
 import aragones.sergio.readercollection.data.local.UserLocalDataSource
 import aragones.sergio.readercollection.data.local.model.AuthData
 import aragones.sergio.readercollection.data.local.model.UserData
@@ -18,11 +19,9 @@ import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.ErrorModel
-import aragones.sergio.readercollection.domain.toLocalData
 import aragones.sergio.readercollection.presentation.account.AccountUiState
 import aragones.sergio.readercollection.presentation.account.AccountViewModel
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
-import com.aragones.sergio.BooksLocalDataSource
 import com.aragones.sergio.util.Constants
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -273,7 +272,7 @@ class AccountViewModelTest {
             every { userLocalDataSource.logout() } just Runs
             every { userLocalDataSource.removeUserData() } just Runs
             val book = Book("id")
-            every { booksLocalDataSource.getAllBooks() } returns flowOf(listOf(book.toLocalData()))
+            every { booksLocalDataSource.getAllBooks() } returns flowOf(listOf(book))
             coEvery { booksLocalDataSource.deleteBooks(any()) } just Runs
 
             viewModel.logOut.test {
@@ -284,7 +283,7 @@ class AccountViewModelTest {
                 assertEquals(true, awaitItem())
             }
             verify { booksLocalDataSource.getAllBooks() }
-            coVerify { booksLocalDataSource.deleteBooks(listOf(book.toLocalData())) }
+            coVerify { booksLocalDataSource.deleteBooks(listOf(book)) }
             coVerify { userLocalDataSource.logout() }
             coVerify { userLocalDataSource.removeUserData() }
             coVerify { userRemoteDataSource.deleteUser(testUserId) }

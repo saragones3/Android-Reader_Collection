@@ -11,6 +11,7 @@ package aragones.sergio.readercollection.presentation
 import app.cash.turbine.test
 import aragones.sergio.readercollection.data.BooksRepositoryImpl
 import aragones.sergio.readercollection.data.UserRepositoryImpl
+import aragones.sergio.readercollection.data.local.BooksLocalDataSource
 import aragones.sergio.readercollection.data.local.UserLocalDataSource
 import aragones.sergio.readercollection.data.local.model.AuthData
 import aragones.sergio.readercollection.data.local.model.UserData
@@ -19,11 +20,9 @@ import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.data.remote.model.BookResponse
 import aragones.sergio.readercollection.domain.model.ErrorModel
 import aragones.sergio.readercollection.domain.toDomain
-import aragones.sergio.readercollection.domain.toLocalData
 import aragones.sergio.readercollection.presentation.login.LoginViewModel
 import aragones.sergio.readercollection.presentation.login.model.LoginFormState
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
-import com.aragones.sergio.BooksLocalDataSource
 import com.aragones.sergio.util.Constants
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -78,7 +77,7 @@ class LoginViewModelTest {
             val authData = AuthData(userId)
             val isActive = true
             val books = listOf(BookResponse("1"), BookResponse("2"))
-            val domainBooks = books.map { it.toDomain().toLocalData() }
+            val domainBooks = books.map { it.toDomain() }
             coEvery {
                 userRemoteDataSource.login(
                     testUsername,
@@ -127,7 +126,7 @@ class LoginViewModelTest {
             val authData = AuthData(userId)
             val isActive = true
             val books = listOf(BookResponse("1"), BookResponse("2"))
-            val domainBooks = books.map { it.toDomain().toLocalData() }
+            val domainBooks = books.map { it.toDomain() }
             val exception = RuntimeException("Firestore error")
             coEvery {
                 userRemoteDataSource.login(
