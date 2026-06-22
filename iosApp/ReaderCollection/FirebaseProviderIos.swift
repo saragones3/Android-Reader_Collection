@@ -278,9 +278,10 @@ class FirebaseProviderIos: FirebaseProvider {
     
     func syncBooks(uuid: String, booksToSave: [BookResponse], booksToRemove: [BookResponse]) async throws {
         let batch = firestore.batch()
-        let booksRef = firestore
+        let userRef = firestore
             .collection(USERS_PATH)
             .document(uuid)
+        let booksRef = userRef
             .collection(BOOKS_PATH)
         
         booksToSave.forEach { book in
@@ -296,15 +297,18 @@ class FirebaseProviderIos: FirebaseProvider {
             batch.deleteDocument(docRef)
         }
         
+        batch.setData(["lastUpdated" : FieldValue.serverTimestamp()], forDocument: userRef, merge: true)
+        
         try await batch.commit()
     }
     
     
     func deleteBooks(userId: String) async throws {
         let batch = firestore.batch()
-        let books = try await firestore
+        let userRef = firestore
             .collection(USERS_PATH)
             .document(userId)
+        let books = try await userRef
             .collection(BOOKS_PATH)
             .getDocuments()
             .documents
@@ -312,6 +316,7 @@ class FirebaseProviderIos: FirebaseProvider {
         books.forEach({
             batch.deleteDocument($0)
         })
+        batch.setData(["lastUpdated" : FieldValue.serverTimestamp()], forDocument: userRef, merge: true)
         try await batch.commit()
     }
     

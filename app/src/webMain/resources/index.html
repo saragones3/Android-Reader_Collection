@@ -80,6 +80,7 @@
             return JSON.stringify(docs);
         },
         saveBook: async (db, userId, bookId, json) => {
+            const userRef = firestore.doc(db, `users/${userId}`);
             const docRef = firestore.doc(db, `users/${userId}/books/${bookId}`);
             const book = JSON.parse(json);
 
@@ -99,7 +100,10 @@
             if (book.publishedDate) book.publishedDate = parseDate(book.publishedDate);
             if (book.readingDate) book.readingDate = parseDate(book.readingDate);
 
-            return await firestore.setDoc(docRef, book);
+            const batch = firestore.writeBatch(db);
+            batch.set(docRef, book);
+            batch.set(userRef, { lastUpdated: firestore.serverTimestamp() }, { merge: true });
+            return await batch.commit();
         },
         getBook: async (db, userId, bookId) => {
             const docRef = firestore.doc(db, `users/${userId}/books/${bookId}`);
@@ -126,18 +130,21 @@
             });
         },
         deleteBooks: async (db, userId) => {
+            const userRef = firestore.doc(db, `users/${userId}`);
             const q = firestore.query(firestore.collection(db, `users/${userId}/books`));
             const querySnapshot = await firestore.getDocs(q);
             const batch = firestore.writeBatch(db);
             querySnapshot.forEach((doc) => {
                 batch.delete(doc.ref);
             });
+            batch.set(userRef, { lastUpdated: firestore.serverTimestamp() }, { merge: true });
             return await batch.commit();
         },
         syncBooks: async (db, userId, booksToSaveJson, booksToRemoveJson) => {
             const batch = firestore.writeBatch(db);
             const booksToSave = JSON.parse(booksToSaveJson);
             const booksToRemove = JSON.parse(booksToRemoveJson);
+            const userRef = firestore.doc(db, `users/${userId}`);
             const booksRef = firestore.collection(db, `users/${userId}/books`);
 
             const parseDate = (dateStr) => {
@@ -163,6 +170,7 @@
                 const docRef = firestore.doc(booksRef, book.googleId);
                 batch.delete(docRef);
             });
+            batch.set(userRef, { lastUpdated: firestore.serverTimestamp() }, { merge: true });
             return await batch.commit();
         },
         requestFriendship: async (db, userJson, friendJson) => {

@@ -11,7 +11,9 @@ import aragones.sergio.readercollection.data.remote.model.UserResponse
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -272,9 +274,10 @@ class FirebaseProviderAndroid(
         booksToRemove: List<BookResponse>,
     ) {
         val batch = firestore.batch()
-        val booksRef = firestore
+        val userRef = firestore
             .collection(USERS_PATH)
             .document(uuid)
+        val booksRef = userRef
             .collection(BOOKS_PATH)
 
         booksToSave.forEach { book ->
@@ -290,20 +293,24 @@ class FirebaseProviderAndroid(
             batch.delete(docRef)
         }
 
+        batch.set(userRef, mapOf("lastUpdated" to FieldValue.serverTimestamp()), SetOptions.merge())
+
         batch.commit().await()
     }
 
     override suspend fun deleteBooks(userId: String) {
         val batch = firestore.batch()
-        val books = firestore
+        val userRef = firestore
             .collection(USERS_PATH)
             .document(userId)
+        val books = userRef
             .collection(BOOKS_PATH)
             .get()
             .await()
         books.documents.forEach {
             batch.delete(it.reference)
         }
+        batch.set(userRef, mapOf("lastUpdated" to FieldValue.serverTimestamp()), SetOptions.merge())
         batch.commit().await()
     }
 
