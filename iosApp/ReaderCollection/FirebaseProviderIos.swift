@@ -255,15 +255,24 @@ class FirebaseProviderIos: FirebaseProvider {
             .delete()
     }
     
-    func getBooks(userId: String) async throws -> [KotlinPair<NSString, NSDictionary>] {
-        return try await firestore
-            .collection(USERS_PATH)
-            .document(userId).collection(BOOKS_PATH)
-            .getDocuments()
-            .documents
-            .map({
-                KotlinPair(first: $0.documentID as NSString, second: $0.toMap() as NSDictionary)
-            })
+    func getBooks(userId: String) -> Kotlinx_coroutines_coreFlow {
+        return FlowUtilsKt.createBooksFlow(fetcher: { [weak self] callback in
+            Task {
+                do {
+                    let books = try await self?.firestore
+                        .collection(USERS_PATH)
+                        .document(userId).collection(BOOKS_PATH)
+                        .getDocuments()
+                        .documents
+                        .map({
+                            KotlinPair(first: $0.documentID as NSString, second: $0.toMap() as NSDictionary)
+                        }) ?? []
+                    callback(books)
+                } catch {
+                    callback([])
+                }
+            }
+        })
     }
     
     func getBook(userId: String, bookId: String) async throws -> [String : Any] {
