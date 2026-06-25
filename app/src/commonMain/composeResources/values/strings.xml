@@ -15,11 +15,11 @@
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="sign_in">Sign in</string>
-    <string name="not_account">Don\'t have an account?</string>
+    <string name="not_account">Don't have an account?</string>
     <string name="create_account">Create account</string>
     <string name="sign_up">Sign up</string>
     <string name="confirm_password">Confirm password</string>
-    <string name="username_info">This username is only needed for identification purposes and to be able to separate your books from another user\'s ones. However, due to any personal information is stored, if you forget your password you won\'t be able to retrieve it, so it\'s advisable to have a backup copy. You can create it from the Statistics screen.</string>
+    <string name="username_info">This username is only needed for identification purposes and to be able to separate your books from another user's ones. However, due to any personal information is stored, if you forget your password you won't be able to retrieve it, so it's advisable to have a backup copy. You can create it from the Statistics screen.</string>
     <string name="wrong_credentials">Username or password are not correct</string>
     <string name="error_user_found">There is already a user with that name. Please, choose another one.</string>
 
@@ -122,7 +122,7 @@
 
     //ADD FRIENDS
     <string name="add_friends_title">Add friends</string>
-    <string name="search_friends_instructions">Introduce your friend\'s username to search it</string>
+    <string name="search_friends_instructions">Introduce your friend's username to search it</string>
     <string name="no_friends_found">There is no user with that username, or it has not activated the public profile yet</string>
 
     //DATA SYNCHRONIZATION
