@@ -11,7 +11,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 actual val platformModule = module {
-    single<String>(named("api_key")) { "AIzaSyBYhDAgpA2AJfznO81l1zRHeWreYP26zTk" }
+    single<String>(named("api_key")) { "AIzaSyB34yKO3Snl1CVOSoR8jurnODVtAm3_ZRI" }
     single<HttpClientEngine> {
         Darwin.create {
             configureRequest {
