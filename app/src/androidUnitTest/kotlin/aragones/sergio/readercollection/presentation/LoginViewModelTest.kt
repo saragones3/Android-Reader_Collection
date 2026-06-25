@@ -49,7 +49,9 @@ class LoginViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val testUsername = "user"
-    private val booksLocalDataSource: BooksLocalDataSource = mockk()
+    private val booksLocalDataSource: BooksLocalDataSource = mockk {
+        every { retrieveRemoteConfigValues() } just Runs
+    }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()
     private val userLocalDataSource: UserLocalDataSource = mockk {
         every { username } returns testUsername
@@ -109,6 +111,7 @@ class LoginViewModelTest {
             verify { userLocalDataSource.userId }
             coVerify { booksRemoteDataSource.getBooks(userId) }
             coVerify { booksLocalDataSource.insertBooks(domainBooks) }
+            verify { booksLocalDataSource.retrieveRemoteConfigValues() }
             confirmVerified(
                 booksLocalDataSource,
                 booksRemoteDataSource,
@@ -169,6 +172,7 @@ class LoginViewModelTest {
             coVerify(exactly = 0) { booksLocalDataSource.insertBooks(domainBooks) }
             verify { userLocalDataSource.logout() }
             verify { userRemoteDataSource.logout() }
+            verify { booksLocalDataSource.retrieveRemoteConfigValues() }
             confirmVerified(
                 booksLocalDataSource,
                 booksRemoteDataSource,
@@ -206,6 +210,7 @@ class LoginViewModelTest {
             verify { userLocalDataSource.username }
             coVerify { userRemoteDataSource.login(testUsername, password) }
             verify(exactly = 0) { userLocalDataSource.storeLoginData(any(), any()) }
+            verify { booksLocalDataSource.retrieveRemoteConfigValues() }
             confirmVerified(
                 booksLocalDataSource,
                 booksRemoteDataSource,

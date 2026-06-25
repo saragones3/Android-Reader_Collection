@@ -8,6 +8,9 @@ package aragones.sergio.readercollection.data.datasource
 import aragones.sergio.readercollection.data.local.BooksLocalDataSource
 import aragones.sergio.readercollection.data.local.SharedPreferencesHandler
 import aragones.sergio.readercollection.data.remote.FirebaseProvider
+import aragones.sergio.readercollection.data.remote.model.ALL_FORMATS
+import aragones.sergio.readercollection.data.remote.model.ALL_GENRES
+import aragones.sergio.readercollection.data.remote.model.ALL_STATES
 import aragones.sergio.readercollection.data.remote.toBook
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.toDomain
@@ -88,5 +91,17 @@ class FirestoreBooksDataSource(
         } catch (e: Exception) {
             throw e
         }
+    }
+
+    override fun saveRemoteConfigValues() {
+        preferences.formats = ALL_FORMATS
+        preferences.genres = ALL_GENRES
+        preferences.states = ALL_STATES
+    }
+
+    override fun retrieveRemoteConfigValues() {
+        ALL_FORMATS = preferences.formats
+        ALL_GENRES = preferences.genres
+        ALL_STATES = preferences.states
     }
 }

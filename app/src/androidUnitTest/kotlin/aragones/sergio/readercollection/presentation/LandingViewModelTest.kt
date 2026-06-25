@@ -35,7 +35,9 @@ class LandingViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val booksLocalDataSource: BooksLocalDataSource = mockk()
+    private val booksLocalDataSource: BooksLocalDataSource = mockk {
+        every { retrieveRemoteConfigValues() } just Runs
+    }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()
     private val userLocalDataSource: UserLocalDataSource = mockk()
     private val userRemoteDataSource: UserRemoteDataSource = mockk()
@@ -144,11 +146,11 @@ class LandingViewModelTest {
     fun `GIVEN language WHEN fetch remote config values THEN remote config values are fetched for that language`() {
         val language = "en"
         every { userLocalDataSource.language } returns language
-        every { booksRemoteDataSource.fetchRemoteConfigValues(language) } just Runs
+        every { booksRemoteDataSource.fetchRemoteConfigValues(language, any()) } just Runs
 
         viewModel.fetchRemoteConfigValues()
 
-        verify { booksRemoteDataSource.fetchRemoteConfigValues(language) }
+        verify { booksRemoteDataSource.fetchRemoteConfigValues(language, any()) }
         confirmVerified(booksRemoteDataSource)
     }
 

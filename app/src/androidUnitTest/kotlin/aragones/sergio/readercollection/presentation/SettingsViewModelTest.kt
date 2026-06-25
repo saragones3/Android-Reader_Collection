@@ -41,7 +41,9 @@ class SettingsViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val booksLocalDataSource: BooksLocalDataSource = mockk()
+    private val booksLocalDataSource: BooksLocalDataSource = mockk {
+        every { retrieveRemoteConfigValues() } just Runs
+    }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()
     private val userLocalDataSource: UserLocalDataSource = mockk()
     private val userRemoteDataSource: UserRemoteDataSource = mockk()
@@ -77,6 +79,7 @@ class SettingsViewModelTest {
             )
         }
         verify { userLocalDataSource.getCurrentVersion() }
+        verify { booksLocalDataSource.retrieveRemoteConfigValues() }
         confirmVerified(userLocalDataSource)
     }
 
@@ -101,6 +104,7 @@ class SettingsViewModelTest {
         verify { userRemoteDataSource.logout() }
         verify { booksLocalDataSource.getAllBooks() }
         coVerify { booksLocalDataSource.deleteBooks(books) }
+        verify { booksLocalDataSource.retrieveRemoteConfigValues() }
         confirmVerified(
             userLocalDataSource,
             userRemoteDataSource,
@@ -132,6 +136,7 @@ class SettingsViewModelTest {
             verify { userRemoteDataSource.logout() }
             verify { booksLocalDataSource.getAllBooks() }
             coVerify { booksLocalDataSource.deleteBooks(books) }
+            verify { booksLocalDataSource.retrieveRemoteConfigValues() }
             confirmVerified(
                 userLocalDataSource,
                 userRemoteDataSource,

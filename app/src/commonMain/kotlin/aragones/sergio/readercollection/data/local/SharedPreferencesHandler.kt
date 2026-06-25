@@ -7,6 +7,9 @@ package aragones.sergio.readercollection.data.local
 
 import aragones.sergio.readercollection.data.local.model.AuthData
 import aragones.sergio.readercollection.data.local.model.UserData
+import aragones.sergio.readercollection.data.remote.model.FormatResponse
+import aragones.sergio.readercollection.data.remote.model.GenreResponse
+import aragones.sergio.readercollection.data.remote.model.StateResponse
 import com.aragones.sergio.util.Preferences
 import kotlinx.serialization.json.Json
 
@@ -28,6 +31,39 @@ class SharedPreferencesHandler(
         }
         set(value) =
             sharedPreferencesProvider.writeString(Preferences.LANGUAGE_PREFERENCE_NAME, value)
+    var formats: Map<String, List<FormatResponse>>
+        get() {
+            return sharedPreferencesProvider
+                .readString(Preferences.FORMATS_PREFERENCE_NAME)
+                ?.let { Json.decodeFromString<Map<String, List<FormatResponse>>>(it) }
+                ?: emptyMap()
+        }
+        set(value) = sharedPreferencesProvider.writeString(
+            Preferences.FORMATS_PREFERENCE_NAME,
+            Json.encodeToString(value),
+        )
+    var genres: Map<String, List<GenreResponse>>
+        get() {
+            return sharedPreferencesProvider
+                .readString(Preferences.GENRES_PREFERENCE_NAME)
+                ?.let { Json.decodeFromString<Map<String, List<GenreResponse>>>(it) }
+                ?: emptyMap()
+        }
+        set(value) = sharedPreferencesProvider.writeString(
+            Preferences.GENRES_PREFERENCE_NAME,
+            Json.encodeToString(value),
+        )
+    var states: Map<String, List<StateResponse>>
+        get() {
+            return sharedPreferencesProvider
+                .readString(Preferences.STATES_PREFERENCE_NAME)
+                ?.let { Json.decodeFromString<Map<String, List<StateResponse>>>(it) }
+                ?: emptyMap()
+        }
+        set(value) = sharedPreferencesProvider.writeString(
+            Preferences.STATES_PREFERENCE_NAME,
+            Json.encodeToString(value),
+        )
     var credentials: AuthData
         get() {
             return sharedPreferencesProvider

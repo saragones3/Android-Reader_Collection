@@ -27,7 +27,6 @@ import aragones.sergio.readercollection.presentation.statistics.StatisticsUiStat
 import aragones.sergio.readercollection.presentation.statistics.StatisticsViewModel
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
 import com.aragones.sergio.util.extensions.toString
-import io.mockk.Called
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -56,7 +55,9 @@ class StatisticsViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val booksLocalDataSource: BooksLocalDataSource = mockk()
+    private val booksLocalDataSource: BooksLocalDataSource = mockk {
+        every { retrieveRemoteConfigValues() } just Runs
+    }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()
     private val userLocalDataSource: UserLocalDataSource = mockk {
         every { sortParam } returns "sortParam"
@@ -168,6 +169,7 @@ class StatisticsViewModelTest {
                 )
             }
             verify { booksLocalDataSource.getReadBooks() }
+            verify { booksLocalDataSource.retrieveRemoteConfigValues() }
             confirmVerified(booksLocalDataSource)
         }
 
@@ -190,6 +192,7 @@ class StatisticsViewModelTest {
             )
         }
         verify { booksLocalDataSource.getReadBooks() }
+        verify { booksLocalDataSource.retrieveRemoteConfigValues() }
         confirmVerified(booksLocalDataSource)
     }
 
@@ -303,6 +306,7 @@ class StatisticsViewModelTest {
             assertEquals(Res.string.data_imported, awaitItem())
         }
         coVerify { booksLocalDataSource.importDataFrom(listOf(book)) }
+        verify { booksLocalDataSource.retrieveRemoteConfigValues() }
         confirmVerified(booksLocalDataSource)
     }
 
@@ -320,7 +324,8 @@ class StatisticsViewModelTest {
                 awaitItem(),
             )
         }
-        coVerify { booksLocalDataSource wasNot Called }
+        coVerify(exactly = 0) { booksLocalDataSource.importDataFrom(any()) }
+        verify { booksLocalDataSource.retrieveRemoteConfigValues() }
         confirmVerified(booksLocalDataSource)
     }
 
@@ -351,6 +356,7 @@ class StatisticsViewModelTest {
             )
         }
         coVerify { booksLocalDataSource.importDataFrom(listOf(book)) }
+        verify { booksLocalDataSource.retrieveRemoteConfigValues() }
         confirmVerified(booksLocalDataSource)
     }
 
@@ -416,6 +422,7 @@ class StatisticsViewModelTest {
             )
         }
         verify { booksLocalDataSource.getAllBooks() }
+        verify { booksLocalDataSource.retrieveRemoteConfigValues() }
         confirmVerified(booksLocalDataSource)
     }
 
@@ -435,6 +442,7 @@ class StatisticsViewModelTest {
             assertEquals("[]", json)
         }
         verify { booksLocalDataSource.getAllBooks() }
+        verify { booksLocalDataSource.retrieveRemoteConfigValues() }
         confirmVerified(booksLocalDataSource)
     }
 
@@ -457,6 +465,7 @@ class StatisticsViewModelTest {
             assertEquals(null, json)
         }
         verify { booksLocalDataSource.getAllBooks() }
+        verify { booksLocalDataSource.retrieveRemoteConfigValues() }
         confirmVerified(booksLocalDataSource)
     }
 }
