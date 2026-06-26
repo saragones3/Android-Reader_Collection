@@ -33,25 +33,21 @@ class StatisticsViewModel(
 ) : ViewModel() {
 
     //region Private properties
-    private var _state: MutableStateFlow<StatisticsUiState> =
-        MutableStateFlow(StatisticsUiState.Empty)
-    private val _booksError = MutableStateFlow<ErrorModel?>(null)
-    private val _confirmationDialogMessageId = MutableStateFlow<StringResource?>(null)
-    private val _infoDialogMessageId = MutableStateFlow<StringResource?>(null)
-    //endregion
-
-    //region Public properties
-    val state: StateFlow<StatisticsUiState> = _state
-    val booksError: StateFlow<ErrorModel?> = _booksError
+    val state: StateFlow<StatisticsUiState>
+        field = MutableStateFlow<StatisticsUiState>(StatisticsUiState.Empty)
+    val booksError: StateFlow<ErrorModel?>
+        field = MutableStateFlow<ErrorModel?>(null)
     var sortParam = userRepository.sortParam
     var isSortDescending = userRepository.isSortDescending
-    val confirmationDialogMessageId: StateFlow<StringResource?> = _confirmationDialogMessageId
-    val infoDialogMessageId: StateFlow<StringResource?> = _infoDialogMessageId
+    val confirmationDialogMessageId: StateFlow<StringResource?>
+        field = MutableStateFlow<StringResource?>(null)
+    val infoDialogMessageId: StateFlow<StringResource?>
+        field = MutableStateFlow<StringResource?>(null)
     //endregion
 
     //region Public methods
     fun fetchBooks() = viewModelScope.launch {
-        _state.update {
+        state.update {
             when (it) {
                 StatisticsUiState.Empty -> StatisticsUiState.Success.empty().copy(isLoading = true)
                 is StatisticsUiState.Success -> it.copy(isLoading = true)
@@ -59,7 +55,7 @@ class StatisticsViewModel(
         }
 
         booksRepository.getReadBooks().collect { books ->
-            _state.value = when (books.isEmpty()) {
+            state.value = when (books.isEmpty()) {
                 true -> StatisticsUiState.Empty
                 false -> StatisticsUiState.Success(
                     totalBooksRead = books.size,
@@ -81,22 +77,22 @@ class StatisticsViewModel(
     }
 
     fun showConfirmationDialog(textId: StringResource) {
-        _confirmationDialogMessageId.value = textId
+        confirmationDialogMessageId.value = textId
     }
 
     fun closeDialogs() {
-        _booksError.value = null
-        _confirmationDialogMessageId.value = null
-        _infoDialogMessageId.value = null
+        booksError.value = null
+        confirmationDialogMessageId.value = null
+        infoDialogMessageId.value = null
     }
 
     fun importData(jsonData: String) = viewModelScope.launch {
         booksRepository.importDataFrom(jsonData).fold(
             onSuccess = {
-                _infoDialogMessageId.value = Res.string.data_imported
+                infoDialogMessageId.value = Res.string.data_imported
             },
             onFailure = {
-                _booksError.value = ErrorModel("", Res.string.error_file_data)
+                booksError.value = ErrorModel("", Res.string.error_file_data)
             },
         )
     }
@@ -105,11 +101,11 @@ class StatisticsViewModel(
         booksRepository.exportDataTo().fold(
             onSuccess = {
                 completion(it)
-                _infoDialogMessageId.value = Res.string.file_created
+                infoDialogMessageId.value = Res.string.file_created
             },
             onFailure = {
                 completion(null)
-                _booksError.value = ErrorModel("", Res.string.error_database)
+                booksError.value = ErrorModel("", Res.string.error_database)
             },
         )
     }

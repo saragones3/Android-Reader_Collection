@@ -140,6 +140,7 @@ kotlin {
     jvmToolchain(libs.versions.jdk.get().toInt())
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
+        freeCompilerArgs.add("-Xexplicit-backing-fields")
     }
 
     sourceSets {

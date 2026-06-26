@@ -5,7 +5,6 @@
 
 package aragones.sergio.readercollection.presentation.login
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -31,34 +30,31 @@ class LoginViewModel(
 ) : ViewModel() {
 
     //region Private properties
-    private var _uiState: MutableState<LoginUiState> = mutableStateOf(
-        LoginUiState.empty().copy(username = userRepository.username),
-    )
-    private val _loginError = MutableStateFlow<ErrorModel?>(null)
-    private val _loginSuccess = MutableStateFlow(false)
-    //endregion
-
-    //region Public properties
-    val uiState: State<LoginUiState> = _uiState
-    val loginError: StateFlow<ErrorModel?> = _loginError
-    val loginSuccess: StateFlow<Boolean> = _loginSuccess
+    val state: State<LoginUiState>
+        field = mutableStateOf<LoginUiState>(
+            LoginUiState.empty().copy(username = userRepository.username),
+        )
+    val loginError: StateFlow<ErrorModel?>
+        field = MutableStateFlow<ErrorModel?>(null)
+    val loginSuccess: StateFlow<Boolean>
+        field = MutableStateFlow<Boolean>(false)
     //endregion
 
     //region Public methods
     fun login(username: String, password: String) = viewModelScope.launch {
-        _uiState.value = _uiState.value.copy(isLoading = true)
+        state.value = state.value.copy(isLoading = true)
         userRepository.login(username, password).fold(
             onSuccess = {
                 userRepository.loadConfig()
                 booksRepository.loadBooks(userRepository.userId).fold(
                     onSuccess = {
-                        _uiState.value = _uiState.value.copy(isLoading = false)
-                        _loginSuccess.value = true
+                        state.value = state.value.copy(isLoading = false)
+                        loginSuccess.value = true
                     },
                     onFailure = {
                         userRepository.logout()
-                        _uiState.value = _uiState.value.copy(isLoading = false)
-                        _loginError.value = ErrorModel(
+                        state.value = state.value.copy(isLoading = false)
+                        loginError.value = ErrorModel(
                             Constants.EMPTY_VALUE,
                             Res.string.error_server,
                         )
@@ -66,8 +62,8 @@ class LoginViewModel(
                 )
             },
             onFailure = {
-                _uiState.value = _uiState.value.copy(isLoading = false)
-                _loginError.value = ErrorModel(
+                state.value = state.value.copy(isLoading = false)
+                loginError.value = ErrorModel(
                     Constants.EMPTY_VALUE,
                     Res.string.wrong_credentials,
                 )
@@ -89,7 +85,7 @@ class LoginViewModel(
             isDataValid = false
         }
 
-        _uiState.value = _uiState.value.copy(
+        state.value = state.value.copy(
             username = username,
             password = password,
             formState = LoginFormState(usernameError, passwordError, isDataValid),
@@ -97,7 +93,7 @@ class LoginViewModel(
     }
 
     fun closeDialogs() {
-        _loginError.value = null
+        loginError.value = null
     }
     //endregion
 }

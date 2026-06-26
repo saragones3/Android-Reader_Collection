@@ -16,7 +16,7 @@ import reader_collection.app.generated.resources.username_info
 
 @Composable
 fun RegisterView(onGoToMain: () -> Unit, viewModel: RegisterViewModel = koinViewModel()) {
-    val state by viewModel.uiState
+    val state by viewModel.state
     val error by viewModel.registerError.collectAsState()
     val infoDialogMessageId by viewModel.infoDialogMessageId.collectAsState()
 

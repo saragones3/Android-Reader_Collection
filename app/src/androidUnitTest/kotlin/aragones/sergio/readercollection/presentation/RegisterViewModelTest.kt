@@ -168,7 +168,7 @@ class RegisterViewModelTest {
     fun `GIVEN valid username and passwords WHEN registerDataChanged THEN state updates with data valid true`() {
         assertEquals(
             LoginFormState(),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
 
         viewModel.registerDataChanged(
@@ -183,7 +183,7 @@ class RegisterViewModelTest {
                 passwordError = null,
                 isDataValid = true,
             ),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
     }
 
@@ -191,7 +191,7 @@ class RegisterViewModelTest {
     fun `GIVEN invalid username WHEN registerDataChanged THEN state updates with data valid false and username error`() {
         assertEquals(
             LoginFormState(),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
 
         viewModel.registerDataChanged(
@@ -206,7 +206,7 @@ class RegisterViewModelTest {
                 passwordError = null,
                 isDataValid = false,
             ),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
     }
 
@@ -214,7 +214,7 @@ class RegisterViewModelTest {
     fun `GIVEN invalid password WHEN registerDataChanged THEN state updates with data valid false and password error`() {
         assertEquals(
             LoginFormState(),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
 
         viewModel.registerDataChanged(
@@ -229,7 +229,7 @@ class RegisterViewModelTest {
                 passwordError = Res.string.invalid_password,
                 isDataValid = false,
             ),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
     }
 
@@ -237,7 +237,7 @@ class RegisterViewModelTest {
     fun `GIVEN mismatch passwords WHEN registerDataChanged THEN state updates with data valid false and password error`() {
         assertEquals(
             LoginFormState(),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
 
         viewModel.registerDataChanged(
@@ -252,7 +252,7 @@ class RegisterViewModelTest {
                 passwordError = Res.string.invalid_repeat_password,
                 isDataValid = false,
             ),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
     }
 
@@ -260,7 +260,7 @@ class RegisterViewModelTest {
     fun `GIVEN invalid username and mismatch passwords WHEN registerDataChanged THEN state updates with data valid false and username and password error`() {
         assertEquals(
             LoginFormState(),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
 
         viewModel.registerDataChanged(
@@ -275,7 +275,7 @@ class RegisterViewModelTest {
                 passwordError = Res.string.invalid_repeat_password,
                 isDataValid = false,
             ),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
     }
 
