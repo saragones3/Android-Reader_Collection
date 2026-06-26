@@ -1,5 +1,6 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
+import com.android.build.api.dsl.ApplicationExtension
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import java.io.FileInputStream
@@ -8,7 +9,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.compose.jetbrains)
+    alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.google.services)
     alias(libs.plugins.kotlin.multiplatform)
@@ -28,7 +29,7 @@ val versionMinor = 8
 val versionPatch = 9
 val versionBuild = 0 // bump for dogfood builds, public betas, etc.
 
-android {
+extensions.configure<ApplicationExtension> {
 
     namespace = appName
     compileSdk = libs.versions.sdk.compile.get().toInt()
@@ -101,7 +102,6 @@ kotlin {
             group("mobile") {
                 withAndroidTarget()
                 group("ios") {
-                    withIosX64()
                     withIosArm64()
                     withIosSimulatorArm64()
                 }
@@ -116,7 +116,6 @@ kotlin {
     androidTarget()
 
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -144,7 +143,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(projects.core.util)
 
@@ -161,14 +160,14 @@ kotlin {
                 implementation(libs.navigation.compose)
             }
         }
-
-        val mobileMain by getting {
+        
+        getByName("mobileMain") {
             dependencies {
                 implementation(projects.core.database)
             }
         }
 
-        val androidMain by getting {
+        androidMain {
             dependencies {
                 implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
@@ -185,11 +184,13 @@ kotlin {
             }
         }
 
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
+        iosMain {
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
         }
 
-        val webMain by getting {
+        webMain {
             dependencies {
                 implementation(npm("firebase", "10.12.0"))
             }
@@ -209,10 +210,10 @@ kotlin {
             })
         }
 
-        val commonTest by getting {
+        commonTest {
         }
 
-        val androidUnitTest by getting {
+        androidUnitTest {
             dependencies {
                 implementation(libs.coroutines.test)
                 implementation(libs.kotlinx.test.core)
@@ -223,7 +224,7 @@ kotlin {
             }
         }
 
-        val androidInstrumentedTest by getting {
+        androidInstrumentedTest {
             dependencies {
                 implementation(libs.androidx.test.ext.junit)
                 implementation(libs.kotlinx.test.core)
