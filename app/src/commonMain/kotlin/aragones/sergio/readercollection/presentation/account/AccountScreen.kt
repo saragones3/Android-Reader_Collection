@@ -63,7 +63,9 @@ import reader_collection.app.generated.resources.account_title
 import reader_collection.app.generated.resources.delete_account_action
 import reader_collection.app.generated.resources.delete_account_description
 import reader_collection.app.generated.resources.delete_account_title
+import reader_collection.app.generated.resources.email
 import reader_collection.app.generated.resources.hide_password
+import reader_collection.app.generated.resources.invalid_email
 import reader_collection.app.generated.resources.invalid_password
 import reader_collection.app.generated.resources.password
 import reader_collection.app.generated.resources.public_profile_description
@@ -77,7 +79,7 @@ import reader_collection.app.generated.resources.username
 fun AccountScreen(
     state: AccountUiState,
     onShowInfo: () -> Unit,
-    onProfileDataChange: (String) -> Unit,
+    onProfileDataChange: (String, String) -> Unit,
     onBack: () -> Unit,
     onSave: () -> Unit,
     onChangePublicProfile: (Boolean) -> Unit,
@@ -104,11 +106,16 @@ fun AccountScreen(
             HeaderText(text = stringResource(Res.string.account_details_title))
             ProfileInfo(
                 username = state.username,
+                email = state.email,
+                emailError = state.emailError,
                 password = state.password,
                 passwordError = state.passwordError,
                 onShowInfo = onShowInfo,
+                onEmailChange = {
+                    onProfileDataChange(it, state.password)
+                },
                 onPasswordChange = {
-                    onProfileDataChange(it)
+                    onProfileDataChange(state.email, it)
                 },
             )
             MainActionButton(
@@ -117,7 +124,7 @@ fun AccountScreen(
                     .widthIn(min = 200.dp)
                     .align(Alignment.CenterHorizontally)
                     .padding(vertical = 24.dp),
-                enabled = state.passwordError == null,
+                enabled = state.emailError == null && state.passwordError == null,
                 onClick = onSave,
             )
             Spacer(modifier = Modifier.height(24.dp))
@@ -163,9 +170,12 @@ private fun HeaderText(text: String, modifier: Modifier = Modifier) {
 @Composable
 private fun ProfileInfo(
     username: String,
+    email: String,
+    emailError: StringResource?,
     password: String,
     passwordError: StringResource?,
     onShowInfo: () -> Unit,
+    onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
 ) {
     var passwordVisibility by rememberSaveable { mutableStateOf(false) }
@@ -178,6 +188,16 @@ private fun ProfileInfo(
             .withDescription(stringResource(Res.string.show_info)),
         enabled = false,
         onEndIconClicked = onShowInfo,
+    )
+    Spacer(Modifier.height(8.dp))
+    CustomOutlinedTextField(
+        text = email,
+        labelText = stringResource(Res.string.email),
+        onTextChanged = onEmailChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp),
+        errorText = emailError?.let { stringResource(it) },
     )
     Spacer(Modifier.height(8.dp))
     CustomOutlinedTextField(
@@ -307,7 +327,7 @@ private fun AccountScreenPreview(
         AccountScreen(
             state = state,
             onShowInfo = {},
-            onProfileDataChange = { _ -> },
+            onProfileDataChange = { _, _ -> },
             onBack = {},
             onSave = {},
             onChangePublicProfile = {},
@@ -323,13 +343,17 @@ private class AccountScreenPreviewParameterProvider :
         get() = sequenceOf(
             AccountUiState(
                 username = "User",
+                email = "user@example.com",
                 password = "Password",
+                emailError = null,
                 passwordError = null,
                 isProfilePublic = true,
                 isLoading = false,
             ),
             AccountUiState(
                 username = "Username very very very very very very very long",
+                email = "user@example.com",
+                emailError = Res.string.invalid_email,
                 password = "",
                 passwordError = Res.string.invalid_password,
                 isProfilePublic = false,
@@ -337,7 +361,9 @@ private class AccountScreenPreviewParameterProvider :
             ),
             AccountUiState(
                 username = "User",
+                email = "user@example.com",
                 password = "Password",
+                emailError = null,
                 passwordError = null,
                 isProfilePublic = true,
                 isLoading = true,

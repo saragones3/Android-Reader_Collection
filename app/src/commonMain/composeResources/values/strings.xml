@@ -10,9 +10,11 @@
 
     //LOGIN &amp; REGISTRATION
     <string name="invalid_username">Username must be composed only by letters and numbers</string>
+    <string name="invalid_email">Invalid email</string>
     <string name="invalid_password">Password must have at least 6 characters</string>
     <string name="invalid_repeat_password">Passwords does not match</string>
     <string name="username">Username</string>
+    <string name="email">Email</string>
     <string name="password">Password</string>
     <string name="sign_in">Sign in</string>
     <string name="not_account">Don't have an account?</string>

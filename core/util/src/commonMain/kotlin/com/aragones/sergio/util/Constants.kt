@@ -31,6 +31,9 @@ object Constants {
 
     fun isUserNameValid(username: String): Boolean = username.matches(Regex("^[a-zA-Z0-9]+$"))
 
+    fun isEmailValid(email: String): Boolean =
+        email.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$"))
+
     fun isPasswordValid(password: String): Boolean = password.length > 5
 
     fun getDateFormatToShow(language: String): String = when (language) {

@@ -38,6 +38,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.error_server
+import reader_collection.app.generated.resources.invalid_email
 import reader_collection.app.generated.resources.invalid_password
 import reader_collection.app.generated.resources.profile_delete_confirmation
 import reader_collection.app.generated.resources.username_info
@@ -48,8 +49,9 @@ class AccountViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val testUserId = "userId"
-    private val testUsername = "userId"
-    private val testPassword = ""
+    private val testUsername = "username"
+    private val testPassword = "password"
+    private val testEmail = ""
     private val booksLocalDataSource: BooksLocalDataSource = mockk {
         every { retrieveRemoteConfigValues() } just Runs
     }
@@ -72,6 +74,11 @@ class AccountViewModelTest {
             mainDispatcherRule.testDispatcher,
         ),
     )
+    private val initialState = AccountUiState.empty().copy(
+        username = testUsername,
+        email = testEmail,
+        password = testPassword,
+    )
 
     @Test
     fun `WHEN onResume THEN updates state with repository data`() = runTest {
@@ -81,15 +88,14 @@ class AccountViewModelTest {
         every { userLocalDataSource.isProfilePublic } returns isPublicProfile
 
         viewModel.state.test {
-            val initialValue = AccountUiState.empty().copy(
-                username = testUsername,
-            )
-            assertEquals(initialValue, awaitItem())
+            assertEquals(initialState, awaitItem())
 
             viewModel.onResume()
 
             assertEquals(
-                initialValue.copy(
+                initialState.copy(
+                    email = "",
+                    emailError = null,
                     password = userData.password,
                     passwordError = null,
                     isProfilePublic = isPublicProfile,
@@ -104,27 +110,26 @@ class AccountViewModelTest {
     @Test
     fun `GIVEN new password and success response WHEN save THEN updates password`() = runTest {
         val newPassword = "123456"
-        viewModel.profileDataChanged(newPassword)
+        viewModel.profileDataChanged(testEmail, newPassword)
         coEvery { userRemoteDataSource.login(any(), any()) } returns Result.success(testUserId)
         coEvery { userRemoteDataSource.updatePassword(any()) } returns Result.success(Unit)
         every { userLocalDataSource.storePassword(any()) } just Runs
         every { userLocalDataSource.storeCredentials(any()) } just Runs
 
         viewModel.state.test {
-            val initialValue = AccountUiState.empty().copy(
-                username = testUsername,
+            val updatedInitialState = initialState.copy(
                 password = newPassword,
             )
-            assertEquals(initialValue, awaitItem())
+            assertEquals(updatedInitialState, awaitItem())
 
             viewModel.save()
 
             assertEquals(
-                initialValue.copy(isLoading = true),
+                updatedInitialState.copy(isLoading = true),
                 awaitItem(),
             )
             assertEquals(
-                initialValue.copy(isLoading = false),
+                updatedInitialState.copy(isLoading = false),
                 awaitItem(),
             )
         }
@@ -138,7 +143,7 @@ class AccountViewModelTest {
     @Test
     fun `GIVEN new password and login failure WHEN save THEN show error`() = runTest {
         val newPassword = "123456"
-        viewModel.profileDataChanged(newPassword)
+        viewModel.profileDataChanged(testEmail, newPassword)
         coEvery { userRemoteDataSource.login(any(), any()) } returns Result.failure(Exception())
 
         viewModel.profileError.test {
@@ -161,7 +166,7 @@ class AccountViewModelTest {
     @Test
     fun `GIVEN new password and failure response WHEN save THEN show error`() = runTest {
         val newPassword = "123456"
-        viewModel.profileDataChanged(newPassword)
+        viewModel.profileDataChanged(testEmail, newPassword)
         coEvery { userRemoteDataSource.login(any(), any()) } returns Result.success(testUserId)
         coEvery { userRemoteDataSource.updatePassword(any()) } returns Result.failure(Exception())
 
@@ -201,16 +206,13 @@ class AccountViewModelTest {
             every { userLocalDataSource.storePublicProfile(any()) } just Runs
 
             viewModel.state.test {
-                val initialValue = AccountUiState.empty().copy(
-                    username = testUsername,
-                )
-                assertEquals(initialValue, awaitItem())
+                assertEquals(initialState, awaitItem())
 
                 viewModel.setPublicProfile(value)
 
-                assertEquals(initialValue.copy(isLoading = true), awaitItem())
+                assertEquals(initialState.copy(isLoading = true), awaitItem())
                 assertEquals(
-                    initialValue.copy(isProfilePublic = value, isLoading = false),
+                    initialState.copy(isProfilePublic = value, isLoading = false),
                     awaitItem(),
                 )
             }
@@ -226,19 +228,16 @@ class AccountViewModelTest {
             every { userLocalDataSource.storePublicProfile(any()) } just Runs
 
             viewModel.state.test {
-                val initialValue = AccountUiState.empty().copy(
-                    username = testUsername,
-                )
-                assertEquals(initialValue, awaitItem())
+                assertEquals(initialState, awaitItem())
 
                 viewModel.setPublicProfile(value)
 
                 assertEquals(
-                    initialValue.copy(isLoading = true),
+                    initialState.copy(isLoading = true),
                     awaitItem(),
                 )
                 assertEquals(
-                    initialValue.copy(isProfilePublic = value, isLoading = false),
+                    initialState.copy(isProfilePublic = value, isLoading = false),
                     awaitItem(),
                 )
             }
@@ -337,47 +336,48 @@ class AccountViewModelTest {
     }
 
     @Test
-    fun `GIVEN valid password WHEN profileDataChanged THEN update state with new password`() =
-        runTest {
-            val newPassword = "123456"
+    fun `GIVEN valid data WHEN profileDataChanged THEN update state with new data`() = runTest {
+        val newEmail = "new@email.com"
+        val newPassword = "123456"
 
-            viewModel.state.test {
-                val initialValue = AccountUiState.empty().copy(
-                    username = testUsername,
-                )
-                assertEquals(initialValue, awaitItem())
+        viewModel.state.test {
+            assertEquals(initialState, awaitItem())
 
-                viewModel.profileDataChanged(newPassword)
+            viewModel.profileDataChanged(newEmail, newPassword)
 
-                assertEquals(
-                    initialValue.copy(password = newPassword, passwordError = null),
-                    awaitItem(),
-                )
-            }
+            assertEquals(
+                initialState.copy(
+                    email = newEmail,
+                    emailError = null,
+                    password = newPassword,
+                    passwordError = null,
+                ),
+                awaitItem(),
+            )
         }
+    }
 
     @Test
-    fun `GIVEN invalid password WHEN profileDataChanged THEN update state with password error`() =
-        runTest {
-            val newPassword = "123"
+    fun `GIVEN invalid data WHEN profileDataChanged THEN update state with errors`() = runTest {
+        val newEmail = "invalid-email"
+        val newPassword = "123"
 
-            viewModel.state.test {
-                val initialValue = AccountUiState.empty().copy(
-                    username = testUsername,
-                )
-                assertEquals(initialValue, awaitItem())
+        viewModel.state.test {
+            assertEquals(initialState, awaitItem())
 
-                viewModel.profileDataChanged(newPassword)
+            viewModel.profileDataChanged(newEmail, newPassword)
 
-                assertEquals(
-                    initialValue.copy(
-                        password = newPassword,
-                        passwordError = Res.string.invalid_password,
-                    ),
-                    awaitItem(),
-                )
-            }
+            assertEquals(
+                initialState.copy(
+                    email = newEmail,
+                    emailError = Res.string.invalid_email,
+                    password = newPassword,
+                    passwordError = Res.string.invalid_password,
+                ),
+                awaitItem(),
+            )
         }
+    }
 
     @Test
     fun `GIVEN no dialog shown WHEN showConfirmationDialog THEN dialog is shown`() = runTest {
