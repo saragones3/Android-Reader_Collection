@@ -103,6 +103,7 @@
     <string name="account_details_title">Account details</string>
     <string name="account_management_title">Account management</string>
     <string name="save">Save</string>
+    <string name="verify_email_message">We've sent a verification email to the new address. Please check your inbox and follow the instructions to complete the update.</string>
     <string name="public_profile_title">Public profile</string>
     <string name="public_profile_description">Other users will be able to search for you and see your books</string>
     <string name="delete_account_title">Delete account</string>

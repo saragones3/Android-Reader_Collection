@@ -59,6 +59,11 @@ class FirebaseProviderAndroid(
         user.updatePassword(password).await()
     }
 
+    override suspend fun updateEmail(email: String) {
+        val user = auth.currentUser ?: throw RuntimeException("User is null")
+        user.verifyBeforeUpdateEmail(email).await()
+    }
+
     override fun signOut() = auth.signOut()
 
     override suspend fun deleteUser() {

@@ -20,6 +20,7 @@ import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.error_server
 import reader_collection.app.generated.resources.invalid_email
 import reader_collection.app.generated.resources.invalid_password
+import reader_collection.app.generated.resources.verify_email_message
 
 class AccountViewModel(
     private val booksRepository: BooksRepository,
@@ -61,12 +62,26 @@ class AccountViewModel(
 
     //region Public methods
     fun save() {
-        val newPassword = requireNotNull(state.value.password)
+        val newEmail = state.value.email
+        val newPassword = state.value.password
 
-        if (newPassword != userRepository.userData.password) {
+        if (newEmail != userRepository.userData.email ||
+            newPassword != userRepository.userData.password
+        ) {
             state.update { it.copy(isLoading = true) }
             viewModelScope.launch {
-                userRepository.updatePassword(newPassword).fold(
+                var result = Result.success(Unit)
+                if (newEmail != userRepository.userData.email) {
+                    result = userRepository.updateEmail(newEmail)
+                    if (result.isSuccess) {
+                        showInfoDialog(Res.string.verify_email_message)
+                    }
+                }
+                if (result.isSuccess && newPassword != userRepository.userData.password) {
+                    result = userRepository.updatePassword(newPassword)
+                }
+
+                result.fold(
                     onSuccess = {
                         state.update { it.copy(isLoading = false) }
                     },

@@ -141,6 +141,41 @@ class AccountViewModelTest {
     }
 
     @Test
+    fun `GIVEN new email and success response WHEN save THEN updates email`() = runTest {
+        val newEmail = "new@email.com"
+        viewModel.profileDataChanged(newEmail, testPassword)
+        coEvery { userRemoteDataSource.login(any(), any()) } returns Result.success(testUserId)
+        coEvery { userRemoteDataSource.updateEmail(any()) } returns Result.success(Unit)
+        every { userLocalDataSource.storeLoginData(any(), any()) } just Runs
+
+        viewModel.state.test {
+            val updatedInitialState = initialState.copy(
+                email = newEmail,
+            )
+            assertEquals(updatedInitialState, awaitItem())
+
+            viewModel.save()
+
+            assertEquals(
+                updatedInitialState.copy(isLoading = true),
+                awaitItem(),
+            )
+            assertEquals(
+                updatedInitialState.copy(isLoading = false),
+                awaitItem(),
+            )
+        }
+        coVerify { userRemoteDataSource.login(testUsername, testPassword) }
+        coVerify { userRemoteDataSource.updateEmail(newEmail) }
+        verify {
+            userLocalDataSource.storeLoginData(
+                UserData(testUsername, newEmail, testPassword),
+                AuthData(testUserId),
+            )
+        }
+    }
+
+    @Test
     fun `GIVEN new password and login failure WHEN save THEN show error`() = runTest {
         val newPassword = "123456"
         viewModel.profileDataChanged(testEmail, newPassword)
@@ -187,9 +222,10 @@ class AccountViewModelTest {
     }
 
     @Test
-    fun `GIVEN same password WHEN save THEN do nothing`() {
+    fun `GIVEN same data WHEN save THEN do nothing`() {
         viewModel.save()
 
+        coVerify(exactly = 0) { userRemoteDataSource.updateEmail(any()) }
         coVerify(exactly = 0) { userRemoteDataSource.updatePassword(any()) }
     }
 

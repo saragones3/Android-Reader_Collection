@@ -48,6 +48,10 @@ class UserRemoteDataSource(
         firebaseProvider.updatePassword(password)
     }
 
+    suspend fun updateEmail(email: String): Result<Unit> = runCatching {
+        firebaseProvider.updateEmail(email)
+    }
+
     suspend fun registerPublicProfile(username: String, userId: String): Result<Unit> =
         runCatching {
             firebaseProvider.registerPublicProfile("${username}$MAIL_END", userId)

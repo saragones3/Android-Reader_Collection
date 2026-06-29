@@ -59,6 +59,11 @@ class FirebaseProviderWeb : FirebaseProvider {
         updatePasswordJs(user, password).await()
     }
 
+    override suspend fun updateEmail(email: String) {
+        val user = getCurrentUserJs() ?: throw Exception("No authenticated user")
+        updateEmailJs(user, email).await()
+    }
+
     override fun signOut() {
         signOutJs(getAuthJs())
     }
@@ -286,6 +291,9 @@ external fun signInEmailJs(auth: JsAny, email: String, pass: String): Promise<Js
 
 @JsFun("(user, newPass) => window.firebaseAuthModule.updatePassword(user, newPass)")
 external fun updatePasswordJs(user: JsAuthUser, newPass: String): Promise<JsAny?>
+
+@JsFun("(user, newEmail) => window.firebaseAuthModule.verifyBeforeUpdateEmail(user, newEmail)")
+external fun updateEmailJs(user: JsAuthUser, newEmail: String): Promise<JsAny?>
 
 @JsFun("(auth) => window.firebaseAuthModule.signOut(auth)")
 external fun signOutJs(auth: JsAny): Promise<JsAny?>

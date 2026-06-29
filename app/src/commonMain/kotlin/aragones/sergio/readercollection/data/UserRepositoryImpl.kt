@@ -122,6 +122,25 @@ class UserRepositoryImpl(
             )
         }
 
+    override suspend fun updateEmail(email: String): Result<Unit> = withContext(ioDispatcher) {
+        val userData = userLocalDataSource.userData
+        userRemoteDataSource.login(userData.username, userData.password).fold(
+            onSuccess = {
+                userRemoteDataSource.updateEmail(email).fold(onSuccess = {
+                    val currentData = userLocalDataSource.userData
+                    currentData.email = email
+                    userLocalDataSource.storeLoginData(currentData, AuthData(userId))
+                    Result.success(Unit)
+                }, onFailure = {
+                    Result.failure(it)
+                })
+            },
+            onFailure = {
+                Result.failure(it)
+            },
+        )
+    }
+
     override suspend fun setPublicProfile(value: Boolean): Result<Unit> =
         withContext(ioDispatcher) {
             withTimeout(TIMEOUT) {

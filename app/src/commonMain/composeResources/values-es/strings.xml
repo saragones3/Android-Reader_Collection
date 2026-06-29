@@ -107,6 +107,7 @@
     <string name="account_details_title">Detalles de la cuenta</string>
     <string name="account_management_title">Gestión de la cuenta</string>
     <string name="save">Guardar</string>
+    <string name="verify_email_message">Hemos enviado un email de verificación a la nueva dirección. Por favor, revisa tu bandeja de entrada y sigue las instrucciones para completar la actualización.</string>
     <string name="public_profile_title">Perfil público</string>
     <string name="public_profile_description">Otros usuarios podrán buscarte y ver tus libros</string>
     <string name="delete_account_title">Borrar cuenta</string>

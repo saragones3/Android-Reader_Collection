@@ -210,6 +210,18 @@ class UserRemoteDataSourceTest {
     }
 
     @Test
+    fun `GIVEN success response WHEN updateEmail THEN return success`() = runTest {
+        val email = "new@email.com"
+        coEvery { firebaseProvider.updateEmail(any()) } just Runs
+
+        val result = dataSource.updateEmail(email)
+
+        assertEquals(true, result.isSuccess)
+        coVerify { firebaseProvider.updateEmail(email) }
+        confirmVerified(firebaseProvider)
+    }
+
+    @Test
     fun `GIVEN success response WHEN register public profile THEN return success`() = runTest {
         val username = "testuser"
         val userId = "testUserId"

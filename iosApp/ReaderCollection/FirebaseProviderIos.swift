@@ -63,6 +63,13 @@ class FirebaseProviderIos: FirebaseProvider {
         }
         try await user.updatePassword(to: password)
     }
+
+    func updateEmail(email: String) async throws {
+        guard let user = auth.currentUser else {
+            fatalError("User is null")
+        }
+        try await user.updateEmail(to: email)
+    }
     
     func signOut() {
         do {
@@ -250,7 +257,7 @@ class FirebaseProviderIos: FirebaseProvider {
     
     func deleteUserFromDatabase(userId: String) async throws {
         try await firestore
-            .collection(PUBLIC_PROFILES_PATH)
+            .collection(USERS_PATH)
             .document(userId)
             .delete()
     }
