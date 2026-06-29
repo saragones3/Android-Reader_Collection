@@ -32,28 +32,25 @@ class BooksViewModel(
 
     //region Private properties
     private var originalBooks = emptyList<Book>()
-    private val _state: MutableStateFlow<BooksUiState> = MutableStateFlow(
-        BooksUiState.Empty(query = "", isLoading = false),
-    )
-    private var _sortingPickerState: MutableStateFlow<UiSortingPickerState> = MutableStateFlow(
-        UiSortingPickerState(
-            show = false,
-            sortParam = userRepository.sortParam,
-            isSortDescending = userRepository.isSortDescending,
-        ),
-    )
-    private val _booksError = MutableStateFlow<ErrorModel?>(null)
-    //endregion
-
-    //region Public properties
-    val state: StateFlow<BooksUiState> = _state
-    val sortingPickerState: StateFlow<UiSortingPickerState> = _sortingPickerState
-    val booksError: StateFlow<ErrorModel?> = _booksError
+    val state: StateFlow<BooksUiState>
+        field = MutableStateFlow<BooksUiState>(
+            BooksUiState.Empty(query = "", isLoading = false),
+        )
+    val sortingPickerState: StateFlow<UiSortingPickerState>
+        field = MutableStateFlow<UiSortingPickerState>(
+            UiSortingPickerState(
+                show = false,
+                sortParam = userRepository.sortParam,
+                isSortDescending = userRepository.isSortDescending,
+            ),
+        )
+    val booksError: StateFlow<ErrorModel?>
+        field = MutableStateFlow<ErrorModel?>(null)
     //endregion
 
     //region Public methods
     fun fetchBooks() {
-        _state.update {
+        state.update {
             when (it) {
                 is BooksUiState.Empty -> it.copy(isLoading = true)
                 is BooksUiState.Success -> it.copy(isLoading = true)
@@ -62,7 +59,7 @@ class BooksViewModel(
 
         combine(
             booksRepository.getBooks(),
-            _sortingPickerState,
+            sortingPickerState,
         ) { books, _ ->
             originalBooks = books
             sortBooks()
@@ -70,15 +67,15 @@ class BooksViewModel(
     }
 
     fun closeDialogs() {
-        _booksError.value = null
+        booksError.value = null
     }
 
     fun showSortingPickerState() {
-        _sortingPickerState.update { it.copy(show = true) }
+        sortingPickerState.update { it.copy(show = true) }
     }
 
     fun updatePickerState(newSortParam: String?, newIsSortDescending: Boolean) {
-        _sortingPickerState.value = UiSortingPickerState(
+        sortingPickerState.value = UiSortingPickerState(
             show = false,
             sortParam = newSortParam,
             isSortDescending = newIsSortDescending,
@@ -86,7 +83,7 @@ class BooksViewModel(
     }
 
     fun searchBooks(query: String) {
-        _state.value = when (val currentState = _state.value) {
+        state.value = when (val currentState = state.value) {
             is BooksUiState.Empty -> currentState.copy(query = query)
             is BooksUiState.Success -> currentState.copy(query = query)
         }
@@ -112,7 +109,7 @@ class BooksViewModel(
     }
 
     fun setBook(book: Book) = viewModelScope.launch {
-        _state.value = when (val currentState = _state.value) {
+        state.value = when (val currentState = state.value) {
             is BooksUiState.Empty -> currentState.copy(isLoading = true)
             is BooksUiState.Success -> currentState.copy(isLoading = true)
         }
@@ -123,7 +120,7 @@ class BooksViewModel(
             )
         }
         if (book.priority == -1 && book.state == BookState.PENDING) {
-            val maxPriority = when (val currentState = _state.value) {
+            val maxPriority = when (val currentState = state.value) {
                 is BooksUiState.Empty -> emptyList()
                 is BooksUiState.Success -> currentState.books.books
             }.filter { it.isPending() }.maxByOrNull { it.priority }?.priority ?: -1
@@ -134,11 +131,11 @@ class BooksViewModel(
                 /* no-op due to database is being observed */
             },
             onFailure = {
-                _state.value = when (val currentState = _state.value) {
+                state.value = when (val currentState = state.value) {
                     is BooksUiState.Empty -> currentState.copy(isLoading = false)
                     is BooksUiState.Success -> currentState.copy(isLoading = false)
                 }
-                _booksError.value = ErrorModel(Constants.EMPTY_VALUE, Res.string.error_database)
+                booksError.value = ErrorModel(Constants.EMPTY_VALUE, Res.string.error_database)
             },
         )
     }
@@ -147,14 +144,14 @@ class BooksViewModel(
     //region Private methods
     private fun sortBooks() {
         val sortedBooks = getSortedBooks()
-        _state.value = when {
+        state.value = when {
             sortedBooks.isEmpty() -> BooksUiState.Empty(
-                query = _state.value.query,
+                query = state.value.query,
                 isLoading = false,
             )
             else -> BooksUiState.Success(
                 books = Books(sortedBooks),
-                query = _state.value.query,
+                query = state.value.query,
                 isLoading = false,
             )
         }
@@ -162,10 +159,10 @@ class BooksViewModel(
 
     private fun getSortedBooks(): List<Book> {
         val filteredBooks = originalBooks.filter { book ->
-            (book.title?.contains(_state.value.query, true) ?: false) ||
-                book.authorsToString().contains(_state.value.query, true)
+            (book.title?.contains(state.value.query, true) ?: false) ||
+                book.authorsToString().contains(state.value.query, true)
         }
-        val sortedBooks = when (_sortingPickerState.value.sortParam) {
+        val sortedBooks = when (sortingPickerState.value.sortParam) {
             "title" -> filteredBooks.sortedBy { it.title }
             "publishedDate" -> filteredBooks.sortedBy { it.publishedDate }
             "readingDate" -> filteredBooks.sortedBy { it.readingDate }
@@ -174,7 +171,7 @@ class BooksViewModel(
             "authors" -> filteredBooks.sortedBy { it.authorsToString() }
             else -> filteredBooks.sortedBy { it.id }
         }
-        return if (_sortingPickerState.value.isSortDescending) {
+        return if (sortingPickerState.value.isSortDescending) {
             sortedBooks.reversed()
         } else {
             sortedBooks
@@ -182,7 +179,7 @@ class BooksViewModel(
     }
 
     private fun setPriorityFor(books: List<Book>) = viewModelScope.launch {
-        _state.value = when (val currentState = _state.value) {
+        state.value = when (val currentState = state.value) {
             is BooksUiState.Empty -> currentState.copy(isLoading = true)
             is BooksUiState.Success -> currentState.copy(isLoading = true)
         }
@@ -191,11 +188,11 @@ class BooksViewModel(
                 /* no-op due to database is being observed */
             },
             onFailure = {
-                _state.value = when (val currentState = _state.value) {
+                state.value = when (val currentState = state.value) {
                     is BooksUiState.Empty -> currentState.copy(isLoading = false)
                     is BooksUiState.Success -> currentState.copy(isLoading = false)
                 }
-                _booksError.value = ErrorModel(
+                booksError.value = ErrorModel(
                     Constants.EMPTY_VALUE,
                     Res.string.error_database,
                 )

@@ -316,9 +316,13 @@ class BooksRemoteDataSourceTest {
         every { firebaseProvider.fetchRemoteConfigString("states", any()) } answers {
             secondArg<(String) -> Unit>().invoke(getStatesJson(language))
         }
+        var aux = 0
 
-        dataSource.fetchRemoteConfigValues(language)
+        dataSource.fetchRemoteConfigValues(language) {
+            aux += 1
+        }
 
+        assertEquals(3, aux)
         assertEquals(getFormats(), FORMATS)
         assertEquals(getGenres(), GENRES)
         assertEquals(getStates(), STATES)
@@ -339,9 +343,13 @@ class BooksRemoteDataSourceTest {
         every { firebaseProvider.fetchRemoteConfigString("states", any()) } answers {
             secondArg<(String) -> Unit>().invoke(getStatesJson("en"))
         }
+        var aux = 0
 
-        dataSource.fetchRemoteConfigValues("es")
+        dataSource.fetchRemoteConfigValues("es") {
+            aux += 1
+        }
 
+        assertEquals(3, aux)
         assertEquals(emptyList(), FORMATS)
         assertEquals(emptyList(), GENRES)
         assertEquals(emptyList(), STATES)
@@ -363,9 +371,13 @@ class BooksRemoteDataSourceTest {
         every { firebaseProvider.fetchRemoteConfigString("states", any()) } answers {
             secondArg<(String) -> Unit>().invoke("values")
         }
+        var aux = 0
 
-        dataSource.fetchRemoteConfigValues(language)
+        dataSource.fetchRemoteConfigValues(language) {
+            aux += 1
+        }
 
+        assertEquals(3, aux)
         assertEquals(emptyList(), FORMATS)
         assertEquals(emptyList(), GENRES)
         assertEquals(emptyList(), STATES)

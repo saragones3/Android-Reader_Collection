@@ -25,30 +25,27 @@ class FriendsViewModel(
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
-    //region Private properties
-    private var _state: MutableStateFlow<FriendsUiState> = MutableStateFlow(FriendsUiState.Loading)
-    private val _error = MutableStateFlow<ErrorModel?>(null)
-    private val _infoDialogMessageId = MutableStateFlow<StringResource?>(null)
-    //endregion
-
-    //region Public properties
-    val state: StateFlow<FriendsUiState> = _state
-    val error: StateFlow<ErrorModel?> = _error
-    val infoDialogMessageId: StateFlow<StringResource?> = _infoDialogMessageId
+    //region Properties
+    val state: StateFlow<FriendsUiState>
+        field = MutableStateFlow<FriendsUiState>(FriendsUiState.Loading)
+    val error: StateFlow<ErrorModel?>
+        field = MutableStateFlow<ErrorModel?>(null)
+    val infoDialogMessageId: StateFlow<StringResource?>
+        field = MutableStateFlow<StringResource?>(null)
     //endregion
 
     //region Public methods
     fun fetchFriends() = viewModelScope.launch {
-        _state.value = FriendsUiState.Loading
+        state.value = FriendsUiState.Loading
         val friends = userRepository.getFriends()
-        _state.value = FriendsUiState.Success(Users(friends))
+        state.value = FriendsUiState.Success(Users(friends))
     }
 
     fun acceptFriendRequest(friendId: String) = viewModelScope.launch {
         userRepository.acceptFriendRequest(friendId).fold(
             onSuccess = {
-                _infoDialogMessageId.value = Res.string.friend_action_successfully_done
-                _state.update {
+                infoDialogMessageId.value = Res.string.friend_action_successfully_done
+                state.update {
                     when (it) {
                         FriendsUiState.Loading -> it
                         is FriendsUiState.Success -> it.copy(
@@ -66,7 +63,7 @@ class FriendsViewModel(
                 }
             },
             onFailure = {
-                _error.value = ErrorModel(
+                error.value = ErrorModel(
                     Constants.EMPTY_VALUE,
                     Res.string.friend_action_failure,
                 )
@@ -77,8 +74,8 @@ class FriendsViewModel(
     fun rejectFriendRequest(friendId: String) = viewModelScope.launch {
         userRepository.rejectFriendRequest(friendId).fold(
             onSuccess = {
-                _infoDialogMessageId.value = Res.string.friend_action_successfully_done
-                _state.update {
+                infoDialogMessageId.value = Res.string.friend_action_successfully_done
+                state.update {
                     when (it) {
                         FriendsUiState.Loading -> it
                         is FriendsUiState.Success -> it.copy(
@@ -90,7 +87,7 @@ class FriendsViewModel(
                 }
             },
             onFailure = {
-                _error.value = ErrorModel(
+                error.value = ErrorModel(
                     Constants.EMPTY_VALUE,
                     Res.string.friend_action_failure,
                 )
@@ -101,8 +98,8 @@ class FriendsViewModel(
     fun deleteFriend(friendId: String) = viewModelScope.launch {
         userRepository.deleteFriend(friendId).fold(
             onSuccess = {
-                _infoDialogMessageId.value = Res.string.friend_action_successfully_done
-                _state.update {
+                infoDialogMessageId.value = Res.string.friend_action_successfully_done
+                state.update {
                     when (it) {
                         FriendsUiState.Loading -> it
                         is FriendsUiState.Success -> it.copy(
@@ -114,7 +111,7 @@ class FriendsViewModel(
                 }
             },
             onFailure = {
-                _error.value = ErrorModel(
+                error.value = ErrorModel(
                     Constants.EMPTY_VALUE,
                     Res.string.friend_action_failure,
                 )
@@ -123,8 +120,8 @@ class FriendsViewModel(
     }
 
     fun closeDialogs() {
-        _infoDialogMessageId.value = null
-        _error.value = null
+        infoDialogMessageId.value = null
+        error.value = null
     }
     //endregion
 }

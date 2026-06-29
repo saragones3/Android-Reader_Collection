@@ -21,21 +21,17 @@ class SettingsViewModel(
 ) : ViewModel() {
 
     //region Private properties
-    private val _state: MutableStateFlow<SettingsUiState> =
-        MutableStateFlow(SettingsUiState("", false))
-    private val _logOut = MutableStateFlow(false)
-    private val _confirmationDialogMessageId = MutableStateFlow<StringResource?>(null)
-    //endregion
-
-    //region Public properties
-    var state: StateFlow<SettingsUiState> = _state
-    val logOut: StateFlow<Boolean> = _logOut
-    val confirmationDialogMessageId: StateFlow<StringResource?> = _confirmationDialogMessageId
+    val state: StateFlow<SettingsUiState>
+        field = MutableStateFlow<SettingsUiState>(SettingsUiState("", false))
+    val logOut: StateFlow<Boolean>
+        field = MutableStateFlow<Boolean>(false)
+    val confirmationDialogMessageId: StateFlow<StringResource?>
+        field = MutableStateFlow<StringResource?>(null)
     //endregion
 
     //region Lifecycle methods
     fun onResume() {
-        _state.update {
+        state.update {
             it.copy(version = userRepository.getAppVersion())
         }
     }
@@ -43,26 +39,26 @@ class SettingsViewModel(
 
     //region Public methods
     fun logout() = viewModelScope.launch {
-        _state.update { it.copy(isLoading = true) }
+        state.update { it.copy(isLoading = true) }
         userRepository.logout()
         booksRepository.resetTable().fold(
             onSuccess = {
-                _state.update { it.copy(isLoading = false) }
-                _logOut.value = true
+                state.update { it.copy(isLoading = false) }
+                logOut.value = true
             },
             onFailure = {
-                _state.update { it.copy(isLoading = false) }
-                _logOut.value = true
+                state.update { it.copy(isLoading = false) }
+                logOut.value = true
             },
         )
     }
 
     fun showConfirmationDialog(textId: StringResource) {
-        _confirmationDialogMessageId.value = textId
+        confirmationDialogMessageId.value = textId
     }
 
     fun closeDialogs() {
-        _confirmationDialogMessageId.value = null
+        confirmationDialogMessageId.value = null
     }
     //endregion
 }

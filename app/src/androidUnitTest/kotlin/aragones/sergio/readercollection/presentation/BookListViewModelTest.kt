@@ -66,6 +66,7 @@ class BookListViewModelTest {
         this["query"] = ""
     }
     private val booksLocalDataSource: BooksLocalDataSource = mockk {
+        every { retrieveRemoteConfigValues() } just Runs
         every { getAllBooks() } returns booksFlow
     }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()

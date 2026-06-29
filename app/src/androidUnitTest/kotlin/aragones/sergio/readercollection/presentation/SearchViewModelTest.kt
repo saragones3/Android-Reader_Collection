@@ -22,9 +22,12 @@ import aragones.sergio.readercollection.presentation.search.SearchParam
 import aragones.sergio.readercollection.presentation.search.SearchUiState
 import aragones.sergio.readercollection.presentation.search.SearchViewModel
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.confirmVerified
+import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -37,7 +40,9 @@ class SearchViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val booksLocalDataSource: BooksLocalDataSource = mockk()
+    private val booksLocalDataSource: BooksLocalDataSource = mockk {
+        every { retrieveRemoteConfigValues() } just Runs
+    }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()
 
     private val viewModel = SearchViewModel(

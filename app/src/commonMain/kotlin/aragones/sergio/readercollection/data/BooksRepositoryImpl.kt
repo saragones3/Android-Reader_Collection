@@ -27,6 +27,10 @@ class BooksRepositoryImpl(
     private val ioDispatcher: CoroutineDispatcher,
 ) : BooksRepository {
 
+    init {
+        booksLocalDataSource.retrieveRemoteConfigValues()
+    }
+
     //region Public methods
     override suspend fun loadBooks(uuid: String): Result<Unit> = withContext(ioDispatcher) {
         withTimeout(TIMEOUT) {
@@ -170,8 +174,11 @@ class BooksRepositoryImpl(
         },
     )
 
-    override fun fetchRemoteConfigValues(language: String) =
-        booksRemoteDataSource.fetchRemoteConfigValues(language)
+    override fun fetchRemoteConfigValues(language: String) {
+        booksRemoteDataSource.fetchRemoteConfigValues(language) {
+            booksLocalDataSource.saveRemoteConfigValues()
+        }
+    }
 
     override suspend fun getBooksFrom(uuid: String): Result<List<Book>> = withTimeout(TIMEOUT) {
         booksRemoteDataSource.getBooks(uuid)

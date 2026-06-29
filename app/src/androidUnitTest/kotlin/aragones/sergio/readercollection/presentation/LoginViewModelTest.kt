@@ -49,7 +49,9 @@ class LoginViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val testUsername = "user"
-    private val booksLocalDataSource: BooksLocalDataSource = mockk()
+    private val booksLocalDataSource: BooksLocalDataSource = mockk {
+        every { retrieveRemoteConfigValues() } just Runs
+    }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()
     private val userLocalDataSource: UserLocalDataSource = mockk {
         every { username } returns testUsername
@@ -109,6 +111,7 @@ class LoginViewModelTest {
             verify { userLocalDataSource.userId }
             coVerify { booksRemoteDataSource.getBooks(userId) }
             coVerify { booksLocalDataSource.insertBooks(domainBooks) }
+            verify { booksLocalDataSource.retrieveRemoteConfigValues() }
             confirmVerified(
                 booksLocalDataSource,
                 booksRemoteDataSource,
@@ -169,6 +172,7 @@ class LoginViewModelTest {
             coVerify(exactly = 0) { booksLocalDataSource.insertBooks(domainBooks) }
             verify { userLocalDataSource.logout() }
             verify { userRemoteDataSource.logout() }
+            verify { booksLocalDataSource.retrieveRemoteConfigValues() }
             confirmVerified(
                 booksLocalDataSource,
                 booksRemoteDataSource,
@@ -206,6 +210,7 @@ class LoginViewModelTest {
             verify { userLocalDataSource.username }
             coVerify { userRemoteDataSource.login(testUsername, password) }
             verify(exactly = 0) { userLocalDataSource.storeLoginData(any(), any()) }
+            verify { booksLocalDataSource.retrieveRemoteConfigValues() }
             confirmVerified(
                 booksLocalDataSource,
                 booksRemoteDataSource,
@@ -218,7 +223,7 @@ class LoginViewModelTest {
     fun `GIVEN valid username and password WHEN loginDataChanged THEN state updates with data valid true`() {
         assertEquals(
             LoginFormState(),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
 
         viewModel.loginDataChanged("username", "password")
@@ -229,7 +234,7 @@ class LoginViewModelTest {
                 passwordError = null,
                 isDataValid = true,
             ),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
     }
 
@@ -237,7 +242,7 @@ class LoginViewModelTest {
     fun `GIVEN invalid username WHEN loginDataChanged THEN state updates with data valid false and username error`() {
         assertEquals(
             LoginFormState(),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
 
         viewModel.loginDataChanged("", "password")
@@ -248,7 +253,7 @@ class LoginViewModelTest {
                 passwordError = null,
                 isDataValid = false,
             ),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
     }
 
@@ -256,7 +261,7 @@ class LoginViewModelTest {
     fun `GIVEN invalid password WHEN loginDataChanged THEN state updates with data valid false and password error`() {
         assertEquals(
             LoginFormState(),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
 
         viewModel.loginDataChanged("username", "pass")
@@ -267,7 +272,7 @@ class LoginViewModelTest {
                 passwordError = Res.string.invalid_password,
                 isDataValid = false,
             ),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
     }
 
@@ -275,7 +280,7 @@ class LoginViewModelTest {
     fun `GIVEN invalid username and password WHEN loginDataChanged THEN state updates with data valid false and username and password errors`() {
         assertEquals(
             LoginFormState(),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
 
         viewModel.loginDataChanged("", "pass")
@@ -286,7 +291,7 @@ class LoginViewModelTest {
                 passwordError = Res.string.invalid_password,
                 isDataValid = false,
             ),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
     }
 

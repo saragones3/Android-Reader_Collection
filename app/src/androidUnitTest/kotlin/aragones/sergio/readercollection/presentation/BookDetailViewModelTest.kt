@@ -59,6 +59,7 @@ class BookDetailViewModelTest {
     }
     private val booksFlow = MutableSharedFlow<List<Book>>(replay = Int.MAX_VALUE)
     private val booksLocalDataSource: BooksLocalDataSource = mockk {
+        every { retrieveRemoteConfigValues() } just Runs
         every { getAllBooks() } returns booksFlow
     }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()

@@ -16,5 +16,7 @@ interface BooksLocalDataSource {
     suspend fun insertBooks(books: List<Book>)
     suspend fun updateBooks(books: List<Book>)
     suspend fun deleteBooks(books: List<Book>)
+    fun saveRemoteConfigValues()
+    fun retrieveRemoteConfigValues()
     //endregion
 }

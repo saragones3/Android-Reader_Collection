@@ -48,7 +48,9 @@ class DataSyncViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val testUserId = "userId"
-    private val booksLocalDataSource: BooksLocalDataSource = mockk()
+    private val booksLocalDataSource: BooksLocalDataSource = mockk {
+        every { retrieveRemoteConfigValues() } just Runs
+    }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()
     private val userLocalDataSource: UserLocalDataSource = mockk {
         every { isAutomaticSyncEnabled } returns false

@@ -26,9 +26,11 @@ import aragones.sergio.readercollection.presentation.frienddetail.FriendDetailUi
 import aragones.sergio.readercollection.presentation.frienddetail.FriendDetailViewModel
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
 import com.aragones.sergio.util.Constants
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -56,7 +58,9 @@ class FriendDetailViewModelTest {
     private val savedStateHandle: SavedStateHandle = SavedStateHandle().apply {
         this["userId"] = testFriendId
     }
-    private val booksLocalDataSource: BooksLocalDataSource = mockk()
+    private val booksLocalDataSource: BooksLocalDataSource = mockk {
+        every { retrieveRemoteConfigValues() } just Runs
+    }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()
     private val userLocalDataSource: UserLocalDataSource = mockk {
         every { userId } returns testUserId

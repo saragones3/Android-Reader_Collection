@@ -91,18 +91,21 @@ class BooksRemoteDataSource(
         }
     }
 
-    fun fetchRemoteConfigValues(language: String) {
+    fun fetchRemoteConfigValues(language: String, onCompletion: () -> Unit) {
         firebaseProvider.fetchRemoteConfigString(FORMATS_KEY) {
             ALL_FORMATS = parseValues(it)
             FORMATS = ALL_FORMATS[language] ?: emptyList()
+            onCompletion()
         }
         firebaseProvider.fetchRemoteConfigString(GENRES_KEY) {
             ALL_GENRES = parseValues(it)
             GENRES = ALL_GENRES[language] ?: emptyList()
+            onCompletion()
         }
         firebaseProvider.fetchRemoteConfigString(STATES_KEY) {
             ALL_STATES = parseValues(it)
             STATES = ALL_STATES[language] ?: emptyList()
+            onCompletion()
         }
     }
 

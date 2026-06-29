@@ -11,8 +11,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -311,78 +314,91 @@ private fun BarChart(entries: Entries, onEntrySelected: (Int?) -> Unit) {
         animProgress.animateTo(1f, tween(1500, easing = FastOutSlowInEasing))
     }
 
+    val scrollState = rememberScrollState(initial = Int.MAX_VALUE)
+    val itemWidthDp = 45.dp
+
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
-        Canvas(
-            modifier = Modifier
-                .height(250.dp)
-                .fillMaxWidth()
-                .pointerInput(barEntries) {
-                    detectTapGestures { offset ->
-                        val paddingLeft = 16.dp.toPx()
-                        val paddingRight = 16.dp.toPx()
-                        val chartWidth = size.width - paddingLeft - paddingRight
-                        val barWidth = chartWidth / barEntries.size
-                        val relX = offset.x - paddingLeft
-                        val index = (relX / barWidth).toInt().coerceIn(0, barEntries.size - 1)
-                        onEntrySelected(barEntries[index].key.toIntOrNull())
-                    }
-                },
-        ) {
-            val paddingLeft = 16.dp.toPx()
-            val paddingRight = 16.dp.toPx()
-            val paddingBottom = 28.dp.toPx()
-            val paddingTop = 24.dp.toPx()
-            val chartWidth = size.width - paddingLeft - paddingRight
-            val chartHeight = size.height - paddingBottom - paddingTop
-            val maxVal = barEntries.maxOfOrNull { it.size }?.toFloat() ?: 1f
-            val barWidth = chartWidth / barEntries.size
-            val barSpacing = barWidth * 0.25f
-            val actualBarWidth = barWidth - barSpacing
+        BoxWithConstraints {
+            val calculatedWidth = itemWidthDp * barEntries.size + 32.dp
+            val finalWidth = if (calculatedWidth > maxWidth) calculatedWidth else maxWidth
 
-            // Draw baseline
-            drawLine(
-                color = colorPrimary.copy(alpha = 0.3f),
-                start = Offset(paddingLeft, size.height - paddingBottom),
-                end = Offset(size.width - paddingRight, size.height - paddingBottom),
-                strokeWidth = 1.dp.toPx(),
-            )
+            Box(modifier = Modifier.horizontalScroll(scrollState)) {
+                Canvas(
+                    modifier = Modifier
+                        .height(250.dp)
+                        .width(finalWidth)
+                        .pointerInput(barEntries) {
+                            detectTapGestures { offset ->
+                                val paddingLeft = 16.dp.toPx()
+                                val paddingRight = 16.dp.toPx()
+                                val chartWidth = size.width - paddingLeft - paddingRight
+                                val itemWidth = chartWidth / barEntries.size
+                                val relX = offset.x - paddingLeft
+                                val index = (relX / itemWidth).toInt().coerceIn(
+                                    0,
+                                    barEntries.size - 1,
+                                )
+                                onEntrySelected(barEntries[index].key.toIntOrNull())
+                            }
+                        },
+                ) {
+                    val paddingLeft = 16.dp.toPx()
+                    val paddingRight = 16.dp.toPx()
+                    val paddingBottom = 28.dp.toPx()
+                    val paddingTop = 24.dp.toPx()
+                    val chartWidth = size.width - paddingLeft - paddingRight
+                    val chartHeight = size.height - paddingBottom - paddingTop
+                    val maxVal = barEntries.maxOfOrNull { it.size }?.toFloat() ?: 1f
+                    val itemWidth = chartWidth / barEntries.size
+                    val barSpacing = itemWidth * 0.25f
+                    val actualBarWidth = itemWidth - barSpacing
 
-            barEntries.forEachIndexed { index, entry ->
-                val fullBarHeight = (entry.size / maxVal) * chartHeight
-                val animatedBarHeight = fullBarHeight * animProgress.value
-                val x = paddingLeft + index * barWidth + barSpacing / 2
-                val y = size.height - paddingBottom - animatedBarHeight
-
-                drawRoundRect(
-                    color = colorPrimary,
-                    topLeft = Offset(x, y),
-                    size = Size(actualBarWidth, animatedBarHeight),
-                    cornerRadius = CornerRadius(3.dp.toPx()),
-                )
-
-                // Value label above bar
-                if (animProgress.value > 0.8f) {
-                    val valueText = entry.size.toString()
-                    val valueMeasured = textMeasurer.measure(valueText, valueTextStyle)
-                    drawText(
-                        textLayoutResult = valueMeasured,
-                        topLeft = Offset(
-                            x + (actualBarWidth - valueMeasured.size.width) / 2,
-                            y - valueMeasured.size.height - 4.dp.toPx(),
-                        ),
+                    // Draw baseline
+                    drawLine(
+                        color = colorPrimary.copy(alpha = 0.3f),
+                        start = Offset(paddingLeft, size.height - paddingBottom),
+                        end = Offset(size.width - paddingRight, size.height - paddingBottom),
+                        strokeWidth = 1.dp.toPx(),
                     )
-                }
 
-                // X-axis label (year)
-                val keyText = entry.key
-                val keyMeasured = textMeasurer.measure(keyText, axisTextStyle)
-                drawText(
-                    textLayoutResult = keyMeasured,
-                    topLeft = Offset(
-                        x + (actualBarWidth - keyMeasured.size.width) / 2,
-                        size.height - paddingBottom + 6.dp.toPx(),
-                    ),
-                )
+                    barEntries.forEachIndexed { index, entry ->
+                        val fullBarHeight = (entry.size / maxVal) * chartHeight
+                        val animatedBarHeight = fullBarHeight * animProgress.value
+                        val x = paddingLeft + index * itemWidth + barSpacing / 2
+                        val y = size.height - paddingBottom - animatedBarHeight
+
+                        drawRoundRect(
+                            color = colorPrimary,
+                            topLeft = Offset(x, y),
+                            size = Size(actualBarWidth, animatedBarHeight),
+                            cornerRadius = CornerRadius(3.dp.toPx()),
+                        )
+
+                        // Value label above bar
+                        if (animProgress.value > 0.8f) {
+                            val valueText = entry.size.toString()
+                            val valueMeasured = textMeasurer.measure(valueText, valueTextStyle)
+                            drawText(
+                                textLayoutResult = valueMeasured,
+                                topLeft = Offset(
+                                    x + (actualBarWidth - valueMeasured.size.width) / 2,
+                                    y - valueMeasured.size.height - 4.dp.toPx(),
+                                ),
+                            )
+                        }
+
+                        // X-axis label (year)
+                        val keyText = entry.key
+                        val keyMeasured = textMeasurer.measure(keyText, axisTextStyle)
+                        drawText(
+                            textLayoutResult = keyMeasured,
+                            topLeft = Offset(
+                                x + (actualBarWidth - keyMeasured.size.width) / 2,
+                                size.height - paddingBottom + 6.dp.toPx(),
+                            ),
+                        )
+                    }
+                }
             }
         }
     }

@@ -34,18 +34,14 @@ class FriendDetailViewModel(
 
     //region Private properties
     private val params = state.toRoute<Route.FriendDetail>()
-    private var _state: MutableStateFlow<FriendDetailUiState> =
-        MutableStateFlow(FriendDetailUiState.Loading)
-    private val _confirmationDialogMessageId = MutableStateFlow<StringResource?>(null)
-    private val _infoDialogMessageId = MutableStateFlow<StringResource?>(null)
-    private val _error = MutableStateFlow<ErrorModel?>(null)
-    //endregion
-
-    //region Public properties
-    val state: StateFlow<FriendDetailUiState> = _state
-    var confirmationDialogMessageId: StateFlow<StringResource?> = _confirmationDialogMessageId
-    val infoDialogMessageId: StateFlow<StringResource?> = _infoDialogMessageId
-    val error: StateFlow<ErrorModel?> = _error
+    val state: StateFlow<FriendDetailUiState>
+        field = MutableStateFlow<FriendDetailUiState>(FriendDetailUiState.Loading)
+    val confirmationDialogMessageId: StateFlow<StringResource?>
+        field = MutableStateFlow<StringResource?>(null)
+    val infoDialogMessageId: StateFlow<StringResource?>
+        field = MutableStateFlow<StringResource?>(null)
+    val error: StateFlow<ErrorModel?>
+        field = MutableStateFlow<ErrorModel?>(null)
     //endregion
 
     //region Public methods
@@ -60,21 +56,21 @@ class FriendDetailViewModel(
         val books = booksResult.getOrNull()
 
         if (friend != null && books != null) {
-            _state.value = FriendDetailUiState.Success(
+            state.value = FriendDetailUiState.Success(
                 friend = friend,
                 books = Books(books),
             )
         } else {
-            val error = friendResult.exceptionOrNull() ?: booksResult.exceptionOrNull()
-            when (error) {
+            val errorResult = friendResult.exceptionOrNull() ?: booksResult.exceptionOrNull()
+            when (errorResult) {
                 is NoSuchElementException -> {
-                    _error.value = ErrorModel(
+                    error.value = ErrorModel(
                         Constants.EMPTY_VALUE,
                         Res.string.no_friends_found,
                     )
                 }
                 else -> {
-                    _error.value = ErrorModel(
+                    error.value = ErrorModel(
                         Constants.EMPTY_VALUE,
                         Res.string.error_server,
                     )
@@ -84,30 +80,30 @@ class FriendDetailViewModel(
     }
 
     fun deleteFriend() = viewModelScope.launch {
-        val currentState = _state.value
-        _state.value = FriendDetailUiState.Loading
+        val currentState = state.value
+        state.value = FriendDetailUiState.Loading
         userRepository.deleteFriend(params.userId).fold(
             onSuccess = {
-                _infoDialogMessageId.value = Res.string.friend_removed
+                infoDialogMessageId.value = Res.string.friend_removed
             },
             onFailure = {
-                _error.value = ErrorModel(
+                error.value = ErrorModel(
                     Constants.EMPTY_VALUE,
                     Res.string.error_search,
                 )
-                _state.value = currentState
+                state.value = currentState
             },
         )
     }
 
     fun showConfirmationDialog(textId: StringResource) {
-        _confirmationDialogMessageId.value = textId
+        confirmationDialogMessageId.value = textId
     }
 
     fun closeDialogs() {
-        _confirmationDialogMessageId.value = null
-        _infoDialogMessageId.value = null
-        _error.value = null
+        confirmationDialogMessageId.value = null
+        infoDialogMessageId.value = null
+        error.value = null
     }
     //endregion
 }

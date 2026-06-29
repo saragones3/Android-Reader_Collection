@@ -34,27 +34,24 @@ class BookDetailViewModel(
     private val params = state.toRoute<Route.BookDetail>()
     private lateinit var currentBook: Book
     private lateinit var savedBooks: List<Book>
-    private var _state: MutableStateFlow<BookDetailUiState> = MutableStateFlow(
-        BookDetailUiState(
-            book = null,
-            isAlreadySaved = true,
-            isEditable = false,
-        ),
-    )
-    private val _bookDetailError = MutableStateFlow<ErrorModel?>(null)
-    private val _confirmationDialogMessageId = MutableStateFlow<StringResource?>(null)
-    private val _infoDialogMessageId = MutableStateFlow<StringResource?>(null)
-    private val _imageDialogMessageId = MutableStateFlow<StringResource?>(null)
+    val state: StateFlow<BookDetailUiState>
+        field = MutableStateFlow<BookDetailUiState>(
+            BookDetailUiState(
+                book = null,
+                isAlreadySaved = true,
+                isEditable = false,
+            ),
+        )
+    val bookDetailError: StateFlow<ErrorModel?>
+        field = MutableStateFlow<ErrorModel?>(null)
+    val confirmationDialogMessageId: StateFlow<StringResource?>
+        field = MutableStateFlow<StringResource?>(null)
+    val infoDialogMessageId: StateFlow<StringResource?>
+        field = MutableStateFlow<StringResource?>(null)
+    val imageDialogMessageId: StateFlow<StringResource?>
+        field = MutableStateFlow<StringResource?>(null)
     private val pendingBooks: List<Book>
         get() = savedBooks.filter { it.isPending() }
-    //endregion
-
-    //region Public properties
-    val state: StateFlow<BookDetailUiState> = _state
-    val bookDetailError: StateFlow<ErrorModel?> = _bookDetailError
-    var confirmationDialogMessageId: StateFlow<StringResource?> = _confirmationDialogMessageId
-    val infoDialogMessageId: StateFlow<StringResource?> = _infoDialogMessageId
-    var imageDialogMessageId: StateFlow<StringResource?> = _imageDialogMessageId
     //endregion
 
     //region Lifecycle methods
@@ -70,11 +67,11 @@ class BookDetailViewModel(
 
     //region Public methods
     fun enableEdition() {
-        _state.update { it.copy(isEditable = true) }
+        state.update { it.copy(isEditable = true) }
     }
 
     fun disableEdition() {
-        _state.update {
+        state.update {
             it.copy(
                 book = currentBook,
                 isEditable = false,
@@ -83,7 +80,7 @@ class BookDetailViewModel(
     }
 
     fun changeData(book: Book) {
-        _state.update { it.copy(book = book) }
+        state.update { it.copy(book = book) }
     }
 
     fun createBook(newBook: Book) = viewModelScope.launch {
@@ -91,8 +88,8 @@ class BookDetailViewModel(
         val book = newBook.copy(priority = maxPriority + 1)
         booksRepository.createBook(book).fold(
             onSuccess = {
-                _infoDialogMessageId.value = Res.string.book_saved
-                _state.update {
+                infoDialogMessageId.value = Res.string.book_saved
+                state.update {
                     it.copy(
                         book = book,
                         isAlreadySaved = true,
@@ -101,7 +98,7 @@ class BookDetailViewModel(
                 }
             },
             onFailure = {
-                _bookDetailError.value = ErrorModel(
+                bookDetailError.value = ErrorModel(
                     Constants.EMPTY_VALUE,
                     Res.string.error_database,
                 )
@@ -113,7 +110,7 @@ class BookDetailViewModel(
         booksRepository.setBook(book).fold(
             onSuccess = { updatedBook ->
                 currentBook = updatedBook
-                _state.update {
+                state.update {
                     it.copy(
                         book = updatedBook,
                         isEditable = false,
@@ -121,7 +118,7 @@ class BookDetailViewModel(
                 }
             },
             onFailure = {
-                _bookDetailError.value = ErrorModel(
+                bookDetailError.value = ErrorModel(
                     Constants.EMPTY_VALUE,
                     Res.string.error_database,
                 )
@@ -132,8 +129,8 @@ class BookDetailViewModel(
     fun deleteBook() = viewModelScope.launch {
         booksRepository.deleteBook(params.bookId).fold(
             onSuccess = {
-                _infoDialogMessageId.value = Res.string.book_removed
-                _state.update {
+                infoDialogMessageId.value = Res.string.book_removed
+                state.update {
                     it.copy(
                         isAlreadySaved = false,
                         isEditable = true,
@@ -141,7 +138,7 @@ class BookDetailViewModel(
                 }
             },
             onFailure = {
-                _bookDetailError.value = ErrorModel(
+                bookDetailError.value = ErrorModel(
                     Constants.EMPTY_VALUE,
                     Res.string.error_database,
                 )
@@ -150,9 +147,9 @@ class BookDetailViewModel(
     }
 
     fun setBookImage(imageUri: String?) {
-        _state.update {
+        state.update {
             it.copy(
-                book = _state.value.book?.copy(
+                book = state.value.book?.copy(
                     thumbnail = imageUri,
                 ),
             )
@@ -160,17 +157,17 @@ class BookDetailViewModel(
     }
 
     fun showConfirmationDialog(textId: StringResource) {
-        _confirmationDialogMessageId.value = textId
+        confirmationDialogMessageId.value = textId
     }
 
     fun showImageDialog(textId: StringResource) {
-        _imageDialogMessageId.value = textId
+        imageDialogMessageId.value = textId
     }
 
     fun closeDialogs() {
-        _confirmationDialogMessageId.value = null
-        _infoDialogMessageId.value = null
-        _imageDialogMessageId.value = null
+        confirmationDialogMessageId.value = null
+        infoDialogMessageId.value = null
+        imageDialogMessageId.value = null
     }
     //endregion
 
@@ -180,7 +177,7 @@ class BookDetailViewModel(
             booksRepository.getFriendBook(params.friendId, params.bookId).fold(
                 onSuccess = { book ->
                     currentBook = book
-                    _state.update {
+                    state.update {
                         it.copy(
                             book = book,
                             isEditable = true,
@@ -189,14 +186,14 @@ class BookDetailViewModel(
                     }
                 },
                 onFailure = {
-                    _bookDetailError.value = ErrorModel("", Res.string.error_no_book)
+                    bookDetailError.value = ErrorModel("", Res.string.error_no_book)
                 },
             )
         } else {
             booksRepository.getBook(params.bookId).fold(
                 onSuccess = { (book, isAlreadySaved) ->
                     currentBook = book
-                    _state.update {
+                    state.update {
                         it.copy(
                             book = book,
                             isEditable = !isAlreadySaved,
@@ -205,7 +202,7 @@ class BookDetailViewModel(
                     }
                 },
                 onFailure = {
-                    _bookDetailError.value = ErrorModel("", Res.string.error_no_book)
+                    bookDetailError.value = ErrorModel("", Res.string.error_no_book)
                 },
             )
         }

@@ -25,30 +25,27 @@ class AccountViewModel(
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
-    //region Private properties
-    private var _state: MutableStateFlow<AccountUiState> = MutableStateFlow(
-        AccountUiState.empty().copy(
-            username = userRepository.username,
-            password = userRepository.userData.password,
-        ),
-    )
-    private val _profileError = MutableStateFlow<ErrorModel?>(null)
-    private val _logOut = MutableStateFlow(false)
-    private val _confirmationDialogMessageId = MutableStateFlow<StringResource?>(null)
-    private val _infoDialogMessageId = MutableStateFlow<StringResource?>(null)
-    //endregion
-
-    //region Public properties
-    val state: StateFlow<AccountUiState> = _state
-    val profileError: StateFlow<ErrorModel?> = _profileError
-    val logOut: StateFlow<Boolean> = _logOut
-    val confirmationDialogMessageId: StateFlow<StringResource?> = _confirmationDialogMessageId
-    val infoDialogMessageId: StateFlow<StringResource?> = _infoDialogMessageId
+    //region Properties
+    val state: StateFlow<AccountUiState>
+        field = MutableStateFlow<AccountUiState>(
+            AccountUiState.empty().copy(
+                username = userRepository.username,
+                password = userRepository.userData.password,
+            ),
+        )
+    val profileError: StateFlow<ErrorModel?>
+        field = MutableStateFlow<ErrorModel?>(null)
+    val logOut: StateFlow<Boolean>
+        field = MutableStateFlow<Boolean>(false)
+    val confirmationDialogMessageId: StateFlow<StringResource?>
+        field = MutableStateFlow<StringResource?>(null)
+    val infoDialogMessageId: StateFlow<StringResource?>
+        field = MutableStateFlow<StringResource?>(null)
     //endregion
 
     //region Lifecycle methods
     fun onResume() {
-        _state.update {
+        state.update {
             it.copy(
                 password = userRepository.userData.password,
                 passwordError = null,
@@ -60,14 +57,14 @@ class AccountViewModel(
 
     //region Public methods
     fun save() {
-        val newPassword = requireNotNull(_state.value.password)
+        val newPassword = requireNotNull(state.value.password)
 
         if (newPassword != userRepository.userData.password) {
-            _state.update { it.copy(isLoading = true) }
+            state.update { it.copy(isLoading = true) }
             viewModelScope.launch {
                 userRepository.updatePassword(newPassword).fold(
                     onSuccess = {
-                        _state.update { it.copy(isLoading = false) }
+                        state.update { it.copy(isLoading = false) }
                     },
                     onFailure = {
                         manageError(ErrorModel(Constants.EMPTY_VALUE, Res.string.error_server))
@@ -78,10 +75,10 @@ class AccountViewModel(
     }
 
     fun setPublicProfile(value: Boolean) = viewModelScope.launch {
-        _state.update { it.copy(isLoading = true) }
+        state.update { it.copy(isLoading = true) }
         userRepository.setPublicProfile(value).fold(
             onSuccess = {
-                _state.update {
+                state.update {
                     it.copy(
                         isProfilePublic = value,
                         isLoading = false,
@@ -95,7 +92,7 @@ class AccountViewModel(
     }
 
     fun deleteUser() = viewModelScope.launch {
-        _state.update { it.copy(isLoading = true) }
+        state.update { it.copy(isLoading = true) }
         userRepository.deleteUser().fold(
             onSuccess = {
                 resetDatabase()
@@ -111,7 +108,7 @@ class AccountViewModel(
         if (!Constants.isPasswordValid(newPassword)) {
             passwordError = Res.string.invalid_password
         }
-        _state.update {
+        state.update {
             it.copy(
                 password = newPassword,
                 passwordError = passwordError,
@@ -120,17 +117,17 @@ class AccountViewModel(
     }
 
     fun showConfirmationDialog(textId: StringResource) {
-        _confirmationDialogMessageId.value = textId
+        confirmationDialogMessageId.value = textId
     }
 
     fun showInfoDialog(textId: StringResource) {
-        _infoDialogMessageId.value = textId
+        infoDialogMessageId.value = textId
     }
 
     fun closeDialogs() {
-        _confirmationDialogMessageId.value = null
-        _infoDialogMessageId.value = null
-        _profileError.value = null
+        confirmationDialogMessageId.value = null
+        infoDialogMessageId.value = null
+        profileError.value = null
     }
     //endregion
 
@@ -138,19 +135,19 @@ class AccountViewModel(
     private suspend fun resetDatabase() {
         booksRepository.resetTable().fold(
             onSuccess = {
-                _state.update { it.copy(isLoading = false) }
-                _logOut.value = true
+                state.update { it.copy(isLoading = false) }
+                logOut.value = true
             },
             onFailure = {
-                _state.update { it.copy(isLoading = false) }
-                _logOut.value = true
+                state.update { it.copy(isLoading = false) }
+                logOut.value = true
             },
         )
     }
 
     private fun manageError(error: ErrorModel) {
-        _state.update { it.copy(isLoading = false) }
-        _profileError.value = error
+        state.update { it.copy(isLoading = false) }
+        profileError.value = error
     }
     //endregion
 }

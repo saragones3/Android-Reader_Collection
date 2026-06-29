@@ -50,6 +50,7 @@ class BooksViewModelTest {
     private val testSortParam = null
     private val testIsSortDescending = false
     private val booksLocalDataSource: BooksLocalDataSource = mockk {
+        every { retrieveRemoteConfigValues() } just Runs
         every { getAllBooks() } returns booksFlow
     }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()

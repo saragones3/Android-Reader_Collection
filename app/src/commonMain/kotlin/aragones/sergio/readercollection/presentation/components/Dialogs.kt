@@ -302,6 +302,7 @@ fun CustomDatePickerDialog(
 ) {
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = currentValue,
+        yearRange = IntRange(1500, 3000),
     )
     DatePickerDialog(
         onDismissRequest = onDismiss,
