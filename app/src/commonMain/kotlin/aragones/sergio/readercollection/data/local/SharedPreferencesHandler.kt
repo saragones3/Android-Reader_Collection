@@ -81,7 +81,7 @@ class SharedPreferencesHandler(
             return sharedPreferencesProvider
                 .readString(Preferences.USER_DATA_PREFERENCES_NAME, true)
                 ?.let { Json.decodeFromString<UserData>(it) }
-                ?: run { UserData("", "") }
+                ?: run { UserData("", "", "") }
         }
         set(value) = sharedPreferencesProvider.writeString(
             Preferences.USER_DATA_PREFERENCES_NAME,
@@ -131,11 +131,11 @@ class SharedPreferencesHandler(
     }
 
     fun storePassword(password: String) {
-        userData = UserData(userData.username, password)
+        userData = userData.copy(password = password)
     }
 
     fun removePassword() {
-        userData = UserData(userData.username, "")
+        userData = userData.copy(password = "")
     }
 
     fun removeUserData() {

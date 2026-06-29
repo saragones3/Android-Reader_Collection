@@ -66,7 +66,7 @@ class UserRepositoryImpl(
         withContext(ioDispatcher) {
             userRemoteDataSource.login(username, password).fold(
                 onSuccess = { uuid ->
-                    val userData = UserData(username, password)
+                    val userData = UserData(username, "", password)
                     val authData = AuthData(uuid)
                     userLocalDataSource.storeLoginData(userData, authData)
                     Result.success(Unit)

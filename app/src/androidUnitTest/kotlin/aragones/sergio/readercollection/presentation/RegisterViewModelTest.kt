@@ -64,7 +64,7 @@ class RegisterViewModelTest {
         runTest {
             val password = "pass"
             val userId = "userId"
-            val userData = UserData(testUsername, password)
+            val userData = UserData(testUsername, "", password)
             val authData = AuthData(userId)
             coEvery {
                 userRemoteDataSource.register(
@@ -135,7 +135,7 @@ class RegisterViewModelTest {
     @Test
     fun `GIVEN user already registered WHEN register THEN error is shown`() = runTest {
         val password = "pass"
-        val userData = UserData(testUsername, password)
+        val userData = UserData(testUsername, "", password)
         val authData = AuthData("")
         val exception = CustomExceptions.ExistentUser()
         coEvery {

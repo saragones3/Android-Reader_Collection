@@ -75,7 +75,7 @@ class LoginViewModelTest {
         runTest {
             val password = "pass"
             val userId = "userId"
-            val userData = UserData(testUsername, password)
+            val userData = UserData(testUsername, "", password)
             val authData = AuthData(userId)
             val isActive = true
             val books = listOf(BookResponse("1"), BookResponse("2"))
@@ -125,7 +125,7 @@ class LoginViewModelTest {
         runTest {
             val password = "pass"
             val userId = "userId"
-            val userData = UserData(testUsername, password)
+            val userData = UserData(testUsername, "", password)
             val authData = AuthData(userId)
             val isActive = true
             val books = listOf(BookResponse("1"), BookResponse("2"))

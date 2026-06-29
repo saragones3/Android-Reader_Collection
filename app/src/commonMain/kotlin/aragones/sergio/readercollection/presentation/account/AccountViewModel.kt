@@ -31,7 +31,7 @@ class AccountViewModel(
         field = MutableStateFlow<AccountUiState>(
             AccountUiState.empty().copy(
                 username = userRepository.username,
-                email = "",
+                email = userRepository.userData.email,
                 password = userRepository.userData.password,
             ),
         )
@@ -49,7 +49,7 @@ class AccountViewModel(
     fun onResume() {
         state.update {
             it.copy(
-                email = "",
+                email = userRepository.userData.email,
                 emailError = null,
                 password = userRepository.userData.password,
                 passwordError = null,

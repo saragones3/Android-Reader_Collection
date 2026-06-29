@@ -59,7 +59,7 @@ class AccountViewModelTest {
     private val userLocalDataSource: UserLocalDataSource = mockk {
         every { userId } returns testUserId
         every { username } returns testUsername
-        every { userData } returns UserData(testUsername, testPassword)
+        every { userData } returns UserData(testUsername, testEmail, testPassword)
     }
     private val userRemoteDataSource: UserRemoteDataSource = mockk()
     private val viewModel = AccountViewModel(
@@ -82,7 +82,7 @@ class AccountViewModelTest {
 
     @Test
     fun `WHEN onResume THEN updates state with repository data`() = runTest {
-        val userData = UserData("username", "password")
+        val userData = UserData("username", "email", "password")
         val isPublicProfile = true
         every { userLocalDataSource.userData } returns userData
         every { userLocalDataSource.isProfilePublic } returns isPublicProfile
@@ -94,7 +94,7 @@ class AccountViewModelTest {
 
             assertEquals(
                 initialState.copy(
-                    email = "",
+                    email = userData.email,
                     emailError = null,
                     password = userData.password,
                     passwordError = null,
