@@ -141,6 +141,11 @@ class UserRepositoryImpl(
         )
     }
 
+    override suspend fun updateDisplayName(displayName: String): Result<Unit> =
+        withContext(ioDispatcher) {
+            userRemoteDataSource.updateDisplayName(displayName)
+        }
+
     override suspend fun setPublicProfile(value: Boolean): Result<Unit> =
         withContext(ioDispatcher) {
             withTimeout(TIMEOUT) {

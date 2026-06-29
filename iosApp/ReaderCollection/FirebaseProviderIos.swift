@@ -70,6 +70,15 @@ class FirebaseProviderIos: FirebaseProvider {
         }
         try await user.updateEmail(to: email)
     }
+
+    func updateDisplayName(displayName: String) async throws {
+        guard let user = auth.currentUser else {
+            fatalError("User is null")
+        }
+        let changeRequest = user.createProfileChangeRequest()
+        changeRequest.displayName = displayName
+        try await changeRequest.commitChanges()
+    }
     
     func signOut() {
         do {

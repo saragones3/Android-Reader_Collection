@@ -222,6 +222,18 @@ class UserRemoteDataSourceTest {
     }
 
     @Test
+    fun `GIVEN success response WHEN updateDisplayName THEN return success`() = runTest {
+        val displayName = "New Name"
+        coEvery { firebaseProvider.updateDisplayName(any()) } just Runs
+
+        val result = dataSource.updateDisplayName(displayName)
+
+        assertEquals(true, result.isSuccess)
+        coVerify { firebaseProvider.updateDisplayName(displayName) }
+        confirmVerified(firebaseProvider)
+    }
+
+    @Test
     fun `GIVEN success response WHEN register public profile THEN return success`() = runTest {
         val username = "testuser"
         val userId = "testUserId"

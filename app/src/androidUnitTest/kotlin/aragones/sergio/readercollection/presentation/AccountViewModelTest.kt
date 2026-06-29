@@ -146,6 +146,7 @@ class AccountViewModelTest {
         viewModel.profileDataChanged(newEmail, testPassword)
         coEvery { userRemoteDataSource.login(any(), any()) } returns Result.success(testUserId)
         coEvery { userRemoteDataSource.updateEmail(any()) } returns Result.success(Unit)
+        coEvery { userRemoteDataSource.updateDisplayName(any()) } returns Result.success(Unit)
         every { userLocalDataSource.storeLoginData(any(), any()) } just Runs
 
         viewModel.state.test {
@@ -167,6 +168,7 @@ class AccountViewModelTest {
         }
         coVerify { userRemoteDataSource.login(testUsername, testPassword) }
         coVerify { userRemoteDataSource.updateEmail(newEmail) }
+        coVerify { userRemoteDataSource.updateDisplayName(testUsername) }
         verify {
             userLocalDataSource.storeLoginData(
                 UserData(testUsername, newEmail, testPassword),

@@ -74,6 +74,7 @@ class AccountViewModel(
                 if (newEmail != userRepository.userData.email) {
                     result = userRepository.updateEmail(newEmail)
                     if (result.isSuccess) {
+                        userRepository.updateDisplayName(userRepository.username)
                         showInfoDialog(Res.string.verify_email_message)
                     }
                 }
