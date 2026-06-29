@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.error_server
+import reader_collection.app.generated.resources.invalid_email
 import reader_collection.app.generated.resources.invalid_password
 import reader_collection.app.generated.resources.invalid_username
 import reader_collection.app.generated.resources.wrong_credentials
@@ -76,7 +77,12 @@ class LoginViewModel(
         var passwordError: StringResource? = null
         var isDataValid = true
 
-        if (!Constants.isUserNameValid(username)) {
+        if (username.contains("@")) {
+            if (!Constants.isEmailValid(username)) {
+                usernameError = Res.string.invalid_email
+                isDataValid = false
+            }
+        } else if (!Constants.isUserNameValid(username)) {
             usernameError = Res.string.invalid_username
             isDataValid = false
         }

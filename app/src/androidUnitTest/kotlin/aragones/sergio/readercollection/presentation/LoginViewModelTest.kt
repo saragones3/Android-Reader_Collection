@@ -39,6 +39,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.error_server
+import reader_collection.app.generated.resources.invalid_email
 import reader_collection.app.generated.resources.invalid_password
 import reader_collection.app.generated.resources.invalid_username
 import reader_collection.app.generated.resources.wrong_credentials
@@ -239,6 +240,20 @@ class LoginViewModelTest {
     }
 
     @Test
+    fun `GIVEN valid email and password WHEN loginDataChanged THEN state updates with data valid true`() {
+        viewModel.loginDataChanged("test@email.com", "password")
+
+        assertEquals(
+            LoginFormState(
+                usernameError = null,
+                passwordError = null,
+                isDataValid = true,
+            ),
+            viewModel.state.value.formState,
+        )
+    }
+
+    @Test
     fun `GIVEN invalid username WHEN loginDataChanged THEN state updates with data valid false and username error`() {
         assertEquals(
             LoginFormState(),
@@ -250,6 +265,25 @@ class LoginViewModelTest {
         assertEquals(
             LoginFormState(
                 usernameError = Res.string.invalid_username,
+                passwordError = null,
+                isDataValid = false,
+            ),
+            viewModel.state.value.formState,
+        )
+    }
+
+    @Test
+    fun `GIVEN invalid email WHEN loginDataChanged THEN state updates with data valid false and email error`() {
+        assertEquals(
+            LoginFormState(),
+            viewModel.state.value.formState,
+        )
+
+        viewModel.loginDataChanged("email@", "password")
+
+        assertEquals(
+            LoginFormState(
+                usernameError = Res.string.invalid_email,
                 passwordError = null,
                 isDataValid = false,
             ),

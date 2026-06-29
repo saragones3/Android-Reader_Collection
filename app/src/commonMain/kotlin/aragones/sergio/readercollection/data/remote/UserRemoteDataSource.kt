@@ -26,14 +26,16 @@ class UserRemoteDataSource(
 
     //region Public methods
     suspend fun login(username: String, password: String): Result<String> = runCatching {
-        firebaseProvider.signIn("${username}$MAIL_END", password)
+        val email = if (username.contains("@")) username else "${username}$MAIL_END"
+        firebaseProvider.signIn(email, password)
         firebaseProvider.getUser()?.id ?: throw NoSuchElementException()
     }
 
     fun logout() = firebaseProvider.signOut()
 
     suspend fun register(username: String, password: String): Result<Unit> = runCatching {
-        firebaseProvider.signUp("${username}$MAIL_END", password)
+        val email = if (username.contains("@")) username else "${username}$MAIL_END"
+        firebaseProvider.signUp(email, password)
     }.recoverCatching {
         if (it.message == EXISTENT_USER_MESSAGE) {
             throw CustomExceptions.ExistentUser()

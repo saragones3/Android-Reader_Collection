@@ -63,7 +63,26 @@ class UserRemoteDataSourceTest {
         assertEquals(true, result.isSuccess)
         assertEquals(user.id, result.getOrNull())
         coVerify {
-            firebaseProvider.signIn(user.username, password)
+            firebaseProvider.signIn("$username@readercollection.app", password)
+        }
+        coVerify { firebaseProvider.getUser() }
+        confirmVerified(firebaseProvider)
+    }
+
+    @Test
+    fun `GIVEN success response and username as email WHEN login THEN return user id`() = runTest {
+        val username = "test@user.com"
+        val password = "password123"
+        val user = UserResponse(id = "testUid", username = username)
+        coEvery { firebaseProvider.signIn(any(), any()) } returns mockk()
+        coEvery { firebaseProvider.getUser() } returns user
+
+        val result = dataSource.login(username, password)
+
+        assertEquals(true, result.isSuccess)
+        assertEquals(user.id, result.getOrNull())
+        coVerify {
+            firebaseProvider.signIn(username, password)
         }
         coVerify { firebaseProvider.getUser() }
         confirmVerified(firebaseProvider)

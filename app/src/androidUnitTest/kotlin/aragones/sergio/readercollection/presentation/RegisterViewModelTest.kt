@@ -36,6 +36,7 @@ import org.junit.Rule
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.error_server
 import reader_collection.app.generated.resources.error_user_found
+import reader_collection.app.generated.resources.invalid_email
 import reader_collection.app.generated.resources.invalid_password
 import reader_collection.app.generated.resources.invalid_repeat_password
 import reader_collection.app.generated.resources.invalid_username
@@ -188,6 +189,29 @@ class RegisterViewModelTest {
     }
 
     @Test
+    fun `GIVEN valid email and password WHEN registerDataChanged THEN state updates with data valid true`() {
+        assertEquals(
+            LoginFormState(),
+            viewModel.state.value.formState,
+        )
+
+        viewModel.registerDataChanged(
+            username = "test@email.com",
+            password = "password",
+            confirmPassword = "password",
+        )
+
+        assertEquals(
+            LoginFormState(
+                usernameError = null,
+                passwordError = null,
+                isDataValid = true,
+            ),
+            viewModel.state.value.formState,
+        )
+    }
+
+    @Test
     fun `GIVEN invalid username WHEN registerDataChanged THEN state updates with data valid false and username error`() {
         assertEquals(
             LoginFormState(),
@@ -203,6 +227,29 @@ class RegisterViewModelTest {
         assertEquals(
             LoginFormState(
                 usernameError = Res.string.invalid_username,
+                passwordError = null,
+                isDataValid = false,
+            ),
+            viewModel.state.value.formState,
+        )
+    }
+
+    @Test
+    fun `GIVEN invalid email WHEN registerDataChanged THEN state updates with data valid false and username error`() {
+        assertEquals(
+            LoginFormState(),
+            viewModel.state.value.formState,
+        )
+
+        viewModel.registerDataChanged(
+            username = "email@",
+            password = "password",
+            confirmPassword = "password",
+        )
+
+        assertEquals(
+            LoginFormState(
+                usernameError = Res.string.invalid_email,
                 passwordError = null,
                 isDataValid = false,
             ),

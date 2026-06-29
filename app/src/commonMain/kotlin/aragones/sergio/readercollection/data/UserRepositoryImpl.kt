@@ -66,7 +66,8 @@ class UserRepositoryImpl(
         withContext(ioDispatcher) {
             userRemoteDataSource.login(username, password).fold(
                 onSuccess = { uuid ->
-                    val userData = UserData(username, "", password)
+                    val email = if (username.contains("@")) username else ""
+                    val userData = UserData(username, email, password)
                     val authData = AuthData(uuid)
                     userLocalDataSource.storeLoginData(userData, authData)
                     Result.success(Unit)
@@ -101,7 +102,8 @@ class UserRepositoryImpl(
                 onSuccess = {
                     userRemoteDataSource.updatePassword(password).fold(onSuccess = {
                         userLocalDataSource.storePassword(password)
-                        userRemoteDataSource.login(userData.username, password).fold(
+                        val usernameOrEmail = userData.email.ifBlank { userData.username }
+                        userRemoteDataSource.login(usernameOrEmail, password).fold(
                             onSuccess = { uuid ->
                                 userLocalDataSource.storeCredentials(AuthData(uuid))
                                 Result.success(Unit)
