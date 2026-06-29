@@ -171,7 +171,6 @@ kotlin {
             dependencies {
                 implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-                implementation(libs.android.chart)
                 implementation(libs.app.update.ktx)
                 implementation(libs.bundles.firebase)
                 implementation(libs.ktor.client.okhttp)
