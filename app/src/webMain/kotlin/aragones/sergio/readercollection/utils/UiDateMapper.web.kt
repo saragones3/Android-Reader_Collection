@@ -79,76 +79,7 @@ actual object UiDateMapper {
         return if (name.isNotEmpty()) "$name," else ""
     }
 
-    fun getMonthName(month: Int, language: String, short: Boolean): String {
-        val esMonths = listOf(
-            "",
-            "enero",
-            "febrero",
-            "marzo",
-            "abril",
-            "mayo",
-            "junio",
-            "julio",
-            "agosto",
-            "septiembre",
-            "octubre",
-            "noviembre",
-            "diciembre",
-        )
-        val esShort = listOf(
-            "",
-            "ene.",
-            "feb.",
-            "mar.",
-            "abr.",
-            "may.",
-            "jun.",
-            "jul.",
-            "ago.",
-            "sep.",
-            "oct.",
-            "nov.",
-            "dic.",
-        )
-        val enMonths = listOf(
-            "",
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December",
-        )
-        val enShort = listOf(
-            "",
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec",
-        )
-
-        return if (language == "es") {
-            if (short) esShort.getOrNull(month) ?: "" else esMonths.getOrNull(month) ?: ""
-        } else {
-            if (short) enShort.getOrNull(month) ?: "" else enMonths.getOrNull(month) ?: ""
-        }
-    }
-
-    fun getMonthNumberFromName(name: String, language: String): Int {
+    actual fun getMonthNumberFromName(name: String, language: String): Int {
         val n = name.lowercase().removeSuffix(".")
         val esMonths = listOf(
             "",
@@ -227,5 +158,74 @@ actual object UiDateMapper {
         if (idx > 0) return idx
 
         return 1
+    }
+
+    private fun getMonthName(month: Int, language: String, short: Boolean): String {
+        val esMonths = listOf(
+            "",
+            "enero",
+            "febrero",
+            "marzo",
+            "abril",
+            "mayo",
+            "junio",
+            "julio",
+            "agosto",
+            "septiembre",
+            "octubre",
+            "noviembre",
+            "diciembre",
+        )
+        val esShort = listOf(
+            "",
+            "ene.",
+            "feb.",
+            "mar.",
+            "abr.",
+            "may.",
+            "jun.",
+            "jul.",
+            "ago.",
+            "sep.",
+            "oct.",
+            "nov.",
+            "dic.",
+        )
+        val enMonths = listOf(
+            "",
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+        )
+        val enShort = listOf(
+            "",
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+        )
+
+        return if (language == "es") {
+            if (short) esShort.getOrNull(month) ?: "" else esMonths.getOrNull(month) ?: ""
+        } else {
+            if (short) enShort.getOrNull(month) ?: "" else enMonths.getOrNull(month) ?: ""
+        }
     }
 }

@@ -13,4 +13,5 @@ expect object UiDateMapper {
     fun String.toLong(language: String?): Long?
     fun Long.toLocalDate(language: String): LocalDate?
     fun Int.toMonthName(language: String): String
+    fun getMonthNumberFromName(name: String, language: String): Int
 }
