@@ -6,6 +6,7 @@
 package aragones.sergio.readercollection.utils
 
 import com.aragones.sergio.util.Constants
+import com.aragones.sergio.util.extensions.getMonthNumber
 import com.aragones.sergio.util.extensions.toLocalDate
 import com.aragones.sergio.util.extensions.toString
 import kotlinx.datetime.LocalDate
@@ -65,6 +66,12 @@ actual object UiDateMapper {
         formatter.setLocale(NSLocale(language))
         return formatter.monthSymbols[this - 1].toString().replaceFirstChar { it.uppercase() } + ","
     }
+
+    actual fun getMonthNumberFromName(name: String, language: String): Int = name
+        .toDate("MMM", language)
+        .toString(null, language)
+        .toLocalDate()
+        .getMonthNumber()
 
     private fun String?.toDate(
         format: String? = null,
