@@ -40,7 +40,8 @@ class FirebaseProviderIos: FirebaseProvider {
         guard let user = auth.currentUser else { return nil }
         return UserResponse(
             id: user.uid,
-            username: user.email ?? "",
+            username: user.displayName ?? "",
+            email: user.email ?? "",
             status: RequestStatus.pendingFriend
         )
     }
@@ -62,6 +63,22 @@ class FirebaseProviderIos: FirebaseProvider {
             fatalError("User is null")
         }
         try await user.updatePassword(to: password)
+    }
+
+    func updateEmail(email: String) async throws {
+        guard let user = auth.currentUser else {
+            fatalError("User is null")
+        }
+        try await user.updateEmail(to: email)
+    }
+
+    func updateDisplayName(displayName: String) async throws {
+        guard let user = auth.currentUser else {
+            fatalError("User is null")
+        }
+        let changeRequest = user.createProfileChangeRequest()
+        changeRequest.displayName = displayName
+        try await changeRequest.commitChanges()
     }
     
     func signOut() {
@@ -250,7 +267,7 @@ class FirebaseProviderIos: FirebaseProvider {
     
     func deleteUserFromDatabase(userId: String) async throws {
         try await firestore
-            .collection(PUBLIC_PROFILES_PATH)
+            .collection(USERS_PATH)
             .document(userId)
             .delete()
     }

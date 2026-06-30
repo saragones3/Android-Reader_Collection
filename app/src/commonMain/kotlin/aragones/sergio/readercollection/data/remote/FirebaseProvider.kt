@@ -14,6 +14,8 @@ interface FirebaseProvider {
     suspend fun signIn(email: String, password: String)
     suspend fun signUp(email: String, password: String)
     suspend fun updatePassword(password: String)
+    suspend fun updateEmail(email: String)
+    suspend fun updateDisplayName(displayName: String)
     fun signOut()
     suspend fun deleteUser()
     suspend fun registerPublicProfile(username: String, userId: String)

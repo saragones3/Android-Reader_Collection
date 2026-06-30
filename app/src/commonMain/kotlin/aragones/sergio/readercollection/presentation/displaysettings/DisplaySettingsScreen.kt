@@ -208,9 +208,14 @@ private fun SortingInfo(
     val sortingParamKeys = stringArrayResource(Res.array.sorting_param_keys)
     val sortParamValue =
         if (sortParam == null) {
-            sortingParamValues.first()
+            sortingParamValues.firstOrNull() ?: ""
         } else {
-            sortingParamValues[sortingParamKeys.indexOf(sortParam)]
+            val index = sortingParamKeys.indexOf(sortParam)
+            if (index != -1 && index < sortingParamValues.size) {
+                sortingParamValues[index]
+            } else {
+                sortingParamValues.firstOrNull() ?: ""
+            }
         }
     val sortingOrderValues = stringArrayResource(Res.array.sorting_order_values)
 
@@ -220,7 +225,7 @@ private fun SortingInfo(
         labelText = stringResource(Res.string.sort_param),
         onOptionSelected = {
             val index = sortingParamValues.indexOf(it)
-            val newSortParam = sortingParamKeys[index].takeIf { index != 0 }
+            val newSortParam = sortingParamKeys.getOrNull(index)?.takeIf { index != 0 }
             onSortParamValueChange(newSortParam)
         },
         modifier = Modifier.padding(horizontal = 24.dp),
@@ -228,9 +233,9 @@ private fun SortingInfo(
     Spacer(Modifier.height(8.dp))
     DropdownOutlinedTextField(
         currentValue = if (isSortDescending) {
-            sortingOrderValues.last()
+            sortingOrderValues.lastOrNull() ?: ""
         } else {
-            sortingOrderValues.first()
+            sortingOrderValues.firstOrNull() ?: ""
         },
         values = DropdownValues(sortingOrderValues),
         labelText = stringResource(Res.string.sort_order),
@@ -246,7 +251,7 @@ private fun SortingInfo(
 private fun AppThemeInfo(selectedThemeIndex: Int, onThemeChange: (Int) -> Unit) {
     val appThemes = stringArrayResource(Res.array.app_theme_values)
     DropdownOutlinedTextField(
-        currentValue = appThemes[selectedThemeIndex],
+        currentValue = appThemes.getOrNull(selectedThemeIndex) ?: "",
         values = DropdownValues(appThemes),
         labelText = stringResource(Res.string.app_theme),
         onOptionSelected = {

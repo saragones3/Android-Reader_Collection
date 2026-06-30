@@ -73,10 +73,11 @@ class FirebaseProviderTest {
 
     @Test
     fun `GIVEN current user not null WHEN get user THEN return user`() {
-        val user = UserResponse("testUid", "testuser")
+        val user = UserResponse(id = "testUid", username = "testuser", email = "test@user.com")
         val firebaseUser: FirebaseUser = mockk()
         every { firebaseUser.uid } returns user.id
-        every { firebaseUser.email } returns user.username
+        every { firebaseUser.displayName } returns user.username
+        every { firebaseUser.email } returns user.email
         every { auth.currentUser } returns firebaseUser
 
         val result = firebaseProvider.getUser()
@@ -421,8 +422,16 @@ class FirebaseProviderTest {
         runTest {
             val userId = "testUserId"
             val friends = listOf(
-                UserResponse("testFriendId1", "TestFriend1", RequestStatus.APPROVED),
-                UserResponse("testFriendId2", "TestFriend2", RequestStatus.PENDING_MINE),
+                UserResponse(
+                    id = "testFriendId1",
+                    username = "TestFriend1",
+                    status = RequestStatus.APPROVED,
+                ),
+                UserResponse(
+                    id = "testFriendId2",
+                    username = "TestFriend2",
+                    status = RequestStatus.PENDING_MINE,
+                ),
             )
             givenGetFriendsSuccess(userId, friends)
 

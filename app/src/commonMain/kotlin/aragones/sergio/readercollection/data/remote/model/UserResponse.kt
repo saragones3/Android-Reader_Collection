@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 data class UserResponse(
     override val id: String = "",
     val username: String = "",
+    val email: String = "",
     val status: RequestStatus = RequestStatus.PENDING_FRIEND,
 ) : BaseModel<String>
 

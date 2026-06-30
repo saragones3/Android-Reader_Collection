@@ -9,6 +9,7 @@ import aragones.sergio.readercollection.data.local.model.UserData
 import aragones.sergio.readercollection.domain.model.User
 
 interface UserRepository {
+    val usernameOrEmail: String
     val username: String
     val userData: UserData
     val userId: String
@@ -24,6 +25,8 @@ interface UserRepository {
     fun logout()
     suspend fun register(username: String, password: String): Result<Unit>
     suspend fun updatePassword(password: String): Result<Unit>
+    suspend fun updateEmail(email: String): Result<Unit>
+    suspend fun updateDisplayName(displayName: String): Result<Unit>
     suspend fun setPublicProfile(value: Boolean): Result<Unit>
     suspend fun loadConfig()
     suspend fun getUserWith(username: String): Result<User>

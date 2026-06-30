@@ -10,16 +10,18 @@
 
     //LOGIN &amp; REGISTRATION
     <string name="invalid_username">Username must be composed only by letters and numbers</string>
+    <string name="invalid_email">Invalid email</string>
     <string name="invalid_password">Password must have at least 6 characters</string>
     <string name="invalid_repeat_password">Passwords does not match</string>
-    <string name="username">Username</string>
+    <string name="username_or_email">Username or Email</string>
+    <string name="email">Email</string>
     <string name="password">Password</string>
     <string name="sign_in">Sign in</string>
     <string name="not_account">Don't have an account?</string>
     <string name="create_account">Create account</string>
     <string name="sign_up">Sign up</string>
     <string name="confirm_password">Confirm password</string>
-    <string name="username_info">This username is only needed for identification purposes and to be able to separate your books from another user's ones. However, due to any personal information is stored, if you forget your password you won't be able to retrieve it, so it's advisable to have a backup copy. You can create it from the Statistics screen.</string>
+    <string name="username_info">You can choose between username and email. If you choose username, you won't be able to recover password if forget, so it's advisable you have a backup copy. You can create it from the Statistics screen.</string>
     <string name="wrong_credentials">Username or password are not correct</string>
     <string name="error_user_found">There is already a user with that name. Please, choose another one.</string>
 
@@ -100,7 +102,10 @@
     //ACCOUNT
     <string name="account_details_title">Account details</string>
     <string name="account_management_title">Account management</string>
+    <string name="username">Username</string>
+    <string name="email_info">If you add an email, you will be able to recover the password if you forget it.</string>
     <string name="save">Save</string>
+    <string name="verify_email_message">We've sent a verification email to the new address. Please check your inbox and follow the instructions to complete the update.</string>
     <string name="public_profile_title">Public profile</string>
     <string name="public_profile_description">Other users will be able to search for you and see your books</string>
     <string name="delete_account_title">Delete account</string>

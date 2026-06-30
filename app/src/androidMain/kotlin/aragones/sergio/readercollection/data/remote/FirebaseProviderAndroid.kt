@@ -10,6 +10,7 @@ import aragones.sergio.readercollection.data.remote.model.RequestStatus
 import aragones.sergio.readercollection.data.remote.model.UserResponse
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -42,7 +43,8 @@ class FirebaseProviderAndroid(
     override fun getUser(): UserResponse? = auth.currentUser?.let {
         UserResponse(
             id = it.uid,
-            username = it.email ?: "",
+            username = it.displayName ?: "",
+            email = it.email ?: "",
         )
     }
 
@@ -57,6 +59,19 @@ class FirebaseProviderAndroid(
     override suspend fun updatePassword(password: String) {
         val user = auth.currentUser ?: throw RuntimeException("User is null")
         user.updatePassword(password).await()
+    }
+
+    override suspend fun updateEmail(email: String) {
+        val user = auth.currentUser ?: throw RuntimeException("User is null")
+        user.verifyBeforeUpdateEmail(email).await()
+    }
+
+    override suspend fun updateDisplayName(displayName: String) {
+        val user = auth.currentUser ?: throw RuntimeException("User is null")
+        val profileUpdates = userProfileChangeRequest {
+            this.displayName = displayName
+        }
+        user.updateProfile(profileUpdates).await()
     }
 
     override fun signOut() = auth.signOut()

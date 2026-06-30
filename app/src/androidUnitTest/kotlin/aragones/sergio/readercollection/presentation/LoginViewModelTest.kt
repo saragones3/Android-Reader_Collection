@@ -18,8 +18,10 @@ import aragones.sergio.readercollection.data.local.model.UserData
 import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.data.remote.model.BookResponse
+import aragones.sergio.readercollection.data.remote.model.UserResponse
 import aragones.sergio.readercollection.domain.model.ErrorModel
 import aragones.sergio.readercollection.domain.toDomain
+import aragones.sergio.readercollection.presentation.login.LoginUiState
 import aragones.sergio.readercollection.presentation.login.LoginViewModel
 import aragones.sergio.readercollection.presentation.login.model.LoginFormState
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
@@ -39,6 +41,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.error_server
+import reader_collection.app.generated.resources.invalid_email
 import reader_collection.app.generated.resources.invalid_password
 import reader_collection.app.generated.resources.invalid_username
 import reader_collection.app.generated.resources.wrong_credentials
@@ -55,6 +58,7 @@ class LoginViewModelTest {
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()
     private val userLocalDataSource: UserLocalDataSource = mockk {
         every { username } returns testUsername
+        every { userData } returns UserData(testUsername, "", "")
     }
     private val userRemoteDataSource: UserRemoteDataSource = mockk()
     private val viewModel = LoginViewModel(
@@ -71,21 +75,72 @@ class LoginViewModelTest {
     )
 
     @Test
+    fun `GIVEN empty email WHEN init THEN value in state is username`() = runTest {
+        every { userLocalDataSource.userData } returns UserData(testUsername, "", "")
+
+        val viewModel = LoginViewModel(
+            BooksRepositoryImpl(
+                booksLocalDataSource,
+                booksRemoteDataSource,
+                mainDispatcherRule.testDispatcher,
+            ),
+            UserRepositoryImpl(
+                userLocalDataSource,
+                userRemoteDataSource,
+                mainDispatcherRule.testDispatcher,
+            ),
+        )
+
+        assertEquals(
+            LoginUiState.empty().copy(
+                username = testUsername,
+            ),
+            viewModel.state.value,
+        )
+    }
+
+    @Test
+    fun `GIVEN non empty email WHEN init THEN value in state is email`() = runTest {
+        every { userLocalDataSource.userData } returns UserData(testUsername, "test@email.com", "")
+
+        val viewModel = LoginViewModel(
+            BooksRepositoryImpl(
+                booksLocalDataSource,
+                booksRemoteDataSource,
+                mainDispatcherRule.testDispatcher,
+            ),
+            UserRepositoryImpl(
+                userLocalDataSource,
+                userRemoteDataSource,
+                mainDispatcherRule.testDispatcher,
+            ),
+        )
+
+        assertEquals(
+            LoginUiState.empty().copy(
+                username = "test@email.com",
+            ),
+            viewModel.state.value,
+        )
+    }
+
+    @Test
     fun `GIVEN valid username and password WHEN login THEN user config and books are loaded and true is returned`() =
         runTest {
             val password = "pass"
             val userId = "userId"
-            val userData = UserData(testUsername, password)
+            val userData = UserData(testUsername, "", password)
             val authData = AuthData(userId)
             val isActive = true
             val books = listOf(BookResponse("1"), BookResponse("2"))
             val domainBooks = books.map { it.toDomain() }
+            val userResponse = UserResponse(id = userId, username = testUsername)
             coEvery {
                 userRemoteDataSource.login(
                     testUsername,
                     password,
                 )
-            } returns Result.success(userId)
+            } returns Result.success(userResponse)
             every { userLocalDataSource.storeLoginData(userData, authData) } just Runs
             coEvery {
                 userRemoteDataSource.isPublicProfileActive(testUsername)
@@ -103,6 +158,7 @@ class LoginViewModelTest {
                 assertEquals(true, awaitItem())
             }
 
+            verify { userLocalDataSource.userData }
             verify(exactly = 2) { userLocalDataSource.username }
             coVerify { userRemoteDataSource.login(testUsername, password) }
             verify { userLocalDataSource.storeLoginData(userData, authData) }
@@ -125,18 +181,19 @@ class LoginViewModelTest {
         runTest {
             val password = "pass"
             val userId = "userId"
-            val userData = UserData(testUsername, password)
+            val userData = UserData(testUsername, "", password)
             val authData = AuthData(userId)
             val isActive = true
             val books = listOf(BookResponse("1"), BookResponse("2"))
             val domainBooks = books.map { it.toDomain() }
             val exception = RuntimeException("Firestore error")
+            val userResponse = UserResponse(id = userId, username = testUsername)
             coEvery {
                 userRemoteDataSource.login(
                     testUsername,
                     password,
                 )
-            } returns Result.success(userId)
+            } returns Result.success(userResponse)
             every { userLocalDataSource.storeLoginData(userData, authData) } just Runs
             coEvery {
                 userRemoteDataSource.isPublicProfileActive(testUsername)
@@ -162,6 +219,7 @@ class LoginViewModelTest {
                 )
             }
 
+            verify { userLocalDataSource.userData }
             verify(exactly = 2) { userLocalDataSource.username }
             coVerify { userRemoteDataSource.login(testUsername, password) }
             verify { userLocalDataSource.storeLoginData(userData, authData) }
@@ -207,6 +265,7 @@ class LoginViewModelTest {
                 )
             }
 
+            verify { userLocalDataSource.userData }
             verify { userLocalDataSource.username }
             coVerify { userRemoteDataSource.login(testUsername, password) }
             verify(exactly = 0) { userLocalDataSource.storeLoginData(any(), any()) }
@@ -239,6 +298,20 @@ class LoginViewModelTest {
     }
 
     @Test
+    fun `GIVEN valid email and password WHEN loginDataChanged THEN state updates with data valid true`() {
+        viewModel.loginDataChanged("test@email.com", "password")
+
+        assertEquals(
+            LoginFormState(
+                usernameError = null,
+                passwordError = null,
+                isDataValid = true,
+            ),
+            viewModel.state.value.formState,
+        )
+    }
+
+    @Test
     fun `GIVEN invalid username WHEN loginDataChanged THEN state updates with data valid false and username error`() {
         assertEquals(
             LoginFormState(),
@@ -250,6 +323,25 @@ class LoginViewModelTest {
         assertEquals(
             LoginFormState(
                 usernameError = Res.string.invalid_username,
+                passwordError = null,
+                isDataValid = false,
+            ),
+            viewModel.state.value.formState,
+        )
+    }
+
+    @Test
+    fun `GIVEN invalid email WHEN loginDataChanged THEN state updates with data valid false and email error`() {
+        assertEquals(
+            LoginFormState(),
+            viewModel.state.value.formState,
+        )
+
+        viewModel.loginDataChanged("email@", "password")
+
+        assertEquals(
+            LoginFormState(
+                usernameError = Res.string.invalid_email,
                 passwordError = null,
                 isDataValid = false,
             ),

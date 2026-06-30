@@ -18,7 +18,9 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.error_server
+import reader_collection.app.generated.resources.invalid_email
 import reader_collection.app.generated.resources.invalid_password
+import reader_collection.app.generated.resources.verify_email_message
 
 class AccountViewModel(
     private val booksRepository: BooksRepository,
@@ -30,6 +32,7 @@ class AccountViewModel(
         field = MutableStateFlow<AccountUiState>(
             AccountUiState.empty().copy(
                 username = userRepository.username,
+                email = userRepository.userData.email,
                 password = userRepository.userData.password,
             ),
         )
@@ -47,6 +50,8 @@ class AccountViewModel(
     fun onResume() {
         state.update {
             it.copy(
+                email = userRepository.userData.email,
+                emailError = null,
                 password = userRepository.userData.password,
                 passwordError = null,
                 isProfilePublic = userRepository.isProfilePublic,
@@ -57,12 +62,27 @@ class AccountViewModel(
 
     //region Public methods
     fun save() {
-        val newPassword = requireNotNull(state.value.password)
+        val newEmail = state.value.email
+        val newPassword = state.value.password
 
-        if (newPassword != userRepository.userData.password) {
+        if (newEmail != userRepository.userData.email ||
+            newPassword != userRepository.userData.password
+        ) {
             state.update { it.copy(isLoading = true) }
             viewModelScope.launch {
-                userRepository.updatePassword(newPassword).fold(
+                var result = Result.success(Unit)
+                if (newEmail != userRepository.userData.email) {
+                    result = userRepository.updateEmail(newEmail)
+                    if (result.isSuccess) {
+                        userRepository.updateDisplayName(userRepository.username)
+                        showInfoDialog(Res.string.verify_email_message)
+                    }
+                }
+                if (result.isSuccess && newPassword != userRepository.userData.password) {
+                    result = userRepository.updatePassword(newPassword)
+                }
+
+                result.fold(
                     onSuccess = {
                         state.update { it.copy(isLoading = false) }
                     },
@@ -103,13 +123,19 @@ class AccountViewModel(
         )
     }
 
-    fun profileDataChanged(newPassword: String) {
+    fun profileDataChanged(newEmail: String, newPassword: String) {
+        var emailError: StringResource? = null
+        if (newEmail.isNotBlank() && !Constants.isEmailValid(newEmail)) {
+            emailError = Res.string.invalid_email
+        }
         var passwordError: StringResource? = null
         if (!Constants.isPasswordValid(newPassword)) {
             passwordError = Res.string.invalid_password
         }
         state.update {
             it.copy(
+                email = newEmail,
+                emailError = emailError,
                 password = newPassword,
                 passwordError = passwordError,
             )

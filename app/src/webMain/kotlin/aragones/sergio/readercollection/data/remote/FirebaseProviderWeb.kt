@@ -42,7 +42,8 @@ class FirebaseProviderWeb : FirebaseProvider {
     override fun getUser(): UserResponse? = getCurrentUserJs()?.let {
         UserResponse(
             id = it.uid,
-            username = it.email ?: "",
+            username = it.displayName ?: "",
+            email = it.email ?: "",
         )
     }
 
@@ -57,6 +58,16 @@ class FirebaseProviderWeb : FirebaseProvider {
     override suspend fun updatePassword(password: String) {
         val user = getCurrentUserJs() ?: throw Exception("No authenticated user")
         updatePasswordJs(user, password).await()
+    }
+
+    override suspend fun updateEmail(email: String) {
+        val user = getCurrentUserJs() ?: throw Exception("No authenticated user")
+        updateEmailJs(user, email).await()
+    }
+
+    override suspend fun updateDisplayName(displayName: String) {
+        val user = getCurrentUserJs() ?: throw Exception("No authenticated user")
+        updateProfileJs(user, displayName).await()
     }
 
     override fun signOut() {
@@ -265,6 +276,7 @@ class FirebaseProviderWeb : FirebaseProvider {
 external interface JsAuthUser : JsAny {
     val uid: String
     val email: String?
+    val displayName: String?
 }
 
 // Interoperabilidad directa
@@ -286,6 +298,14 @@ external fun signInEmailJs(auth: JsAny, email: String, pass: String): Promise<Js
 
 @JsFun("(user, newPass) => window.firebaseAuthModule.updatePassword(user, newPass)")
 external fun updatePasswordJs(user: JsAuthUser, newPass: String): Promise<JsAny?>
+
+@JsFun("(user, newEmail) => window.firebaseAuthModule.verifyBeforeUpdateEmail(user, newEmail)")
+external fun updateEmailJs(user: JsAuthUser, newEmail: String): Promise<JsAny?>
+
+@JsFun(
+    "(user, displayName) => window.firebaseAuthModule.updateProfile(user, { displayName: displayName })",
+)
+external fun updateProfileJs(user: JsAuthUser, displayName: String): Promise<JsAny?>
 
 @JsFun("(auth) => window.firebaseAuthModule.signOut(auth)")
 external fun signOutJs(auth: JsAny): Promise<JsAny?>
