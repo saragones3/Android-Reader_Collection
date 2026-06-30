@@ -167,6 +167,23 @@ class UserRemoteDataSourceTest {
     }
 
     @Test
+    fun `GIVEN already registered failure response in web WHEN register THEN return failure`() = runTest {
+        val username = "testuser"
+        val password = "wrongpassword"
+        val exception = RuntimeException("FirebaseError: Firebase: Error (auth/email-already-in-use).")
+        coEvery { firebaseProvider.signUp(any(), any()) } throws exception
+
+        val result = dataSource.register(username, password)
+
+        assertEquals(true, result.isFailure)
+        assertIs<CustomExceptions.ExistentUser>(result.exceptionOrNull())
+        coVerify {
+            firebaseProvider.signUp("$username@readercollection.app", password)
+        }
+        confirmVerified(firebaseProvider)
+    }
+
+    @Test
     fun `GIVEN failure response WHEN register THEN return failure`() = runTest {
         val username = "testuser"
         val password = "wrongpassword"

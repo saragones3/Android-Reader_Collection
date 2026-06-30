@@ -419,9 +419,14 @@ private fun BookDetailContent(
         val stateValues = STATES.map { it.name }
         val bookState =
             if (book.state == null) {
-                stateValues.first()
+                stateValues.firstOrNull() ?: ""
             } else {
-                stateValues[STATES.map { it.id }.indexOf(book.state)]
+                val index = STATES.map { it.id }.indexOf(book.state)
+                if (index != -1 && index < stateValues.size) {
+                    stateValues[index]
+                } else {
+                    stateValues.firstOrNull() ?: ""
+                }
             }
         DropdownOutlinedTextField(
             currentValue = bookState,
@@ -472,9 +477,14 @@ private fun BookDetailContent(
         val formatValues = FORMATS.map { it.name }
         val bookFormat =
             if (book.format == null) {
-                formatValues.first()
+                formatValues.firstOrNull() ?: ""
             } else {
-                formatValues[FORMATS.map { it.id }.indexOf(book.format)]
+                val index = FORMATS.map { it.id }.indexOf(book.format)
+                if (index != -1 && index < formatValues.size) {
+                    formatValues[index]
+                } else {
+                    formatValues.firstOrNull() ?: ""
+                }
             }
         DropdownOutlinedTextField(
             currentValue = bookFormat,

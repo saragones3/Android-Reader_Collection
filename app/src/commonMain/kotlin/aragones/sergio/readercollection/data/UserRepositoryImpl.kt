@@ -27,6 +27,9 @@ class UserRepositoryImpl(
 ) : UserRepository {
 
     //region Public properties
+    override val usernameOrEmail: String
+        get() = userLocalDataSource.userData.email.ifBlank { userLocalDataSource.username }
+
     override val username: String
         get() = userLocalDataSource.username
 
@@ -98,7 +101,7 @@ class UserRepositoryImpl(
     override suspend fun updatePassword(password: String): Result<Unit> =
         withContext(ioDispatcher) {
             val userData = userLocalDataSource.userData
-            userRemoteDataSource.login(userData.username, userData.password).fold(
+            userRemoteDataSource.login(usernameOrEmail, userData.password).fold(
                 onSuccess = {
                     userRemoteDataSource.updatePassword(password).fold(onSuccess = {
                         userLocalDataSource.storePassword(password)
@@ -124,7 +127,7 @@ class UserRepositoryImpl(
 
     override suspend fun updateEmail(email: String): Result<Unit> = withContext(ioDispatcher) {
         val userData = userLocalDataSource.userData
-        userRemoteDataSource.login(userData.username, userData.password).fold(
+        userRemoteDataSource.login(usernameOrEmail, userData.password).fold(
             onSuccess = {
                 userRemoteDataSource.updateEmail(email).fold(onSuccess = {
                     val currentData = userLocalDataSource.userData
@@ -258,7 +261,7 @@ class UserRepositoryImpl(
 
     override suspend fun deleteUser(): Result<Unit> = withContext(ioDispatcher) {
         withTimeout(TIMEOUT) {
-            userRemoteDataSource.login(userData.username, userData.password).fold(
+            userRemoteDataSource.login(usernameOrEmail, userData.password).fold(
                 onSuccess = {
                     userRemoteDataSource.deleteUser(userId).fold(
                         onSuccess = {

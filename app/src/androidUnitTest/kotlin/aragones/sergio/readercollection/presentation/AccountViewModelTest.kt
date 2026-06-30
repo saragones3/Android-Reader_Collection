@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import reader_collection.app.generated.resources.Res
+import reader_collection.app.generated.resources.email_info
 import reader_collection.app.generated.resources.error_server
 import reader_collection.app.generated.resources.invalid_email
 import reader_collection.app.generated.resources.invalid_password
@@ -446,9 +447,9 @@ class AccountViewModelTest {
         viewModel.infoDialogMessageId.test {
             assertEquals(null, awaitItem())
 
-            viewModel.showInfoDialog(Res.string.username_info)
+            viewModel.showInfoDialog(Res.string.email_info)
 
-            assertEquals(Res.string.username_info, awaitItem())
+            assertEquals(Res.string.email_info, awaitItem())
         }
     }
 
@@ -456,10 +457,10 @@ class AccountViewModelTest {
     fun `GIVEN same dialog message shown WHEN showInfoDialog THEN do nothing`() = runTest {
         viewModel.infoDialogMessageId.test {
             assertEquals(null, awaitItem())
-            viewModel.showInfoDialog(Res.string.username_info)
-            assertEquals(Res.string.username_info, awaitItem())
+            viewModel.showInfoDialog(Res.string.email_info)
+            assertEquals(Res.string.email_info, awaitItem())
 
-            viewModel.showInfoDialog(Res.string.username_info)
+            viewModel.showInfoDialog(Res.string.email_info)
 
             expectNoEvents()
         }

@@ -9,6 +9,7 @@ import aragones.sergio.readercollection.data.local.model.UserData
 import aragones.sergio.readercollection.domain.model.User
 
 interface UserRepository {
+    val usernameOrEmail: String
     val username: String
     val userData: UserData
     val userId: String

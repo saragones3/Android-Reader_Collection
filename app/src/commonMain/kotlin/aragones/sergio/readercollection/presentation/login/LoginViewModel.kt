@@ -33,7 +33,9 @@ class LoginViewModel(
     //region Private properties
     val state: State<LoginUiState>
         field = mutableStateOf<LoginUiState>(
-            LoginUiState.empty().copy(username = userRepository.username),
+            LoginUiState.empty().copy(
+                username = userRepository.usernameOrEmail,
+            ),
         )
     val loginError: StateFlow<ErrorModel?>
         field = MutableStateFlow<ErrorModel?>(null)

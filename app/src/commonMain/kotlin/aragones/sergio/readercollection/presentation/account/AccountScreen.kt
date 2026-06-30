@@ -184,10 +184,7 @@ private fun ProfileInfo(
         labelText = stringResource(Res.string.username),
         onTextChanged = {},
         modifier = Modifier.fillMaxWidth(),
-        endIcon = rememberVectorPainter(Icons.Default.Info)
-            .withDescription(stringResource(Res.string.show_info)),
         enabled = false,
-        onEndIconClicked = onShowInfo,
     )
     Spacer(Modifier.height(8.dp))
     CustomOutlinedTextField(
@@ -198,6 +195,10 @@ private fun ProfileInfo(
             .fillMaxWidth()
             .padding(horizontal = 12.dp),
         errorText = emailError?.let { stringResource(it) },
+        endIcon = rememberVectorPainter(Icons.Default.Info)
+            .withDescription(stringResource(Res.string.show_info))
+            .takeIf { email.isBlank() },
+        onEndIconClicked = onShowInfo,
     )
     Spacer(Modifier.height(8.dp))
     CustomOutlinedTextField(

@@ -16,6 +16,8 @@ class UserRemoteDataSource(
     companion object {
         private const val MAIL_END = "@readercollection.app"
         const val EXISTENT_USER_MESSAGE = "The email address is already in use by another account."
+        const val EXISTENT_USER_MESSAGE_WEB =
+            "FirebaseError: Firebase: Error (auth/email-already-in-use)."
     }
     //endregion
 
@@ -37,7 +39,7 @@ class UserRemoteDataSource(
         val email = if (username.contains("@")) username else "${username}$MAIL_END"
         firebaseProvider.signUp(email, password)
     }.recoverCatching {
-        if (it.message == EXISTENT_USER_MESSAGE) {
+        if (it.message == EXISTENT_USER_MESSAGE || it.message == EXISTENT_USER_MESSAGE_WEB) {
             throw CustomExceptions.ExistentUser()
         } else {
             throw it
