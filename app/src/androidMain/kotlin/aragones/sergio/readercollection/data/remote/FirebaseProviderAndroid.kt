@@ -43,7 +43,8 @@ class FirebaseProviderAndroid(
     override fun getUser(): UserResponse? = auth.currentUser?.let {
         UserResponse(
             id = it.uid,
-            username = it.email ?: "",
+            username = it.displayName ?: "",
+            email = it.email ?: "",
         )
     }
 

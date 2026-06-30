@@ -42,7 +42,8 @@ class FirebaseProviderWeb : FirebaseProvider {
     override fun getUser(): UserResponse? = getCurrentUserJs()?.let {
         UserResponse(
             id = it.uid,
-            username = it.email ?: "",
+            username = it.displayName ?: "",
+            email = it.email ?: "",
         )
     }
 
@@ -275,6 +276,7 @@ class FirebaseProviderWeb : FirebaseProvider {
 external interface JsAuthUser : JsAny {
     val uid: String
     val email: String?
+    val displayName: String?
 }
 
 // Interoperabilidad directa

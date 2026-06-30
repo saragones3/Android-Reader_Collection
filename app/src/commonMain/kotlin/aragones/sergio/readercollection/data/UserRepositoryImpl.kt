@@ -68,10 +68,13 @@ class UserRepositoryImpl(
     override suspend fun login(username: String, password: String): Result<Unit> =
         withContext(ioDispatcher) {
             userRemoteDataSource.login(username, password).fold(
-                onSuccess = { uuid ->
-                    val email = if (username.contains("@")) username else ""
-                    val userData = UserData(username, email, password)
-                    val authData = AuthData(uuid)
+                onSuccess = { userResponse ->
+                    val userData = UserData(
+                        username = userResponse.username,
+                        email = userResponse.email,
+                        password = password,
+                    )
+                    val authData = AuthData(userResponse.id)
                     userLocalDataSource.storeLoginData(userData, authData)
                     Result.success(Unit)
                 },
@@ -107,8 +110,8 @@ class UserRepositoryImpl(
                         userLocalDataSource.storePassword(password)
                         val usernameOrEmail = userData.email.ifBlank { userData.username }
                         userRemoteDataSource.login(usernameOrEmail, password).fold(
-                            onSuccess = { uuid ->
-                                userLocalDataSource.storeCredentials(AuthData(uuid))
+                            onSuccess = { userResponse ->
+                                userLocalDataSource.storeCredentials(AuthData(userResponse.id))
                                 Result.success(Unit)
                             },
                             onFailure = {

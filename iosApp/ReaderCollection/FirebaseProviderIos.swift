@@ -40,7 +40,8 @@ class FirebaseProviderIos: FirebaseProvider {
         guard let user = auth.currentUser else { return nil }
         return UserResponse(
             id: user.uid,
-            username: user.email ?? "",
+            username: user.displayName ?? "",
+            email: user.email ?? "",
             status: RequestStatus.pendingFriend
         )
     }

@@ -17,6 +17,7 @@ import aragones.sergio.readercollection.data.local.model.AuthData
 import aragones.sergio.readercollection.data.local.model.UserData
 import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
+import aragones.sergio.readercollection.data.remote.model.UserResponse
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.ErrorModel
 import aragones.sergio.readercollection.presentation.account.AccountUiState
@@ -112,7 +113,8 @@ class AccountViewModelTest {
     fun `GIVEN new password and success response WHEN save THEN updates password`() = runTest {
         val newPassword = "123456"
         viewModel.profileDataChanged(testEmail, newPassword)
-        coEvery { userRemoteDataSource.login(any(), any()) } returns Result.success(testUserId)
+        val userResponse = UserResponse(id = testUserId, username = testUsername)
+        coEvery { userRemoteDataSource.login(any(), any()) } returns Result.success(userResponse)
         coEvery { userRemoteDataSource.updatePassword(any()) } returns Result.success(Unit)
         every { userLocalDataSource.storePassword(any()) } just Runs
         every { userLocalDataSource.storeCredentials(any()) } just Runs
@@ -145,7 +147,8 @@ class AccountViewModelTest {
     fun `GIVEN new email and success response WHEN save THEN updates email`() = runTest {
         val newEmail = "new@email.com"
         viewModel.profileDataChanged(newEmail, testPassword)
-        coEvery { userRemoteDataSource.login(any(), any()) } returns Result.success(testUserId)
+        val userResponse = UserResponse(id = testUserId, username = testUsername)
+        coEvery { userRemoteDataSource.login(any(), any()) } returns Result.success(userResponse)
         coEvery { userRemoteDataSource.updateEmail(any()) } returns Result.success(Unit)
         coEvery { userRemoteDataSource.updateDisplayName(any()) } returns Result.success(Unit)
         every { userLocalDataSource.storeLoginData(any(), any()) } just Runs
@@ -205,7 +208,8 @@ class AccountViewModelTest {
     fun `GIVEN new password and failure response WHEN save THEN show error`() = runTest {
         val newPassword = "123456"
         viewModel.profileDataChanged(testEmail, newPassword)
-        coEvery { userRemoteDataSource.login(any(), any()) } returns Result.success(testUserId)
+        val userResponse = UserResponse(id = testUserId, username = testUsername)
+        coEvery { userRemoteDataSource.login(any(), any()) } returns Result.success(userResponse)
         coEvery { userRemoteDataSource.updatePassword(any()) } returns Result.failure(Exception())
 
         viewModel.profileError.test {
@@ -307,7 +311,13 @@ class AccountViewModelTest {
     @Test
     fun `GIVEN success response WHEN deleteUser THEN all books are removed and logs out`() =
         runTest {
-            coEvery { userRemoteDataSource.login(any(), any()) } returns Result.success(testUserId)
+            val userResponse = UserResponse(id = testUserId, username = testUsername)
+            coEvery {
+                userRemoteDataSource.login(
+                    any(),
+                    any(),
+                )
+            } returns Result.success(userResponse)
             coEvery { userRemoteDataSource.deleteUser(any()) } returns Result.success(Unit)
             every { userLocalDataSource.logout() } just Runs
             every { userLocalDataSource.removeUserData() } just Runs
@@ -333,7 +343,13 @@ class AccountViewModelTest {
     @Test
     fun `GIVEN delete books failure response WHEN deleteUser THEN books are not removed and logs out`() =
         runTest {
-            coEvery { userRemoteDataSource.login(any(), any()) } returns Result.success(testUserId)
+            val userResponse = UserResponse(id = testUserId, username = testUsername)
+            coEvery {
+                userRemoteDataSource.login(
+                    any(),
+                    any(),
+                )
+            } returns Result.success(userResponse)
             coEvery { userRemoteDataSource.deleteUser(any()) } returns Result.success(Unit)
             every { userLocalDataSource.logout() } just Runs
             every { userLocalDataSource.removeUserData() } just Runs
@@ -357,7 +373,8 @@ class AccountViewModelTest {
 
     @Test
     fun `GIVEN delete user failure response WHEN deleteUser THEN show error`() = runTest {
-        coEvery { userRemoteDataSource.login(any(), any()) } returns Result.success(testUserId)
+        val userResponse = UserResponse(id = testUserId, username = testUsername)
+        coEvery { userRemoteDataSource.login(any(), any()) } returns Result.success(userResponse)
         coEvery { userRemoteDataSource.deleteUser(any()) } returns Result.failure(Exception())
 
         viewModel.profileError.test {
@@ -489,12 +506,13 @@ class AccountViewModelTest {
                 viewModel.profileError.test {
                     val profileError = this
                     assertEquals(null, awaitItem())
+                    val userResponse = UserResponse(id = testUserId, username = testUsername)
                     coEvery {
                         userRemoteDataSource.login(
                             any(),
                             any(),
                         )
-                    } returns Result.success(testUserId)
+                    } returns Result.success(userResponse)
                     coEvery {
                         userRemoteDataSource.deleteUser(
                             any(),

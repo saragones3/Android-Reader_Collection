@@ -18,6 +18,7 @@ import aragones.sergio.readercollection.data.local.model.UserData
 import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.data.remote.model.BookResponse
+import aragones.sergio.readercollection.data.remote.model.UserResponse
 import aragones.sergio.readercollection.domain.model.ErrorModel
 import aragones.sergio.readercollection.domain.toDomain
 import aragones.sergio.readercollection.presentation.login.LoginUiState
@@ -133,12 +134,13 @@ class LoginViewModelTest {
             val isActive = true
             val books = listOf(BookResponse("1"), BookResponse("2"))
             val domainBooks = books.map { it.toDomain() }
+            val userResponse = UserResponse(id = userId, username = testUsername)
             coEvery {
                 userRemoteDataSource.login(
                     testUsername,
                     password,
                 )
-            } returns Result.success(userId)
+            } returns Result.success(userResponse)
             every { userLocalDataSource.storeLoginData(userData, authData) } just Runs
             coEvery {
                 userRemoteDataSource.isPublicProfileActive(testUsername)
@@ -185,12 +187,13 @@ class LoginViewModelTest {
             val books = listOf(BookResponse("1"), BookResponse("2"))
             val domainBooks = books.map { it.toDomain() }
             val exception = RuntimeException("Firestore error")
+            val userResponse = UserResponse(id = userId, username = testUsername)
             coEvery {
                 userRemoteDataSource.login(
                     testUsername,
                     password,
                 )
-            } returns Result.success(userId)
+            } returns Result.success(userResponse)
             every { userLocalDataSource.storeLoginData(userData, authData) } just Runs
             coEvery {
                 userRemoteDataSource.isPublicProfileActive(testUsername)

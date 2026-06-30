@@ -54,14 +54,19 @@ class UserRemoteDataSourceTest {
     fun `GIVEN success response WHEN login THEN return user id`() = runTest {
         val username = "testuser"
         val password = "password123"
-        val user = UserResponse(id = "testUid", username = "$username@readercollection.app")
+        val user =
+            UserResponse(
+                id = "testUid",
+                username = username,
+                email = "",
+            )
         coEvery { firebaseProvider.signIn(any(), any()) } returns mockk()
         coEvery { firebaseProvider.getUser() } returns user
 
         val result = dataSource.login(username, password)
 
         assertEquals(true, result.isSuccess)
-        assertEquals(user.id, result.getOrNull())
+        assertEquals(user, result.getOrNull())
         coVerify {
             firebaseProvider.signIn("$username@readercollection.app", password)
         }
@@ -71,18 +76,18 @@ class UserRemoteDataSourceTest {
 
     @Test
     fun `GIVEN success response and username as email WHEN login THEN return user id`() = runTest {
-        val username = "test@user.com"
+        val email = "test@user.com"
         val password = "password123"
-        val user = UserResponse(id = "testUid", username = username)
+        val user = UserResponse(id = "testUid", username = "testUser", email = email)
         coEvery { firebaseProvider.signIn(any(), any()) } returns mockk()
         coEvery { firebaseProvider.getUser() } returns user
 
-        val result = dataSource.login(username, password)
+        val result = dataSource.login(email, password)
 
         assertEquals(true, result.isSuccess)
-        assertEquals(user.id, result.getOrNull())
+        assertEquals(user, result.getOrNull())
         coVerify {
-            firebaseProvider.signIn(username, password)
+            firebaseProvider.signIn(email, password)
         }
         coVerify { firebaseProvider.getUser() }
         confirmVerified(firebaseProvider)
@@ -167,21 +172,23 @@ class UserRemoteDataSourceTest {
     }
 
     @Test
-    fun `GIVEN already registered failure response in web WHEN register THEN return failure`() = runTest {
-        val username = "testuser"
-        val password = "wrongpassword"
-        val exception = RuntimeException("FirebaseError: Firebase: Error (auth/email-already-in-use).")
-        coEvery { firebaseProvider.signUp(any(), any()) } throws exception
+    fun `GIVEN already registered failure response in web WHEN register THEN return failure`() =
+        runTest {
+            val username = "testuser"
+            val password = "wrongpassword"
+            val exception =
+                RuntimeException("FirebaseError: Firebase: Error (auth/email-already-in-use).")
+            coEvery { firebaseProvider.signUp(any(), any()) } throws exception
 
-        val result = dataSource.register(username, password)
+            val result = dataSource.register(username, password)
 
-        assertEquals(true, result.isFailure)
-        assertIs<CustomExceptions.ExistentUser>(result.exceptionOrNull())
-        coVerify {
-            firebaseProvider.signUp("$username@readercollection.app", password)
+            assertEquals(true, result.isFailure)
+            assertIs<CustomExceptions.ExistentUser>(result.exceptionOrNull())
+            coVerify {
+                firebaseProvider.signUp("$username@readercollection.app", password)
+            }
+            confirmVerified(firebaseProvider)
         }
-        confirmVerified(firebaseProvider)
-    }
 
     @Test
     fun `GIVEN failure response WHEN register THEN return failure`() = runTest {
@@ -342,7 +349,7 @@ class UserRemoteDataSourceTest {
     }
 
     @Test
-    fun `GIVEN success response and existent user WHEN get user THEN return user`() = runTest {
+    fun `GIVEN success response and existent username WHEN get user THEN return user`() = runTest {
         val user = UserResponse(
             id = "testFriendId",
             username = "testuser",
@@ -358,6 +365,29 @@ class UserRemoteDataSourceTest {
         coVerify(exactly = 1) {
             firebaseProvider.getUserFromDatabase(
                 "${user.username}@readercollection.app",
+                userId,
+            )
+        }
+        confirmVerified(firebaseProvider)
+    }
+
+    @Test
+    fun `GIVEN success response and existent email WHEN get user THEN return user`() = runTest {
+        val user = UserResponse(
+            id = "testFriendId",
+            username = "user@test.com",
+            status = RequestStatus.PENDING_FRIEND,
+        )
+        val userId = "testUserId"
+        coEvery { firebaseProvider.getUserFromDatabase(any(), any()) } returns user
+
+        val result = dataSource.getUser(user.username, userId)
+
+        assertEquals(true, result.isSuccess)
+        assertEquals(user, result.getOrNull())
+        coVerify(exactly = 1) {
+            firebaseProvider.getUserFromDatabase(
+                "user@test.com",
                 userId,
             )
         }
@@ -402,8 +432,16 @@ class UserRemoteDataSourceTest {
     fun `GIVEN success response WHEN get friends THEN return list`() = runTest {
         val userId = "testUserId"
         val friends = listOf(
-            UserResponse("testFriendId1", "TestFriend1", RequestStatus.APPROVED),
-            UserResponse("testFriendId2", "TestFriend2", RequestStatus.PENDING_MINE),
+            UserResponse(
+                id = "testFriendId1",
+                username = "TestFriend1",
+                status = RequestStatus.APPROVED,
+            ),
+            UserResponse(
+                id = "testFriendId2",
+                username = "TestFriend2",
+                status = RequestStatus.PENDING_MINE,
+            ),
         )
         coEvery { firebaseProvider.getFriends(any()) } returns friends
 

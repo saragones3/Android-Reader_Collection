@@ -15,6 +15,7 @@ import aragones.sergio.readercollection.data.local.model.AuthData
 import aragones.sergio.readercollection.data.local.model.UserData
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.data.remote.model.CustomExceptions
+import aragones.sergio.readercollection.data.remote.model.UserResponse
 import aragones.sergio.readercollection.domain.model.ErrorModel
 import aragones.sergio.readercollection.presentation.login.model.LoginFormState
 import aragones.sergio.readercollection.presentation.register.RegisterViewModel
@@ -73,12 +74,13 @@ class RegisterViewModelTest {
                     password,
                 )
             } returns Result.success(Unit)
+            val userResponse = UserResponse(id = userId, username = testUsername)
             coEvery {
                 userRemoteDataSource.login(
                     testUsername,
                     password,
                 )
-            } returns Result.success(userId)
+            } returns Result.success(userResponse)
             every { userLocalDataSource.storeLoginData(userData, authData) } just Runs
 
             viewModel.registerSuccess.test {

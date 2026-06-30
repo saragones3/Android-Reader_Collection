@@ -27,10 +27,16 @@ class UserRemoteDataSource(
     //endregion
 
     //region Public methods
-    suspend fun login(username: String, password: String): Result<String> = runCatching {
+    suspend fun login(username: String, password: String): Result<UserResponse> = runCatching {
         val email = if (username.contains("@")) username else "${username}$MAIL_END"
         firebaseProvider.signIn(email, password)
-        firebaseProvider.getUser()?.id ?: throw NoSuchElementException()
+        val user = firebaseProvider.getUser()
+        user?.copy(
+            username = user.username.takeIf {
+                !user.email.contains(MAIL_END)
+            } ?: user.email.replace(MAIL_END, ""),
+            email = user.email.takeIf { !it.contains(MAIL_END) } ?: "",
+        ) ?: throw NoSuchElementException()
     }
 
     fun logout() = firebaseProvider.signOut()
@@ -72,7 +78,8 @@ class UserRemoteDataSource(
     }
 
     suspend fun getUser(username: String, userId: String): Result<UserResponse> = runCatching {
-        val user = firebaseProvider.getUserFromDatabase("${username}$MAIL_END", userId)
+        val email = username.takeIf { it.contains("@") } ?: "${username}$MAIL_END"
+        val user = firebaseProvider.getUserFromDatabase(email, userId)
         user ?: throw NoSuchElementException("User not found")
     }
 
