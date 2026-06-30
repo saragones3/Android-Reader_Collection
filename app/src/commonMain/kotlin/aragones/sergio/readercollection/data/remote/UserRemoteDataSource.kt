@@ -44,6 +44,8 @@ class UserRemoteDataSource(
     suspend fun register(username: String, password: String): Result<Unit> = runCatching {
         val email = if (username.contains("@")) username else "${username}$MAIL_END"
         firebaseProvider.signUp(email, password)
+        val displayName = email.split("@").first()
+        firebaseProvider.updateDisplayName(displayName)
     }.recoverCatching {
         if (it.message == EXISTENT_USER_MESSAGE || it.message == EXISTENT_USER_MESSAGE_WEB) {
             throw CustomExceptions.ExistentUser()

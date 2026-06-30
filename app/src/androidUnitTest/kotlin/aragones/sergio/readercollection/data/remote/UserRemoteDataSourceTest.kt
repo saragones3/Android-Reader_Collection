@@ -144,12 +144,14 @@ class UserRemoteDataSourceTest {
         val username = "testuser"
         val password = "password123"
         coEvery { firebaseProvider.signUp(any(), any()) } returns mockk()
+        coEvery { firebaseProvider.updateDisplayName(any()) } just Runs
 
         val result = dataSource.register(username, password)
 
         assertEquals(true, result.isSuccess)
         coVerify {
             firebaseProvider.signUp("$username@readercollection.app", password)
+            firebaseProvider.updateDisplayName(username)
         }
         confirmVerified(firebaseProvider)
     }
