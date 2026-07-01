@@ -10,11 +10,16 @@ import aragones.sergio.readercollection.data.remote.model.RequestStatus
 import aragones.sergio.readercollection.data.remote.model.UserResponse
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 
 class FirebaseProviderAndroid(
@@ -38,7 +43,8 @@ class FirebaseProviderAndroid(
     override fun getUser(): UserResponse? = auth.currentUser?.let {
         UserResponse(
             id = it.uid,
-            username = it.email ?: "",
+            username = it.displayName ?: "",
+            email = it.email ?: "",
         )
     }
 
@@ -53,6 +59,19 @@ class FirebaseProviderAndroid(
     override suspend fun updatePassword(password: String) {
         val user = auth.currentUser ?: throw RuntimeException("User is null")
         user.updatePassword(password).await()
+    }
+
+    override suspend fun updateEmail(email: String) {
+        val user = auth.currentUser ?: throw RuntimeException("User is null")
+        user.verifyBeforeUpdateEmail(email).await()
+    }
+
+    override suspend fun updateDisplayName(displayName: String) {
+        val user = auth.currentUser ?: throw RuntimeException("User is null")
+        val profileUpdates = userProfileChangeRequest {
+            this.displayName = displayName
+        }
+        user.updateProfile(profileUpdates).await()
     }
 
     override fun signOut() = auth.signOut()
@@ -242,13 +261,17 @@ class FirebaseProviderAndroid(
             .await()
     }
 
-    override suspend fun getBooks(userId: String): List<Pair<String, Map<String, Any?>>> = firestore
-        .collection(USERS_PATH)
-        .document(userId)
-        .collection(BOOKS_PATH)
-        .get()
-        .await()
-        .map { it.id to it.toMap() }
+    override fun getBooks(userId: String): Flow<List<Pair<String, Map<String, Any?>>>> = flow {
+        emit(
+            firestore
+                .collection(USERS_PATH)
+                .document(userId)
+                .collection(BOOKS_PATH)
+                .get()
+                .await()
+                .map { it.id to it.toMap() },
+        )
+    }
 
     override suspend fun getBook(userId: String, bookId: String): Map<String, Any?> = firestore
         .collection(USERS_PATH)
@@ -266,9 +289,10 @@ class FirebaseProviderAndroid(
         booksToRemove: List<BookResponse>,
     ) {
         val batch = firestore.batch()
-        val booksRef = firestore
+        val userRef = firestore
             .collection(USERS_PATH)
             .document(uuid)
+        val booksRef = userRef
             .collection(BOOKS_PATH)
 
         booksToSave.forEach { book ->
@@ -284,20 +308,24 @@ class FirebaseProviderAndroid(
             batch.delete(docRef)
         }
 
+        batch.set(userRef, mapOf("lastUpdated" to FieldValue.serverTimestamp()), SetOptions.merge())
+
         batch.commit().await()
     }
 
     override suspend fun deleteBooks(userId: String) {
         val batch = firestore.batch()
-        val books = firestore
+        val userRef = firestore
             .collection(USERS_PATH)
             .document(userId)
+        val books = userRef
             .collection(BOOKS_PATH)
             .get()
             .await()
         books.documents.forEach {
             batch.delete(it.reference)
         }
+        batch.set(userRef, mapOf("lastUpdated" to FieldValue.serverTimestamp()), SetOptions.merge())
         batch.commit().await()
     }
 

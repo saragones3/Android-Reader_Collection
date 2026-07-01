@@ -12,6 +12,7 @@ import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import aragones.sergio.readercollection.data.BooksRepositoryImpl
 import aragones.sergio.readercollection.data.UserRepositoryImpl
+import aragones.sergio.readercollection.data.local.BooksLocalDataSource
 import aragones.sergio.readercollection.data.local.UserLocalDataSource
 import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
@@ -22,13 +23,10 @@ import aragones.sergio.readercollection.data.remote.model.GenreResponse
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.Books
 import aragones.sergio.readercollection.domain.model.ErrorModel
-import aragones.sergio.readercollection.domain.toDomain
-import aragones.sergio.readercollection.domain.toLocalData
 import aragones.sergio.readercollection.presentation.booklist.BookListUiState
 import aragones.sergio.readercollection.presentation.booklist.BookListViewModel
 import aragones.sergio.readercollection.presentation.components.UiSortingPickerState
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
-import com.aragones.sergio.BooksLocalDataSource
 import com.aragones.sergio.util.BookState
 import com.aragones.sergio.util.Constants
 import io.mockk.Runs
@@ -42,7 +40,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import org.junit.Rule
@@ -69,7 +66,8 @@ class BookListViewModelTest {
         this["query"] = ""
     }
     private val booksLocalDataSource: BooksLocalDataSource = mockk {
-        every { getAllBooks() } returns booksFlow.map { it.map { book -> book.toLocalData() } }
+        every { retrieveRemoteConfigValues() } just Runs
+        every { getAllBooks() } returns booksFlow
     }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()
     private val userLocalDataSource: UserLocalDataSource = mockk {
@@ -452,10 +450,7 @@ class BookListViewModelTest {
                 )
 
                 viewModel.setPriorityFor(listOf(updatedBook1, updatedBook2, book3))
-                booksFlow.emit(
-                    listOf(updatedBook1, updatedBook2, book3)
-                        .map { it.toLocalData().toDomain() },
-                )
+                booksFlow.emit(listOf(updatedBook1, updatedBook2, book3))
 
                 assertEquals(
                     BookListUiState(
@@ -471,9 +466,9 @@ class BookListViewModelTest {
             coVerify {
                 booksLocalDataSource.updateBooks(
                     listOf(
-                        updatedBook1.toLocalData(),
-                        updatedBook2.toLocalData(),
-                        book3.toLocalData(),
+                        updatedBook1,
+                        updatedBook2,
+                        book3,
                     ),
                 )
             }
@@ -533,15 +528,7 @@ class BookListViewModelTest {
             }
         }
         verify { booksLocalDataSource.getAllBooks() }
-        coVerify {
-            booksLocalDataSource.updateBooks(
-                listOf(
-                    book1.toLocalData(),
-                    book2.toLocalData(),
-                    book3.toLocalData(),
-                ),
-            )
-        }
+        coVerify { booksLocalDataSource.updateBooks(listOf(book1, book2, book3)) }
     }
 
     @Test

@@ -5,12 +5,17 @@
 
 package aragones.sergio.readercollection.data.remote.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class UserResponse(
     override val id: String = "",
     val username: String = "",
+    val email: String = "",
     val status: RequestStatus = RequestStatus.PENDING_FRIEND,
 ) : BaseModel<String>
 
+@Serializable
 enum class RequestStatus {
     PENDING_MINE,
     PENDING_FRIEND,

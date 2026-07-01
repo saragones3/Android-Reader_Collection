@@ -62,27 +62,23 @@ class BookListViewModel(
             }
             return subtitle.dropLast(1)
         }
-    private var _state: MutableStateFlow<BookListUiState> =
-        MutableStateFlow(BookListUiState.initial())
-    private var _sortingPickerState: MutableStateFlow<UiSortingPickerState> = MutableStateFlow(
-        UiSortingPickerState(
-            show = false,
-            sortParam = params.sortParam,
-            isSortDescending = params.isSortDescending,
-        ),
-    )
-    private val _booksError = MutableStateFlow<ErrorModel?>(null)
-    //endregion
-
-    //region Public properties
-    val state: StateFlow<BookListUiState> = _state
-    val sortingPickerState: StateFlow<UiSortingPickerState> = _sortingPickerState
-    val booksError: StateFlow<ErrorModel?> = _booksError
+    val state: StateFlow<BookListUiState>
+        field = MutableStateFlow<BookListUiState>(BookListUiState.initial())
+    val sortingPickerState: StateFlow<UiSortingPickerState>
+        field = MutableStateFlow<UiSortingPickerState>(
+            UiSortingPickerState(
+                show = false,
+                sortParam = params.sortParam,
+                isSortDescending = params.isSortDescending,
+            ),
+        )
+    val booksError: StateFlow<ErrorModel?>
+        field = MutableStateFlow<ErrorModel?>(null)
     //endregion
 
     //region Public methods
     fun fetchBooks() {
-        _state.update {
+        state.update {
             it.copy(
                 isLoading = true,
                 subtitle = subtitle,
@@ -91,12 +87,12 @@ class BookListViewModel(
 
         combine(
             booksRepository.getBooks(),
-            _sortingPickerState,
+            sortingPickerState,
         ) { books, _ ->
             if (books.isEmpty()) {
                 showError()
             } else {
-                _state.update {
+                state.update {
                     it.copy(
                         isLoading = false,
                         books = Books(getFilteredBooksFor(books)),
@@ -108,14 +104,14 @@ class BookListViewModel(
     }
 
     fun switchDraggingState() {
-        _state.update { it.copy(isDraggingEnabled = it.isDraggingEnabled.not()) }
+        state.update { it.copy(isDraggingEnabled = it.isDraggingEnabled.not()) }
     }
 
     fun updateBookOrdering(books: List<Book>) {
         for ((index, book) in books.withIndex()) {
             book.priority = index
         }
-        _state.update { it.copy(books = Books(getFilteredBooksFor(books))) }
+        state.update { it.copy(books = Books(getFilteredBooksFor(books))) }
     }
 
     fun setPriorityFor(books: List<Book>) = viewModelScope.launch {
@@ -130,11 +126,11 @@ class BookListViewModel(
     }
 
     fun showSortingPickerState() {
-        _sortingPickerState.update { it.copy(show = true) }
+        sortingPickerState.update { it.copy(show = true) }
     }
 
     fun updatePickerState(newSortParam: String?, newIsSortDescending: Boolean) {
-        _sortingPickerState.value = UiSortingPickerState(
+        sortingPickerState.value = UiSortingPickerState(
             show = false,
             sortParam = newSortParam,
             isSortDescending = newIsSortDescending,
@@ -176,7 +172,7 @@ class BookListViewModel(
         }
 
         val sortComparator = compareBy<Book> {
-            when (_sortingPickerState.value.sortParam) {
+            when (sortingPickerState.value.sortParam) {
                 "title" -> it.title
                 "publishedDate" -> it.publishedDate
                 "readingDate" -> it.readingDate
@@ -194,7 +190,7 @@ class BookListViewModel(
         return filteredBooks
             .sortedWith(comparator)
             .let {
-                if (_sortingPickerState.value.isSortDescending && !arePendingBooks) {
+                if (sortingPickerState.value.isSortDescending && !arePendingBooks) {
                     it.reversed()
                 } else {
                     it
@@ -205,13 +201,13 @@ class BookListViewModel(
     private fun showError(
         error: ErrorModel = ErrorModel(Constants.EMPTY_VALUE, Res.string.error_database),
     ) {
-        _state.value = BookListUiState(
+        state.value = BookListUiState(
             isLoading = false,
             books = Books(),
             subtitle = subtitle,
             isDraggingEnabled = false,
         )
-        _booksError.value = error
+        booksError.value = error
     }
     //endregion
 }

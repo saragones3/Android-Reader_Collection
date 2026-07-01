@@ -31,7 +31,7 @@ class UserLocalDataSourceTest {
     @Test
     fun `GIVEN username in preferences WHEN get username THEN return value from preferences`() {
         val expectedUsername = "testUser"
-        every { preferences.userData } returns UserData(expectedUsername, "testPassword")
+        every { preferences.userData } returns UserData(expectedUsername, "", "testPassword")
 
         val result = dataSource.username
 
@@ -42,7 +42,7 @@ class UserLocalDataSourceTest {
 
     @Test
     fun `GIVEN userData in preferences WHEN get userData THEN return value from preferences`() {
-        val expectedUserData = UserData("testUser", "testPassword")
+        val expectedUserData = UserData("testUser", "", "testPassword")
         every { preferences.userData } returns expectedUserData
 
         val result = dataSource.userData
@@ -195,7 +195,7 @@ class UserLocalDataSourceTest {
 
     @Test
     fun `WHEN storeLoginData is called THEN preferences are invoked to save data`() {
-        val userData = UserData("testUser", "testPassword")
+        val userData = UserData("testUser", "", "testPassword")
         val authData = AuthData(uuid = "testUserId")
         every { preferences.userData = userData } just Runs
         every { preferences.credentials = authData } just Runs

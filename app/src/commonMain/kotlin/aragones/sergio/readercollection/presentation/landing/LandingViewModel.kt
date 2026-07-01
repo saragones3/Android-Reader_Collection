@@ -21,18 +21,15 @@ class LandingViewModel(
 ) : ViewModel() {
 
     //region Private properties
-    private val _isLogged = MutableStateFlow<Boolean?>(null)
-    //endregion
-
-    //region Public properties
     val language: String
         get() = userRepository.language
-    val isLogged: StateFlow<Boolean?> = _isLogged
+    val isLogged: StateFlow<Boolean?>
+        field = MutableStateFlow<Boolean?>(null)
     //endregion
 
     //region Public methods
     fun checkIsLoggedIn() {
-        _isLogged.value = userRepository.isLoggedIn
+        isLogged.value = userRepository.isLoggedIn
     }
 
     fun checkTheme() {

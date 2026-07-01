@@ -15,6 +15,7 @@ import aragones.sergio.readercollection.data.local.model.AuthData
 import aragones.sergio.readercollection.data.local.model.UserData
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.data.remote.model.CustomExceptions
+import aragones.sergio.readercollection.data.remote.model.UserResponse
 import aragones.sergio.readercollection.domain.model.ErrorModel
 import aragones.sergio.readercollection.presentation.login.model.LoginFormState
 import aragones.sergio.readercollection.presentation.register.RegisterViewModel
@@ -36,6 +37,7 @@ import org.junit.Rule
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.error_server
 import reader_collection.app.generated.resources.error_user_found
+import reader_collection.app.generated.resources.invalid_email
 import reader_collection.app.generated.resources.invalid_password
 import reader_collection.app.generated.resources.invalid_repeat_password
 import reader_collection.app.generated.resources.invalid_username
@@ -64,7 +66,7 @@ class RegisterViewModelTest {
         runTest {
             val password = "pass"
             val userId = "userId"
-            val userData = UserData(testUsername, password)
+            val userData = UserData(testUsername, "", password)
             val authData = AuthData(userId)
             coEvery {
                 userRemoteDataSource.register(
@@ -72,12 +74,13 @@ class RegisterViewModelTest {
                     password,
                 )
             } returns Result.success(Unit)
+            val userResponse = UserResponse(id = userId, username = testUsername)
             coEvery {
                 userRemoteDataSource.login(
                     testUsername,
                     password,
                 )
-            } returns Result.success(userId)
+            } returns Result.success(userResponse)
             every { userLocalDataSource.storeLoginData(userData, authData) } just Runs
 
             viewModel.registerSuccess.test {
@@ -135,7 +138,7 @@ class RegisterViewModelTest {
     @Test
     fun `GIVEN user already registered WHEN register THEN error is shown`() = runTest {
         val password = "pass"
-        val userData = UserData(testUsername, password)
+        val userData = UserData(testUsername, "", password)
         val authData = AuthData("")
         val exception = CustomExceptions.ExistentUser()
         coEvery {
@@ -168,7 +171,7 @@ class RegisterViewModelTest {
     fun `GIVEN valid username and passwords WHEN registerDataChanged THEN state updates with data valid true`() {
         assertEquals(
             LoginFormState(),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
 
         viewModel.registerDataChanged(
@@ -183,7 +186,30 @@ class RegisterViewModelTest {
                 passwordError = null,
                 isDataValid = true,
             ),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
+        )
+    }
+
+    @Test
+    fun `GIVEN valid email and password WHEN registerDataChanged THEN state updates with data valid true`() {
+        assertEquals(
+            LoginFormState(),
+            viewModel.state.value.formState,
+        )
+
+        viewModel.registerDataChanged(
+            username = "test@email.com",
+            password = "password",
+            confirmPassword = "password",
+        )
+
+        assertEquals(
+            LoginFormState(
+                usernameError = null,
+                passwordError = null,
+                isDataValid = true,
+            ),
+            viewModel.state.value.formState,
         )
     }
 
@@ -191,7 +217,7 @@ class RegisterViewModelTest {
     fun `GIVEN invalid username WHEN registerDataChanged THEN state updates with data valid false and username error`() {
         assertEquals(
             LoginFormState(),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
 
         viewModel.registerDataChanged(
@@ -206,7 +232,30 @@ class RegisterViewModelTest {
                 passwordError = null,
                 isDataValid = false,
             ),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
+        )
+    }
+
+    @Test
+    fun `GIVEN invalid email WHEN registerDataChanged THEN state updates with data valid false and username error`() {
+        assertEquals(
+            LoginFormState(),
+            viewModel.state.value.formState,
+        )
+
+        viewModel.registerDataChanged(
+            username = "email@",
+            password = "password",
+            confirmPassword = "password",
+        )
+
+        assertEquals(
+            LoginFormState(
+                usernameError = Res.string.invalid_email,
+                passwordError = null,
+                isDataValid = false,
+            ),
+            viewModel.state.value.formState,
         )
     }
 
@@ -214,7 +263,7 @@ class RegisterViewModelTest {
     fun `GIVEN invalid password WHEN registerDataChanged THEN state updates with data valid false and password error`() {
         assertEquals(
             LoginFormState(),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
 
         viewModel.registerDataChanged(
@@ -229,7 +278,7 @@ class RegisterViewModelTest {
                 passwordError = Res.string.invalid_password,
                 isDataValid = false,
             ),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
     }
 
@@ -237,7 +286,7 @@ class RegisterViewModelTest {
     fun `GIVEN mismatch passwords WHEN registerDataChanged THEN state updates with data valid false and password error`() {
         assertEquals(
             LoginFormState(),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
 
         viewModel.registerDataChanged(
@@ -252,7 +301,7 @@ class RegisterViewModelTest {
                 passwordError = Res.string.invalid_repeat_password,
                 isDataValid = false,
             ),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
     }
 
@@ -260,7 +309,7 @@ class RegisterViewModelTest {
     fun `GIVEN invalid username and mismatch passwords WHEN registerDataChanged THEN state updates with data valid false and username and password error`() {
         assertEquals(
             LoginFormState(),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
 
         viewModel.registerDataChanged(
@@ -275,7 +324,7 @@ class RegisterViewModelTest {
                 passwordError = Res.string.invalid_repeat_password,
                 isDataValid = false,
             ),
-            viewModel.uiState.value.formState,
+            viewModel.state.value.formState,
         )
     }
 

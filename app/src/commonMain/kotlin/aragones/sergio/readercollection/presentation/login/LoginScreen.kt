@@ -56,7 +56,7 @@ import reader_collection.app.generated.resources.not_account
 import reader_collection.app.generated.resources.password
 import reader_collection.app.generated.resources.show_password
 import reader_collection.app.generated.resources.sign_in
-import reader_collection.app.generated.resources.username
+import reader_collection.app.generated.resources.username_or_email
 
 @Composable
 fun LoginScreen(
@@ -84,7 +84,7 @@ fun LoginScreen(
         Spacer(Modifier.height(24.dp))
         CustomOutlinedTextField(
             text = state.username,
-            labelText = stringResource(Res.string.username),
+            labelText = stringResource(Res.string.username_or_email),
             onTextChanged = { newUsername ->
                 onLoginDataChange(newUsername, state.password)
             },

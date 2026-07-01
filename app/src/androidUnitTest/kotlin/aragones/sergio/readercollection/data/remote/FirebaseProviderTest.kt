@@ -21,9 +21,11 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import io.mockk.CapturingSlot
@@ -33,12 +35,17 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.slot
+import io.mockk.unmockkStatic
 import io.mockk.verify
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.time.ExperimentalTime
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
@@ -50,12 +57,27 @@ class FirebaseProviderTest {
     private val firestore: FirebaseFirestore = mockk()
     private val firebaseProvider = FirebaseProviderAndroid(auth, firestore, remoteConfig)
 
+    @BeforeTest
+    fun setup() {
+        mockkStatic(FieldValue::class)
+        mockkStatic(SetOptions::class)
+        every { FieldValue.serverTimestamp() } returns mockk()
+        every { SetOptions.merge() } returns mockk()
+    }
+
+    @AfterTest
+    fun tearDown() {
+        unmockkStatic(FieldValue::class)
+        unmockkStatic(SetOptions::class)
+    }
+
     @Test
     fun `GIVEN current user not null WHEN get user THEN return user`() {
-        val user = UserResponse("testUid", "testuser")
+        val user = UserResponse(id = "testUid", username = "testuser", email = "test@user.com")
         val firebaseUser: FirebaseUser = mockk()
         every { firebaseUser.uid } returns user.id
-        every { firebaseUser.email } returns user.username
+        every { firebaseUser.displayName } returns user.username
+        every { firebaseUser.email } returns user.email
         every { auth.currentUser } returns firebaseUser
 
         val result = firebaseProvider.getUser()
@@ -400,8 +422,16 @@ class FirebaseProviderTest {
         runTest {
             val userId = "testUserId"
             val friends = listOf(
-                UserResponse("testFriendId1", "TestFriend1", RequestStatus.APPROVED),
-                UserResponse("testFriendId2", "TestFriend2", RequestStatus.PENDING_MINE),
+                UserResponse(
+                    id = "testFriendId1",
+                    username = "TestFriend1",
+                    status = RequestStatus.APPROVED,
+                ),
+                UserResponse(
+                    id = "testFriendId2",
+                    username = "TestFriend2",
+                    status = RequestStatus.PENDING_MINE,
+                ),
             )
             givenGetFriendsSuccess(userId, friends)
 
@@ -695,7 +725,7 @@ class FirebaseProviderTest {
         val userId = "testUserId"
         givenGetBooksSuccess(userId)
 
-        val result = firebaseProvider.getBooks(userId)
+        val result = firebaseProvider.getBooks(userId).first()
 
         assertEquals(true, result.isEmpty())
         verify(exactly = 1) { firestore.collection("users") }
@@ -709,7 +739,7 @@ class FirebaseProviderTest {
         givenGetBooksFailure(userId, exception)
 
         try {
-            firebaseProvider.getBooks(userId)
+            firebaseProvider.getBooks(userId).first()
         } catch (e: Exception) {
             assertEquals(exception, e)
         }
@@ -762,6 +792,7 @@ class FirebaseProviderTest {
             verify(exactly = 1) { firestore.collection("users") }
             confirmVerified(firestore)
             verify(exactly = 2) { batch.set(any(), any()) }
+            verify(exactly = 1) { batch.set(any(), any(), any()) }
             verify(exactly = 1) { batch.delete(any()) }
             verify(exactly = 1) { batch.commit() }
             confirmVerified(batch)
@@ -782,6 +813,7 @@ class FirebaseProviderTest {
             verify(exactly = 1) { firestore.collection("users") }
             confirmVerified(firestore)
             verify(exactly = 0) { batch.set(any(), any()) }
+            verify(exactly = 1) { batch.set(any(), any(), any()) }
             verify(exactly = 0) { batch.delete(any()) }
             verify(exactly = 1) { batch.commit() }
             confirmVerified(batch)
@@ -805,6 +837,7 @@ class FirebaseProviderTest {
         verify(exactly = 1) { firestore.collection("users") }
         confirmVerified(firestore)
         verify(exactly = 2) { batch.set(any(), any()) }
+        verify(exactly = 1) { batch.set(any(), any(), any()) }
         verify(exactly = 1) { batch.delete(any()) }
         verify(exactly = 1) { batch.commit() }
         confirmVerified(batch)
@@ -823,6 +856,7 @@ class FirebaseProviderTest {
             verify(exactly = 1) { firestore.batch() }
             verify(exactly = 1) { firestore.collection("users") }
             verify(exactly = 2) { batch.delete(any()) }
+            verify(exactly = 1) { batch.set(any(), any(), any()) }
             verify(exactly = 1) { batch.commit() }
             confirmVerified(batch, firestore)
         }
@@ -839,6 +873,7 @@ class FirebaseProviderTest {
             verify(exactly = 1) { firestore.batch() }
             verify(exactly = 1) { firestore.collection("users") }
             verify(exactly = 0) { batch.delete(any()) }
+            verify(exactly = 1) { batch.set(any(), any(), any()) }
             verify(exactly = 1) { batch.commit() }
             confirmVerified(batch, firestore)
         }
@@ -859,6 +894,7 @@ class FirebaseProviderTest {
         verify(exactly = 1) { firestore.batch() }
         verify(exactly = 1) { firestore.collection("users") }
         verify(exactly = 2) { batch.delete(any()) }
+        verify(exactly = 1) { batch.set(any(), any(), any()) }
         verify(exactly = 1) { batch.commit() }
         confirmVerified(batch, firestore)
     }
@@ -1426,9 +1462,12 @@ class FirebaseProviderTest {
         batch: WriteBatch,
     ) {
         every { firestore.batch() } returns batch
-        val collectionReference = getBooks(userId)
-        givenSetBooksSuccess(booksToSave, collectionReference, batch)
-        givenDeleteBooksSuccess(booksToRemove, collectionReference, batch)
+        val userReference = getUser(userId)
+        val booksReference = mockk<CollectionReference>()
+        every { userReference.collection("books") } returns booksReference
+        givenSetBooksSuccess(booksToSave, booksReference, batch)
+        givenDeleteBooksSuccess(booksToRemove, booksReference, batch)
+        every { batch.set(userReference, any<Map<String, Any>>(), any()) } returns mockk()
         every { batch.commit() } returns Tasks.forResult(mockk<Void>())
     }
 
@@ -1440,10 +1479,13 @@ class FirebaseProviderTest {
         exception: Exception,
     ) {
         every { firestore.batch() } returns batch
-        val collectionReference = getBooks(userId)
-        givenSetBooksSuccess(booksToSave, collectionReference, batch)
-        givenDeleteBooksSuccess(booksToRemove, collectionReference, batch)
+        val userReference = getUser(userId)
+        val booksReference = mockk<CollectionReference>()
+        every { userReference.collection("books") } returns booksReference
+        givenSetBooksSuccess(booksToSave, booksReference, batch)
+        givenDeleteBooksSuccess(booksToRemove, booksReference, batch)
         val task = mockk<Task<Void>>()
+        every { batch.set(userReference, any<Map<String, Any>>(), any()) } returns mockk()
         every { batch.commit() } returns task
         every { task.isComplete } returns true
         every { task.isCanceled } returns false
@@ -1458,8 +1500,10 @@ class FirebaseProviderTest {
         every { firestore.batch() } returns batch
         val task = mockk<Task<QuerySnapshot>>()
         val querySnapshot = mockk<QuerySnapshot>(relaxed = true)
-        val collectionReference = getBooks(userId)
-        every { collectionReference.get() } returns task
+        val userReference = getUser(userId)
+        val booksReference = mockk<CollectionReference>()
+        every { userReference.collection("books") } returns booksReference
+        every { booksReference.get() } returns task
         every { task.isComplete } returns true
         every { task.isCanceled } returns false
         every { task.exception } returns null
@@ -1470,6 +1514,7 @@ class FirebaseProviderTest {
             every { book.reference } returns bookDocumentReference
             every { batch.delete(bookDocumentReference) } returns mockk()
         }
+        every { batch.set(userReference, any<Map<String, Any>>(), any()) } returns mockk()
         every { batch.commit() } returns Tasks.forResult(mockk<Void>())
     }
 
@@ -1482,8 +1527,10 @@ class FirebaseProviderTest {
         every { firestore.batch() } returns batch
         val task = mockk<Task<QuerySnapshot>>()
         val querySnapshot = mockk<QuerySnapshot>(relaxed = true)
-        val collectionReference = getBooks(userId)
-        every { collectionReference.get() } returns task
+        val userReference = getUser(userId)
+        val booksReference = mockk<CollectionReference>()
+        every { userReference.collection("books") } returns booksReference
+        every { booksReference.get() } returns task
         every { task.isComplete } returns true
         every { task.isCanceled } returns false
         every { task.exception } returns null
@@ -1495,6 +1542,7 @@ class FirebaseProviderTest {
             every { batch.delete(bookDocumentReference) } returns mockk()
         }
         val task2 = mockk<Task<Void>>()
+        every { batch.set(userReference, any<Map<String, Any>>(), any()) } returns mockk()
         every { batch.commit() } returns task2
         every { task2.isComplete } returns true
         every { task2.isCanceled } returns false

@@ -10,5 +10,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UserData(
     var username: String,
+    var email: String = "",
     var password: String,
 )

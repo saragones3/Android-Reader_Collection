@@ -23,28 +23,25 @@ class AddFriendsViewModel(
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
-    //region Private properties
-    private var _state: MutableStateFlow<AddFriendsUiState> = MutableStateFlow(
-        AddFriendsUiState.Success(
-            users = UsersUi(),
-            query = "",
-        ),
-    )
-    private val _error = MutableStateFlow<ErrorModel?>(null)
-    //endregion
-
-    //region Public properties
-    val state: StateFlow<AddFriendsUiState> = _state
-    val error: StateFlow<ErrorModel?> = _error
+    //region Properties
+    val state: StateFlow<AddFriendsUiState>
+        field = MutableStateFlow<AddFriendsUiState>(
+            AddFriendsUiState.Success(
+                users = UsersUi(),
+                query = "",
+            ),
+        )
+    val error: StateFlow<ErrorModel?>
+        field = MutableStateFlow<ErrorModel?>(null)
     //endregion
 
     //region Public methods
     fun searchUserWith(username: String) = viewModelScope.launch {
         if (username.isNotEmpty()) {
-            _state.value = AddFriendsUiState.Loading(username)
+            state.value = AddFriendsUiState.Loading(username)
             userRepository.getUserWith(username).fold(
                 onSuccess = { user ->
-                    _state.value = AddFriendsUiState.Success(
+                    state.value = AddFriendsUiState.Success(
                         users = UsersUi(listOf(user.toUi())),
                         query = username,
                     )
@@ -52,17 +49,17 @@ class AddFriendsViewModel(
                 onFailure = {
                     when (it) {
                         is NoSuchElementException -> {
-                            _state.value = AddFriendsUiState.Success(
+                            state.value = AddFriendsUiState.Success(
                                 users = UsersUi(),
                                 query = username,
                             )
                         }
                         else -> {
-                            _error.value = ErrorModel(
+                            error.value = ErrorModel(
                                 Constants.EMPTY_VALUE,
                                 Res.string.error_server,
                             )
-                            _state.value = AddFriendsUiState.Success(
+                            state.value = AddFriendsUiState.Success(
                                 users = UsersUi(),
                                 query = username,
                             )
@@ -71,7 +68,7 @@ class AddFriendsViewModel(
                 },
             )
         } else {
-            _state.value = AddFriendsUiState.Success(
+            state.value = AddFriendsUiState.Success(
                 users = UsersUi(),
                 query = username,
             )
@@ -79,10 +76,10 @@ class AddFriendsViewModel(
     }
 
     fun requestFriendship(friend: UserUi) = viewModelScope.launch {
-        when (val currentState = _state.value) {
+        when (val currentState = state.value) {
             is AddFriendsUiState.Loading -> {}
             is AddFriendsUiState.Success -> {
-                _state.value = currentState.copy(
+                state.value = currentState.copy(
                     users = UsersUi(
                         currentState.users.users.map {
                             if (it.id == friend.id) {
@@ -97,10 +94,10 @@ class AddFriendsViewModel(
         }
         userRepository.requestFriendship(friend.toDomain()).fold(
             onSuccess = {
-                when (val currentState = _state.value) {
+                when (val currentState = state.value) {
                     is AddFriendsUiState.Loading -> {}
                     is AddFriendsUiState.Success -> {
-                        _state.value = currentState.copy(
+                        state.value = currentState.copy(
                             users = UsersUi(
                                 currentState.users.users.map {
                                     if (it.id == friend.id) {
@@ -118,11 +115,11 @@ class AddFriendsViewModel(
                 }
             },
             onFailure = {
-                _error.value = ErrorModel(
+                error.value = ErrorModel(
                     Constants.EMPTY_VALUE,
                     Res.string.error_search,
                 )
-                _state.value = AddFriendsUiState.Success(
+                state.value = AddFriendsUiState.Success(
                     users = UsersUi(),
                     query = "",
                 )
@@ -131,7 +128,7 @@ class AddFriendsViewModel(
     }
 
     fun closeDialogs() {
-        _error.value = null
+        error.value = null
     }
     //endregion
 }

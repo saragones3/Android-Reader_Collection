@@ -1,10 +1,15 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
+import com.android.build.api.dsl.ApplicationExtension
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.compose.jetbrains)
+    alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.google.services)
     alias(libs.plugins.kotlin.multiplatform)
@@ -13,16 +18,18 @@ plugins {
 
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
-keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
 
 val appName = "aragones.sergio.readercollection"
 
 val versionMajor = 2
-val versionMinor = 8
-val versionPatch = 9
+val versionMinor = 9
+val versionPatch = 0
 val versionBuild = 0 // bump for dogfood builds, public betas, etc.
 
-android {
+extensions.configure<ApplicationExtension> {
 
     namespace = appName
     compileSdk = libs.versions.sdk.compile.get().toInt()
@@ -46,7 +53,14 @@ android {
         versionCode = versionMajor * 100000 + versionMinor * 1000 + versionPatch * 10 + versionBuild
         versionName = "$versionMajor.$versionMinor.$versionPatch"
 
-        buildConfigField("String", "API_KEY", keystoreProperties.getProperty("api.key"))
+        val apiKey = if(keystorePropertiesFile.exists()) {
+            keystoreProperties.getProperty("api.key")
+        } else {
+            """
+                "-"
+            """.trimIndent()
+        }
+        buildConfigField("String", "API_KEY", apiKey)
     }
     
     androidResources {
@@ -83,10 +97,25 @@ android {
 }
 
 kotlin {
+    applyHierarchyTemplate {
+        common {
+            group("mobile") {
+                withAndroidTarget()
+                group("ios") {
+                    withIosArm64()
+                    withIosSimulatorArm64()
+                }
+            }
+            group("web") {
+                withJs()
+                withWasmJs()
+            }
+        }
+    }
+
     androidTarget()
 
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -96,15 +125,26 @@ kotlin {
         }
     }
 
+    js {
+        browser()
+        binaries.executable()
+    }
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+        binaries.executable()
+    }
+
     jvmToolchain(libs.versions.jdk.get().toInt())
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
+        freeCompilerArgs.add("-Xexplicit-backing-fields")
     }
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
-                implementation(projects.core.database)
                 implementation(projects.core.util)
 
                 implementation(project.dependencies.platform(libs.firebase.bom))
@@ -120,12 +160,17 @@ kotlin {
                 implementation(libs.navigation.compose)
             }
         }
+        
+        getByName("mobileMain") {
+            dependencies {
+                implementation(projects.core.database)
+            }
+        }
 
-        val androidMain by getting {
+        androidMain {
             dependencies {
                 implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-                implementation(libs.android.chart)
                 implementation(libs.app.update.ktx)
                 implementation(libs.bundles.firebase)
                 implementation(libs.ktor.client.okhttp)
@@ -138,14 +183,36 @@ kotlin {
             }
         }
 
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
+        iosMain {
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
         }
 
-        val commonTest by getting {
+        webMain {
+            dependencies {
+                implementation(npm("firebase", "10.12.0"))
+            }
+            kotlin.srcDir(tasks.register("generateWebConfig") {
+                description = ""
+                val outputDir = layout.buildDirectory.dir("generated/webConfig")
+                outputs.dir(outputDir)
+                doLast {
+                    val configFile = outputDir.get().file("WebConfig.kt").asFile
+                    configFile.parentFile.mkdirs()
+                    configFile.writeText("""
+                        package aragones.sergio.readercollection.data.local
+                        
+                        internal const val WEB_APP_VERSION = "${"$versionMajor.$versionMinor.$versionPatch"}"
+                    """.trimIndent())
+                }
+            })
         }
 
-        val androidUnitTest by getting {
+        commonTest {
+        }
+
+        androidUnitTest {
             dependencies {
                 implementation(libs.coroutines.test)
                 implementation(libs.kotlinx.test.core)
@@ -156,7 +223,7 @@ kotlin {
             }
         }
 
-        val androidInstrumentedTest by getting {
+        androidInstrumentedTest {
             dependencies {
                 implementation(libs.androidx.test.ext.junit)
                 implementation(libs.kotlinx.test.core)

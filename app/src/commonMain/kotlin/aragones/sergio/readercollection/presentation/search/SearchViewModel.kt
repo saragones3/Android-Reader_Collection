@@ -26,11 +26,8 @@ class SearchViewModel(
     private var query = ""
     private var page: Int = 1
     private val books = mutableListOf<Book>()
-    private val _state: MutableStateFlow<SearchUiState> = MutableStateFlow(SearchUiState.Empty)
-    //endregion
-
-    //region Public properties
-    var state: StateFlow<SearchUiState> = _state
+    val state: StateFlow<SearchUiState>
+        field = MutableStateFlow<SearchUiState>(SearchUiState.Empty)
     //endregion
 
     //region Public methods
@@ -44,13 +41,13 @@ class SearchViewModel(
             this.query = query
         }
 
-        _state.update {
+        state.update {
             when (it) {
                 SearchUiState.Empty -> SearchUiState.Success(
                     isLoading = true,
                     query = this.query,
                     books = Books(),
-                    param = _state.value.param,
+                    param = state.value.param,
                 )
                 is SearchUiState.Success -> it.copy(isLoading = true)
                 is SearchUiState.Error -> it.copy(isLoading = true)
@@ -61,7 +58,7 @@ class SearchViewModel(
             booksRepository
                 .searchBooks(
                     query = this@SearchViewModel.query,
-                    filter = _state.value.param.key,
+                    filter = state.value.param.key,
                     page = page,
                     order = null,
                 ).fold(
@@ -76,19 +73,19 @@ class SearchViewModel(
                         val updatedBooks = mutableListOf<Book>().apply { addAll(books) }
 
                         page++
-                        _state.value = SearchUiState.Success(
+                        state.value = SearchUiState.Success(
                             isLoading = false,
                             query = this@SearchViewModel.query,
                             books = Books(updatedBooks),
-                            param = _state.value.param,
+                            param = state.value.param,
                         )
                     },
                     onFailure = {
-                        _state.value = SearchUiState.Error(
+                        state.value = SearchUiState.Error(
                             isLoading = false,
                             query = this@SearchViewModel.query,
                             value = ErrorModel("", Res.string.error_search),
-                            param = _state.value.param,
+                            param = state.value.param,
                         )
                     },
                 )
@@ -96,7 +93,7 @@ class SearchViewModel(
     }
 
     fun changeFilter(param: SearchParam) {
-        _state.update {
+        state.update {
             when (it) {
                 SearchUiState.Empty -> SearchUiState.Success(
                     isLoading = false,

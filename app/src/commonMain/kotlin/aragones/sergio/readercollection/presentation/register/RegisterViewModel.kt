@@ -5,7 +5,6 @@
 
 package aragones.sergio.readercollection.presentation.register
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -22,6 +21,7 @@ import org.jetbrains.compose.resources.StringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.error_server
 import reader_collection.app.generated.resources.error_user_found
+import reader_collection.app.generated.resources.invalid_email
 import reader_collection.app.generated.resources.invalid_password
 import reader_collection.app.generated.resources.invalid_repeat_password
 import reader_collection.app.generated.resources.invalid_username
@@ -31,28 +31,25 @@ class RegisterViewModel(
 ) : ViewModel() {
 
     //region Private properties
-    private var _uiState: MutableState<RegisterUiState> = mutableStateOf(RegisterUiState.empty())
-    private val _registerError = MutableStateFlow<ErrorModel?>(null)
-    private val _infoDialogMessageId = MutableStateFlow<StringResource?>(null)
-    private val _registerSuccess = MutableStateFlow(false)
-    //endregion
-
-    //region Public properties
-    val uiState: State<RegisterUiState> = _uiState
-    val registerError: StateFlow<ErrorModel?> = _registerError
-    val infoDialogMessageId: StateFlow<StringResource?> = _infoDialogMessageId
-    val registerSuccess: StateFlow<Boolean> = _registerSuccess
+    val state: State<RegisterUiState>
+        field = mutableStateOf<RegisterUiState>(RegisterUiState.empty())
+    val registerError: StateFlow<ErrorModel?>
+        field = MutableStateFlow<ErrorModel?>(null)
+    val infoDialogMessageId: StateFlow<StringResource?>
+        field = MutableStateFlow<StringResource?>(null)
+    val registerSuccess: StateFlow<Boolean>
+        field = MutableStateFlow<Boolean>(false)
     //endregion
 
     //region Public methods
     fun register(username: String, password: String) = viewModelScope.launch {
-        _uiState.value = _uiState.value.copy(isLoading = true)
+        state.value = state.value.copy(isLoading = true)
         userRepository.register(username, password).fold(
             onSuccess = {
                 userRepository.login(username, password).fold(
                     onSuccess = {
-                        _uiState.value = _uiState.value.copy(isLoading = false)
-                        _registerSuccess.value = true
+                        state.value = state.value.copy(isLoading = false)
+                        registerSuccess.value = true
                     },
                     onFailure = {
                         manageError(
@@ -87,7 +84,12 @@ class RegisterViewModel(
         var passwordError: StringResource? = null
         var isDataValid = true
 
-        if (!Constants.isUserNameValid(username)) {
+        if (username.contains("@")) {
+            if (!Constants.isEmailValid(username)) {
+                usernameError = Res.string.invalid_email
+                isDataValid = false
+            }
+        } else if (!Constants.isUserNameValid(username)) {
             usernameError = Res.string.invalid_username
             isDataValid = false
         }
@@ -100,7 +102,7 @@ class RegisterViewModel(
             isDataValid = false
         }
 
-        _uiState.value = _uiState.value.copy(
+        state.value = state.value.copy(
             username = username,
             password = password,
             confirmPassword = confirmPassword,
@@ -109,19 +111,19 @@ class RegisterViewModel(
     }
 
     fun showInfoDialog(textId: StringResource) {
-        _infoDialogMessageId.value = textId
+        infoDialogMessageId.value = textId
     }
 
     fun closeDialogs() {
-        _registerError.value = null
-        _infoDialogMessageId.value = null
+        registerError.value = null
+        infoDialogMessageId.value = null
     }
     //endregion
 
     //region Private methods
     private fun manageError(error: ErrorModel) {
-        _uiState.value = _uiState.value.copy(isLoading = false)
-        _registerError.value = error
+        state.value = state.value.copy(isLoading = false)
+        registerError.value = error
     }
     //endregion
 }

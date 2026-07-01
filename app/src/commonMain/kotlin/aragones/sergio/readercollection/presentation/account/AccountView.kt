@@ -15,9 +15,9 @@ import aragones.sergio.readercollection.presentation.theme.ReaderCollectionApp
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import reader_collection.app.generated.resources.Res
+import reader_collection.app.generated.resources.email_info
 import reader_collection.app.generated.resources.profile_delete_confirmation
 import reader_collection.app.generated.resources.public_profile_disable_confirmation
-import reader_collection.app.generated.resources.username_info
 
 @Composable
 fun AccountView(
@@ -40,7 +40,7 @@ fun AccountView(
         AccountScreen(
             state = state,
             onShowInfo = {
-                viewModel.showInfoDialog(Res.string.username_info)
+                viewModel.showInfoDialog(Res.string.email_info)
             },
             onProfileDataChange = viewModel::profileDataChanged,
             onBack = onBack,

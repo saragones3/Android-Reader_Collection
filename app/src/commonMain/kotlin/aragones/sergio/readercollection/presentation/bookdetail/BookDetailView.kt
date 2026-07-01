@@ -54,48 +54,48 @@ fun BookDetailView(onBack: () -> Unit, viewModel: BookDetailViewModel = koinView
                 viewModel.showImageDialog(Res.string.enter_valid_url)
             },
         )
-    }
 
-    ConfirmationAlertDialog(
-        textId = confirmationMessageId,
-        onCancel = {
-            viewModel.closeDialogs()
-        },
-        onAccept = {
-            viewModel.closeDialogs()
-            viewModel.deleteBook()
-        },
-    )
+        ConfirmationAlertDialog(
+            textId = confirmationMessageId,
+            onCancel = {
+                viewModel.closeDialogs()
+            },
+            onAccept = {
+                viewModel.closeDialogs()
+                viewModel.deleteBook()
+            },
+        )
 
-    val text = if (error != null) {
-        val errorText = StringBuilder()
-        if (requireNotNull(error).error.isNotEmpty()) {
-            errorText.append(requireNotNull(error).error)
+        val text = if (error != null) {
+            val errorText = StringBuilder()
+            if (requireNotNull(error).error.isNotEmpty()) {
+                errorText.append(requireNotNull(error).error)
+            } else {
+                errorText.append(stringResource(requireNotNull(error).errorKey))
+            }
+            errorText.toString()
+        } else if (infoDialogMessageId != null) {
+            stringResource(requireNotNull(infoDialogMessageId))
         } else {
-            errorText.append(stringResource(requireNotNull(error).errorKey))
+            ""
         }
-        errorText.toString()
-    } else if (infoDialogMessageId != null) {
-        stringResource(requireNotNull(infoDialogMessageId))
-    } else {
-        ""
-    }
-    InformationAlertDialog(show = text.isNotEmpty(), text = text) {
-        viewModel.closeDialogs()
-        if (error != null) onBack()
-    }
+        InformationAlertDialog(show = text.isNotEmpty(), text = text) {
+            viewModel.closeDialogs()
+            if (error != null) onBack()
+        }
 
-    TextFieldAlertDialog(
-        titleTextId = imageDialogMessageId,
-        type = KeyboardType.Uri,
-        onCancel = {
-            viewModel.closeDialogs()
-        },
-        onAccept = {
-            viewModel.closeDialogs()
-            if (it.isNotBlank()) viewModel.setBookImage(it)
-        },
-    )
+        TextFieldAlertDialog(
+            titleTextId = imageDialogMessageId,
+            type = KeyboardType.Uri,
+            onCancel = {
+                viewModel.closeDialogs()
+            },
+            onAccept = {
+                viewModel.closeDialogs()
+                if (it.isNotBlank()) viewModel.setBookImage(it)
+            },
+        )
+    }
 
     LaunchedEffectOnce {
         viewModel.onCreate()

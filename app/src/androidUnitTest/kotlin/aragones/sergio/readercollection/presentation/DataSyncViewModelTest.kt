@@ -11,17 +11,16 @@ package aragones.sergio.readercollection.presentation
 import app.cash.turbine.test
 import aragones.sergio.readercollection.data.BooksRepositoryImpl
 import aragones.sergio.readercollection.data.UserRepositoryImpl
+import aragones.sergio.readercollection.data.local.BooksLocalDataSource
 import aragones.sergio.readercollection.data.local.UserLocalDataSource
 import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.ErrorModel
-import aragones.sergio.readercollection.domain.toLocalData
 import aragones.sergio.readercollection.domain.toRemoteData
 import aragones.sergio.readercollection.presentation.datasync.DataSyncUiState
 import aragones.sergio.readercollection.presentation.datasync.DataSyncViewModel
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
-import com.aragones.sergio.BooksLocalDataSource
 import com.aragones.sergio.util.Constants
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -49,7 +48,9 @@ class DataSyncViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val testUserId = "userId"
-    private val booksLocalDataSource: BooksLocalDataSource = mockk()
+    private val booksLocalDataSource: BooksLocalDataSource = mockk {
+        every { retrieveRemoteConfigValues() } just Runs
+    }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()
     private val userLocalDataSource: UserLocalDataSource = mockk {
         every { isAutomaticSyncEnabled } returns false
@@ -98,9 +99,7 @@ class DataSyncViewModelTest {
                     outOfDateBook.toRemoteData(),
                 ),
             )
-            coEvery { booksLocalDataSource.getAllBooks() } returns flowOf(
-                listOf(newBook.toLocalData()),
-            )
+            coEvery { booksLocalDataSource.getAllBooks() } returns flowOf(listOf(newBook))
             coEvery {
                 booksRemoteDataSource.syncBooks(any(), any(), any())
             } returns Result.success(Unit)
@@ -131,9 +130,7 @@ class DataSyncViewModelTest {
         runTest {
             val newBook = Book("bookId")
             coEvery { booksRemoteDataSource.getBooks(any()) } returns Result.success(emptyList())
-            coEvery { booksLocalDataSource.getAllBooks() } returns flowOf(
-                listOf(newBook.toLocalData()),
-            )
+            coEvery { booksLocalDataSource.getAllBooks() } returns flowOf(listOf(newBook))
             coEvery {
                 booksRemoteDataSource.syncBooks(any(), any(), any())
             } returns Result.success(Unit)

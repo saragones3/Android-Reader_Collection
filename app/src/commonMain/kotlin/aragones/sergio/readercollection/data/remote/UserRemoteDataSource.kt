@@ -16,6 +16,8 @@ class UserRemoteDataSource(
     companion object {
         private const val MAIL_END = "@readercollection.app"
         const val EXISTENT_USER_MESSAGE = "The email address is already in use by another account."
+        const val EXISTENT_USER_MESSAGE_WEB =
+            "FirebaseError: Firebase: Error (auth/email-already-in-use)."
     }
     //endregion
 
@@ -25,17 +27,27 @@ class UserRemoteDataSource(
     //endregion
 
     //region Public methods
-    suspend fun login(username: String, password: String): Result<String> = runCatching {
-        firebaseProvider.signIn("${username}$MAIL_END", password)
-        firebaseProvider.getUser()?.id ?: throw NoSuchElementException()
+    suspend fun login(username: String, password: String): Result<UserResponse> = runCatching {
+        val email = if (username.contains("@")) username else "${username}$MAIL_END"
+        firebaseProvider.signIn(email, password)
+        val user = firebaseProvider.getUser()
+        user?.copy(
+            username = user.username.takeIf {
+                !user.email.contains(MAIL_END)
+            } ?: user.email.replace(MAIL_END, ""),
+            email = user.email.takeIf { !it.contains(MAIL_END) } ?: "",
+        ) ?: throw NoSuchElementException()
     }
 
     fun logout() = firebaseProvider.signOut()
 
     suspend fun register(username: String, password: String): Result<Unit> = runCatching {
-        firebaseProvider.signUp("${username}$MAIL_END", password)
+        val email = if (username.contains("@")) username else "${username}$MAIL_END"
+        firebaseProvider.signUp(email, password)
+        val displayName = email.split("@").first()
+        firebaseProvider.updateDisplayName(displayName)
     }.recoverCatching {
-        if (it.message == EXISTENT_USER_MESSAGE) {
+        if (it.message == EXISTENT_USER_MESSAGE || it.message == EXISTENT_USER_MESSAGE_WEB) {
             throw CustomExceptions.ExistentUser()
         } else {
             throw it
@@ -44,6 +56,14 @@ class UserRemoteDataSource(
 
     suspend fun updatePassword(password: String): Result<Unit> = runCatching {
         firebaseProvider.updatePassword(password)
+    }
+
+    suspend fun updateEmail(email: String): Result<Unit> = runCatching {
+        firebaseProvider.updateEmail(email)
+    }
+
+    suspend fun updateDisplayName(displayName: String): Result<Unit> = runCatching {
+        firebaseProvider.updateDisplayName(displayName)
     }
 
     suspend fun registerPublicProfile(username: String, userId: String): Result<Unit> =
@@ -60,7 +80,8 @@ class UserRemoteDataSource(
     }
 
     suspend fun getUser(username: String, userId: String): Result<UserResponse> = runCatching {
-        val user = firebaseProvider.getUserFromDatabase("${username}$MAIL_END", userId)
+        val email = username.takeIf { it.contains("@") } ?: "${username}$MAIL_END"
+        val user = firebaseProvider.getUserFromDatabase(email, userId)
         user ?: throw NoSuchElementException("User not found")
     }
 

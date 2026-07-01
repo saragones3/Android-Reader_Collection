@@ -40,7 +40,8 @@ class FirebaseProviderIos: FirebaseProvider {
         guard let user = auth.currentUser else { return nil }
         return UserResponse(
             id: user.uid,
-            username: user.email ?? "",
+            username: user.displayName ?? "",
+            email: user.email ?? "",
             status: RequestStatus.pendingFriend
         )
     }
@@ -62,6 +63,22 @@ class FirebaseProviderIos: FirebaseProvider {
             fatalError("User is null")
         }
         try await user.updatePassword(to: password)
+    }
+
+    func updateEmail(email: String) async throws {
+        guard let user = auth.currentUser else {
+            fatalError("User is null")
+        }
+        try await user.updateEmail(to: email)
+    }
+
+    func updateDisplayName(displayName: String) async throws {
+        guard let user = auth.currentUser else {
+            fatalError("User is null")
+        }
+        let changeRequest = user.createProfileChangeRequest()
+        changeRequest.displayName = displayName
+        try await changeRequest.commitChanges()
     }
     
     func signOut() {
@@ -250,20 +267,29 @@ class FirebaseProviderIos: FirebaseProvider {
     
     func deleteUserFromDatabase(userId: String) async throws {
         try await firestore
-            .collection(PUBLIC_PROFILES_PATH)
+            .collection(USERS_PATH)
             .document(userId)
             .delete()
     }
     
-    func getBooks(userId: String) async throws -> [KotlinPair<NSString, NSDictionary>] {
-        return try await firestore
-            .collection(USERS_PATH)
-            .document(userId).collection(BOOKS_PATH)
-            .getDocuments()
-            .documents
-            .map({
-                KotlinPair(first: $0.documentID as NSString, second: $0.toMap() as NSDictionary)
-            })
+    func getBooks(userId: String) -> Kotlinx_coroutines_coreFlow {
+        return FlowUtilsKt.createBooksFlow(fetcher: { [weak self] callback in
+            Task {
+                do {
+                    let books = try await self?.firestore
+                        .collection(USERS_PATH)
+                        .document(userId).collection(BOOKS_PATH)
+                        .getDocuments()
+                        .documents
+                        .map({
+                            KotlinPair(first: $0.documentID as NSString, second: $0.toMap() as NSDictionary)
+                        }) ?? []
+                    callback(books)
+                } catch {
+                    callback([])
+                }
+            }
+        })
     }
     
     func getBook(userId: String, bookId: String) async throws -> [String : Any] {
@@ -278,9 +304,10 @@ class FirebaseProviderIos: FirebaseProvider {
     
     func syncBooks(uuid: String, booksToSave: [BookResponse], booksToRemove: [BookResponse]) async throws {
         let batch = firestore.batch()
-        let booksRef = firestore
+        let userRef = firestore
             .collection(USERS_PATH)
             .document(uuid)
+        let booksRef = userRef
             .collection(BOOKS_PATH)
         
         booksToSave.forEach { book in
@@ -296,15 +323,18 @@ class FirebaseProviderIos: FirebaseProvider {
             batch.deleteDocument(docRef)
         }
         
+        batch.setData(["lastUpdated" : FieldValue.serverTimestamp()], forDocument: userRef, merge: true)
+        
         try await batch.commit()
     }
     
     
     func deleteBooks(userId: String) async throws {
         let batch = firestore.batch()
-        let books = try await firestore
+        let userRef = firestore
             .collection(USERS_PATH)
             .document(userId)
+        let books = try await userRef
             .collection(BOOKS_PATH)
             .getDocuments()
             .documents
@@ -312,6 +342,7 @@ class FirebaseProviderIos: FirebaseProvider {
         books.forEach({
             batch.deleteDocument($0)
         })
+        batch.setData(["lastUpdated" : FieldValue.serverTimestamp()], forDocument: userRef, merge: true)
         try await batch.commit()
     }
     

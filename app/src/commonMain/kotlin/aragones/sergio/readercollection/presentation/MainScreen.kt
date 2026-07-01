@@ -40,7 +40,7 @@ import aragones.sergio.readercollection.presentation.navigation.booksGraph
 import aragones.sergio.readercollection.presentation.navigation.settingsGraph
 import aragones.sergio.readercollection.presentation.navigation.statisticsGraph
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
-import aragones.sergio.readercollection.presentation.theme.roseBud
+import aragones.sergio.readercollection.presentation.theme.RoseBud
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
@@ -121,7 +121,7 @@ private fun BottomNavigationBar(
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.roseBud,
+                    selectedIconColor = RoseBud,
                     unselectedIconColor = MaterialTheme.colorScheme.secondary,
                 ),
             )

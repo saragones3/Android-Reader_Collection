@@ -5,7 +5,6 @@
 
 package aragones.sergio.readercollection.presentation.datasync
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -30,38 +29,35 @@ class DataSyncViewModel(
     //region Private properties
     private val userId: String
         get() = userRepository.userId
-    private var _state: MutableState<DataSyncUiState> = mutableStateOf(
-        DataSyncUiState.empty().copy(
-            isAutomaticSyncEnabled = userRepository.isAutomaticSyncEnabled,
-        ),
-    )
-    private val _error = MutableStateFlow<ErrorModel?>(null)
-    private val _infoDialogMessageId = MutableStateFlow<StringResource?>(null)
-    private val _confirmationDialogMessageId = MutableStateFlow<StringResource?>(null)
-    //endregion
-
-    //region Public properties
-    val state: State<DataSyncUiState> = _state
-    val error: StateFlow<ErrorModel?> = _error
-    val infoDialogMessageId: StateFlow<StringResource?> = _infoDialogMessageId
-    val confirmationDialogMessageId: StateFlow<StringResource?> = _confirmationDialogMessageId
+    val state: State<DataSyncUiState>
+        field = mutableStateOf<DataSyncUiState>(
+            DataSyncUiState.empty().copy(
+                isAutomaticSyncEnabled = userRepository.isAutomaticSyncEnabled,
+            ),
+        )
+    val error: StateFlow<ErrorModel?>
+        field = MutableStateFlow<ErrorModel?>(null)
+    val infoDialogMessageId: StateFlow<StringResource?>
+        field = MutableStateFlow<StringResource?>(null)
+    val confirmationDialogMessageId: StateFlow<StringResource?>
+        field = MutableStateFlow<StringResource?>(null)
     //endregion
 
     //region Public methods
     fun changeAutomaticSync(value: Boolean) {
         userRepository.storeAutomaticSync(value)
-        _state.value = _state.value.copy(isAutomaticSyncEnabled = value)
+        state.value = state.value.copy(isAutomaticSyncEnabled = value)
     }
     fun syncData() = viewModelScope.launch {
-        _state.value = _state.value.copy(isLoading = true)
+        state.value = state.value.copy(isLoading = true)
         booksRepository.syncBooks(userId).fold(
             onSuccess = {
-                _infoDialogMessageId.value = Res.string.data_sync_successfully
-                _state.value = _state.value.copy(isLoading = false)
+                infoDialogMessageId.value = Res.string.data_sync_successfully
+                state.value = state.value.copy(isLoading = false)
             },
             onFailure = {
-                _state.value = _state.value.copy(isLoading = false)
-                _error.value = ErrorModel(
+                state.value = state.value.copy(isLoading = false)
+                error.value = ErrorModel(
                     Constants.EMPTY_VALUE,
                     Res.string.error_server,
                 )
@@ -70,13 +66,13 @@ class DataSyncViewModel(
     }
 
     fun showConfirmationDialog(textId: StringResource) {
-        _confirmationDialogMessageId.value = textId
+        confirmationDialogMessageId.value = textId
     }
 
     fun closeDialogs() {
-        _infoDialogMessageId.value = null
-        _confirmationDialogMessageId.value = null
-        _error.value = null
+        infoDialogMessageId.value = null
+        confirmationDialogMessageId.value = null
+        error.value = null
     }
     //endregion
 }

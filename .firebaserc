@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "reader-collection-17944"
+  },
+  "targets": {
+    "reader-collection-17944": {
+      "hosting": {
+        "reader-app": [
+          "readercollection"
+        ]
+      }
+    }
+  }
+}

@@ -18,6 +18,9 @@ object Preferences {
     const val SORT_PARAM_PREFERENCE_NAME = "sortParam"
     const val THEME_MODE_PREFERENCE_NAME = "themeMode"
     const val SORT_ORDER_PREFERENCE_NAME = "sortOrder"
+    const val FORMATS_PREFERENCE_NAME = "formats"
+    const val GENRES_PREFERENCE_NAME = "genres"
+    const val STATES_PREFERENCE_NAME = "states"
 }
 
 object Constants {
@@ -27,6 +30,9 @@ object Constants {
     const val BOOKS_TO_SHOW = 7
 
     fun isUserNameValid(username: String): Boolean = username.matches(Regex("^[a-zA-Z0-9]+$"))
+
+    fun isEmailValid(email: String): Boolean =
+        email.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$"))
 
     fun isPasswordValid(password: String): Boolean = password.length > 5
 

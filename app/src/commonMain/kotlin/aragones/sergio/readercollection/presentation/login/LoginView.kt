@@ -18,7 +18,7 @@ fun LoginView(
     onGoToRegister: () -> Unit,
     viewModel: LoginViewModel = koinViewModel(),
 ) {
-    val state by viewModel.uiState
+    val state by viewModel.state
     val error by viewModel.loginError.collectAsState()
 
     val loginSuccess = viewModel.loginSuccess.collectAsState()

@@ -139,7 +139,7 @@ class SharedPreferencesHandlerTest {
 
     @Test
     fun `GIVEN userData in preferences WHEN get userData THEN return value from preferences`() {
-        val expectedUserData = UserData("testUser", "testPassword")
+        val expectedUserData = UserData("testUser", "testPassword", "")
         val jsonUserData = Json.encodeToString(expectedUserData)
         every {
             sharedPreferencesProvider.readString(Preferences.USER_DATA_PREFERENCES_NAME, true)
@@ -162,7 +162,7 @@ class SharedPreferencesHandlerTest {
 
         val result = preferences.userData
 
-        assertEquals(UserData("", ""), result)
+        assertEquals(UserData("", "", ""), result)
         verify(exactly = 1) {
             sharedPreferencesProvider.readString(Preferences.USER_DATA_PREFERENCES_NAME, true)
         }
@@ -171,7 +171,7 @@ class SharedPreferencesHandlerTest {
 
     @Test
     fun `GIVEN value WHEN set userData THEN save value in preferences`() {
-        val userData = UserData("testUser", "testPassword")
+        val userData = UserData("testUser", "testPassword", "")
         val jsonUserData = Json.encodeToString(userData)
         every {
             sharedPreferencesProvider.writeString(
@@ -404,9 +404,9 @@ class SharedPreferencesHandlerTest {
 
     @Test
     fun `WHEN storePassword is called THEN update userData with new password`() {
-        val oldUserData = UserData("testUser", "oldPassword")
+        val oldUserData = UserData("testUser", "email", "oldPassword")
         val newPassword = "newPassword"
-        val expectedUserData = UserData("testUser", "newPassword")
+        val expectedUserData = UserData("testUser", "email", "newPassword")
         val jsonOldUserData = Json.encodeToString(oldUserData)
         val jsonNewUserData = Json.encodeToString(expectedUserData)
 
@@ -438,8 +438,8 @@ class SharedPreferencesHandlerTest {
 
     @Test
     fun `WHEN removePassword is called THEN update userData with empty password`() {
-        val oldUserData = UserData("testUser", "oldPassword")
-        val expectedUserData = UserData("testUser", "")
+        val oldUserData = UserData("testUser", "email", "oldPassword")
+        val expectedUserData = UserData("testUser", "email", "")
         val jsonOldUserData = Json.encodeToString(oldUserData)
         val jsonNewUserData = Json.encodeToString(expectedUserData)
 

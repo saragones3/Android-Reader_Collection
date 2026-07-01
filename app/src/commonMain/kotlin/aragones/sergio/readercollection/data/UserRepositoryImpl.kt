@@ -15,6 +15,7 @@ import aragones.sergio.readercollection.domain.UserRepository
 import aragones.sergio.readercollection.domain.model.User
 import aragones.sergio.readercollection.domain.toDomain
 import aragones.sergio.readercollection.domain.toRemoteData
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -26,6 +27,9 @@ class UserRepositoryImpl(
 ) : UserRepository {
 
     //region Public properties
+    override val usernameOrEmail: String
+        get() = userLocalDataSource.userData.email.ifBlank { userLocalDataSource.username }
+
     override val username: String
         get() = userLocalDataSource.username
 
@@ -64,9 +68,13 @@ class UserRepositoryImpl(
     override suspend fun login(username: String, password: String): Result<Unit> =
         withContext(ioDispatcher) {
             userRemoteDataSource.login(username, password).fold(
-                onSuccess = { uuid ->
-                    val userData = UserData(username, password)
-                    val authData = AuthData(uuid)
+                onSuccess = { userResponse ->
+                    val userData = UserData(
+                        username = userResponse.username,
+                        email = userResponse.email,
+                        password = password,
+                    )
+                    val authData = AuthData(userResponse.id)
                     userLocalDataSource.storeLoginData(userData, authData)
                     Result.success(Unit)
                 },
@@ -96,13 +104,14 @@ class UserRepositoryImpl(
     override suspend fun updatePassword(password: String): Result<Unit> =
         withContext(ioDispatcher) {
             val userData = userLocalDataSource.userData
-            userRemoteDataSource.login(userData.username, userData.password).fold(
+            userRemoteDataSource.login(usernameOrEmail, userData.password).fold(
                 onSuccess = {
                     userRemoteDataSource.updatePassword(password).fold(onSuccess = {
                         userLocalDataSource.storePassword(password)
-                        userRemoteDataSource.login(userData.username, password).fold(
-                            onSuccess = { uuid ->
-                                userLocalDataSource.storeCredentials(AuthData(uuid))
+                        val usernameOrEmail = userData.email.ifBlank { userData.username }
+                        userRemoteDataSource.login(usernameOrEmail, password).fold(
+                            onSuccess = { userResponse ->
+                                userLocalDataSource.storeCredentials(AuthData(userResponse.id))
                                 Result.success(Unit)
                             },
                             onFailure = {
@@ -117,6 +126,30 @@ class UserRepositoryImpl(
                     Result.failure(it)
                 },
             )
+        }
+
+    override suspend fun updateEmail(email: String): Result<Unit> = withContext(ioDispatcher) {
+        val userData = userLocalDataSource.userData
+        userRemoteDataSource.login(usernameOrEmail, userData.password).fold(
+            onSuccess = {
+                userRemoteDataSource.updateEmail(email).fold(onSuccess = {
+                    val currentData = userLocalDataSource.userData
+                    currentData.email = email
+                    userLocalDataSource.storeLoginData(currentData, AuthData(userId))
+                    Result.success(Unit)
+                }, onFailure = {
+                    Result.failure(it)
+                })
+            },
+            onFailure = {
+                Result.failure(it)
+            },
+        )
+    }
+
+    override suspend fun updateDisplayName(displayName: String): Result<Unit> =
+        withContext(ioDispatcher) {
+            userRemoteDataSource.updateDisplayName(displayName)
         }
 
     override suspend fun setPublicProfile(value: Boolean): Result<Unit> =
@@ -231,7 +264,7 @@ class UserRepositoryImpl(
 
     override suspend fun deleteUser(): Result<Unit> = withContext(ioDispatcher) {
         withTimeout(TIMEOUT) {
-            userRemoteDataSource.login(userData.username, userData.password).fold(
+            userRemoteDataSource.login(usernameOrEmail, userData.password).fold(
                 onSuccess = {
                     userRemoteDataSource.deleteUser(userId).fold(
                         onSuccess = {
@@ -285,4 +318,4 @@ class UserRepositoryImpl(
     //endregion
 }
 
-private const val TIMEOUT = 10_000L
+private val TIMEOUT = 10.seconds

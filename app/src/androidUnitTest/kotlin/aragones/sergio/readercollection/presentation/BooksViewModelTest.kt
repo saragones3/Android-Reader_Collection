@@ -11,19 +11,17 @@ package aragones.sergio.readercollection.presentation
 import app.cash.turbine.test
 import aragones.sergio.readercollection.data.BooksRepositoryImpl
 import aragones.sergio.readercollection.data.UserRepositoryImpl
+import aragones.sergio.readercollection.data.local.BooksLocalDataSource
 import aragones.sergio.readercollection.data.local.UserLocalDataSource
 import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.Books
 import aragones.sergio.readercollection.domain.model.ErrorModel
-import aragones.sergio.readercollection.domain.toDomain
-import aragones.sergio.readercollection.domain.toLocalData
 import aragones.sergio.readercollection.presentation.books.BooksUiState
 import aragones.sergio.readercollection.presentation.books.BooksViewModel
 import aragones.sergio.readercollection.presentation.components.UiSortingPickerState
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
-import com.aragones.sergio.BooksLocalDataSource
 import com.aragones.sergio.util.BookState
 import com.aragones.sergio.util.Constants
 import com.aragones.sergio.util.extensions.currentLocalDate
@@ -38,7 +36,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import reader_collection.app.generated.resources.Res
@@ -53,7 +50,8 @@ class BooksViewModelTest {
     private val testSortParam = null
     private val testIsSortDescending = false
     private val booksLocalDataSource: BooksLocalDataSource = mockk {
-        every { getAllBooks() } returns booksFlow.map { it.map { book -> book.toLocalData() } }
+        every { retrieveRemoteConfigValues() } just Runs
+        every { getAllBooks() } returns booksFlow
     }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()
     private val userLocalDataSource: UserLocalDataSource = mockk {
@@ -512,9 +510,7 @@ class BooksViewModelTest {
                         book1.copy(priority = 1),
                         book2.copy(priority = 0),
                         book3,
-                    ).map {
-                        it.toLocalData().toDomain()
-                    },
+                    ),
                 )
 
                 assertEquals(
@@ -540,9 +536,9 @@ class BooksViewModelTest {
             coVerify {
                 booksLocalDataSource.updateBooks(
                     listOf(
-                        book1.copy(priority = 1).toLocalData(),
-                        book2.copy(priority = 0).toLocalData(),
-                        book3.toLocalData(),
+                        book1.copy(priority = 1),
+                        book2.copy(priority = 0),
+                        book3,
                     ),
                 )
             }
@@ -582,12 +578,7 @@ class BooksViewModelTest {
             }
             verify { booksLocalDataSource.getAllBooks() }
             coVerify(exactly = 0) {
-                booksLocalDataSource.updateBooks(
-                    listOf(
-                        book1.toLocalData(),
-                        book2.toLocalData(),
-                    ),
-                )
+                booksLocalDataSource.updateBooks(listOf(book1, book2))
             }
         }
 
@@ -624,12 +615,7 @@ class BooksViewModelTest {
         }
         verify { booksLocalDataSource.getAllBooks() }
         coVerify(exactly = 0) {
-            booksLocalDataSource.updateBooks(
-                listOf(
-                    book1.toLocalData(),
-                    book2.toLocalData(),
-                ),
-            )
+            booksLocalDataSource.updateBooks(listOf(book1, book2))
         }
     }
 
@@ -696,9 +682,9 @@ class BooksViewModelTest {
         coVerify {
             booksLocalDataSource.updateBooks(
                 listOf(
-                    book1.copy(priority = 1).toLocalData(),
-                    book2.copy(priority = 0).toLocalData(),
-                    book3.toLocalData(),
+                    book1.copy(priority = 1),
+                    book2.copy(priority = 0),
+                    book3,
                 ),
             )
         }
@@ -734,7 +720,7 @@ class BooksViewModelTest {
             )
 
             viewModel.setBook(modifiedBook)
-            booksFlow.emit(listOf(book1, book2, modifiedBook).map { it.toLocalData().toDomain() })
+            booksFlow.emit(listOf(book1, book2, modifiedBook))
 
             assertEquals(
                 BooksUiState.Success(
@@ -754,7 +740,7 @@ class BooksViewModelTest {
             )
         }
         verify { booksLocalDataSource.getAllBooks() }
-        coVerify { booksLocalDataSource.updateBooks(listOf(modifiedBook.toLocalData())) }
+        coVerify { booksLocalDataSource.updateBooks(listOf(modifiedBook)) }
     }
 
     @Test
@@ -792,7 +778,7 @@ class BooksViewModelTest {
 
                 viewModel.setBook(modifiedBook)
                 booksFlow.emit(
-                    listOf(book1, book2, modifiedReadBook).map { it.toLocalData().toDomain() },
+                    listOf(book1, book2, modifiedReadBook),
                 )
 
                 assertEquals(
@@ -813,7 +799,7 @@ class BooksViewModelTest {
                 )
             }
             verify { booksLocalDataSource.getAllBooks() }
-            coVerify { booksLocalDataSource.updateBooks(listOf(modifiedReadBook.toLocalData())) }
+            coVerify { booksLocalDataSource.updateBooks(listOf(modifiedReadBook)) }
         }
 
     @Test
@@ -849,7 +835,7 @@ class BooksViewModelTest {
 
                 viewModel.setBook(modifiedBook)
                 booksFlow.emit(
-                    listOf(book1, book2, modifiedPendingBook).map { it.toLocalData().toDomain() },
+                    listOf(book1, book2, modifiedPendingBook),
                 )
 
                 assertEquals(
@@ -870,7 +856,7 @@ class BooksViewModelTest {
                 )
             }
             verify { booksLocalDataSource.getAllBooks() }
-            coVerify { booksLocalDataSource.updateBooks(listOf(modifiedPendingBook.toLocalData())) }
+            coVerify { booksLocalDataSource.updateBooks(listOf(modifiedPendingBook)) }
         }
 
     @Test
@@ -906,7 +892,7 @@ class BooksViewModelTest {
 
                 viewModel.setBook(modifiedBook)
                 booksFlow.emit(
-                    listOf(book1, book2, modifiedPendingBook).map { it.toLocalData().toDomain() },
+                    listOf(book1, book2, modifiedPendingBook),
                 )
 
                 assertEquals(
@@ -927,7 +913,7 @@ class BooksViewModelTest {
                 )
             }
             verify { booksLocalDataSource.getAllBooks() }
-            coVerify { booksLocalDataSource.updateBooks(listOf(modifiedPendingBook.toLocalData())) }
+            coVerify { booksLocalDataSource.updateBooks(listOf(modifiedPendingBook)) }
         }
 
     @Test
@@ -991,6 +977,6 @@ class BooksViewModelTest {
             }
         }
         verify { booksLocalDataSource.getAllBooks() }
-        coVerify { booksLocalDataSource.updateBooks(listOf(modifiedBook.toLocalData())) }
+        coVerify { booksLocalDataSource.updateBooks(listOf(modifiedBook)) }
     }
 }

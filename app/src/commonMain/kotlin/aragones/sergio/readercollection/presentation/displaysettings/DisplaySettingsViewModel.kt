@@ -5,7 +5,6 @@
 
 package aragones.sergio.readercollection.presentation.displaysettings
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -18,25 +17,22 @@ class DisplaySettingsViewModel(
 ) : ViewModel() {
 
     //region Private properties
-    private var _state: MutableState<DisplaySettingsUiState> = mutableStateOf(
-        DisplaySettingsUiState.empty().copy(
-            language = userRepository.language,
-            sortParam = userRepository.sortParam,
-            isSortDescending = userRepository.isSortDescending,
-            themeMode = userRepository.themeMode,
-        ),
-    )
-    private val _relaunch = MutableStateFlow(false)
-    //endregion
-
-    //region Public properties
-    val state: State<DisplaySettingsUiState> = _state
-    val relaunch: StateFlow<Boolean> = _relaunch
+    val state: State<DisplaySettingsUiState>
+        field = mutableStateOf<DisplaySettingsUiState>(
+            DisplaySettingsUiState.empty().copy(
+                language = userRepository.language,
+                sortParam = userRepository.sortParam,
+                isSortDescending = userRepository.isSortDescending,
+                themeMode = userRepository.themeMode,
+            ),
+        )
+    val relaunch: StateFlow<Boolean>
+        field = MutableStateFlow<Boolean>(false)
     //endregion
 
     //region Lifecycle methods
     fun onResume() {
-        _state.value = _state.value.copy(
+        state.value = state.value.copy(
             language = userRepository.language,
             sortParam = userRepository.sortParam,
             isSortDescending = userRepository.isSortDescending,
@@ -47,10 +43,10 @@ class DisplaySettingsViewModel(
 
     //region Public methods
     fun save() {
-        val newLanguage = requireNotNull(_state.value.language)
-        val newSortParam = _state.value.sortParam
-        val newIsSortDescending = requireNotNull(_state.value.isSortDescending)
-        val newThemeMode = requireNotNull(_state.value.themeMode)
+        val newLanguage = requireNotNull(state.value.language)
+        val newSortParam = state.value.sortParam
+        val newIsSortDescending = requireNotNull(state.value.isSortDescending)
+        val newThemeMode = requireNotNull(state.value.themeMode)
 
         val changeLanguage = newLanguage != userRepository.language
         val changeSortParam = newSortParam != userRepository.sortParam
@@ -75,7 +71,7 @@ class DisplaySettingsViewModel(
         }
 
         if (changeSortParam || changeIsSortDescending || changeThemeMode) {
-            _relaunch.value = true
+            relaunch.value = true
         }
     }
 
@@ -85,7 +81,7 @@ class DisplaySettingsViewModel(
         newIsSortDescending: Boolean,
         newThemeMode: Int,
     ) {
-        _state.value = _state.value.copy(
+        state.value = state.value.copy(
             language = newLanguage,
             sortParam = newSortParam,
             isSortDescending = newIsSortDescending,

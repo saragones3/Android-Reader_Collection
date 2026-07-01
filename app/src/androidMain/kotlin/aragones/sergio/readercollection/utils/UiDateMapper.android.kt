@@ -7,6 +7,7 @@ package aragones.sergio.readercollection.utils
 
 import android.os.Build
 import com.aragones.sergio.util.Constants
+import com.aragones.sergio.util.extensions.getMonthNumber
 import com.aragones.sergio.util.extensions.toLocalDate
 import com.aragones.sergio.util.extensions.toString
 import java.text.SimpleDateFormat
@@ -67,6 +68,12 @@ actual object UiDateMapper {
         } else {
             ""
         }
+
+    actual fun getMonthNumberFromName(name: String, language: String): Int = name
+        .toDate("MMM", language)
+        .toString(null, language)
+        .toLocalDate()
+        .getMonthNumber()
 
     private fun String?.toDate(
         format: String? = null,
