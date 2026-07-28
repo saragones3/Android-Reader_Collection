@@ -210,7 +210,7 @@ private fun SettingsScreenPreview(
 ) {
     ReaderCollectionTheme {
         SettingsScreen(
-            state = SettingsUiState("1.0.0", false),
+            state = SettingsUiState("1.0.0", isLoading),
             onClickOption = {},
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )

@@ -6,6 +6,7 @@
 package aragones.sergio.readercollection.presentation.booklist
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
@@ -80,6 +81,7 @@ fun BookListScreen(
     onSortClick: () -> Unit,
     onDrag: (List<Book>) -> Unit,
     onDragEnd: (List<Book>) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
     val showTopButton by remember {
@@ -123,7 +125,7 @@ fun BookListScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
         CustomToolbar(
             title = title,
             modifier = Modifier.shadow(if (showTopButton) 4.dp else 0.dp),
@@ -303,6 +305,7 @@ private fun BookListScreenPreview(
             onSortClick = {},
             onDrag = {},
             onDragEnd = {},
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
     }
 }

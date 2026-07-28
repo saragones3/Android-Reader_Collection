@@ -345,6 +345,7 @@ private fun FriendsScreenPreview(
             onRejectFriend = {},
             onDeleteFriend = {},
             onAddFriend = {},
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
     }
 }

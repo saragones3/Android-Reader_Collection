@@ -300,6 +300,7 @@ private fun FriendDetailScreenPreview(
             onBack = {},
             onBookClick = { _, _ -> },
             onDeleteFriend = {},
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
     }
 }

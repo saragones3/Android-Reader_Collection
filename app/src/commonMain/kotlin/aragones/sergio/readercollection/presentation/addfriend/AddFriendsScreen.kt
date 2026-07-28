@@ -220,6 +220,7 @@ private fun AddFriendsScreenPreview(
             onBack = {},
             onSearch = {},
             onRequestFriend = {},
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
     }
 }
