@@ -17,6 +17,7 @@ import aragones.sergio.readercollection.data.remote.model.GoogleBookResponse
 import aragones.sergio.readercollection.data.remote.model.GoogleVolumeResponse
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.Books
+import aragones.sergio.readercollection.domain.model.ErrorModel
 import aragones.sergio.readercollection.domain.toDomain
 import aragones.sergio.readercollection.presentation.search.SearchParam
 import aragones.sergio.readercollection.presentation.search.SearchUiState
@@ -34,6 +35,8 @@ import kotlin.test.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
+import reader_collection.app.generated.resources.Res
+import reader_collection.app.generated.resources.error_search
 
 class SearchViewModelTest {
 
@@ -146,46 +149,45 @@ class SearchViewModelTest {
         }
 
     @Test
-    fun `GIVEN failure response WHEN searchBooks THEN return Success state with empty list`() =
-        runTest {
-            coEvery {
-                booksRemoteDataSource.searchBooks(any(), any(), any(), any())
-            } returns Result.failure(RuntimeException("Firestore error"))
+    fun `GIVEN failure response WHEN searchBooks THEN return Error state`() = runTest {
+        coEvery {
+            booksRemoteDataSource.searchBooks(any(), any(), any(), any())
+        } returns Result.failure(RuntimeException("Firestore error"))
 
-            viewModel.state.test {
-                assertEquals(SearchUiState.Empty, awaitItem())
+        viewModel.state.test {
+            assertEquals(SearchUiState.Empty, awaitItem())
 
-                viewModel.searchBooks()
+            viewModel.searchBooks()
 
-                assertEquals(
-                    SearchUiState.Success(
-                        isLoading = true,
-                        query = "",
-                        books = Books(),
-                        param = SearchParam.TITLE,
-                    ),
-                    awaitItem(),
-                )
-                assertEquals(
-                    SearchUiState.Success(
-                        isLoading = false,
-                        query = "",
-                        books = Books(),
-                        param = SearchParam.TITLE,
-                    ),
-                    awaitItem(),
-                )
-            }
-            coVerify {
-                booksRemoteDataSource.searchBooks(
+            assertEquals(
+                SearchUiState.Success(
+                    isLoading = true,
                     query = "",
-                    filter = "intitle",
-                    page = 1,
-                    order = null,
-                )
-            }
-            confirmVerified(booksRemoteDataSource)
+                    books = Books(),
+                    param = SearchParam.TITLE,
+                ),
+                awaitItem(),
+            )
+            assertEquals(
+                SearchUiState.Error(
+                    isLoading = false,
+                    query = "",
+                    value = ErrorModel("", Res.string.error_search),
+                    param = SearchParam.TITLE,
+                ),
+                awaitItem(),
+            )
         }
+        coVerify {
+            booksRemoteDataSource.searchBooks(
+                query = "",
+                filter = "intitle",
+                page = 1,
+                order = null,
+            )
+        }
+        confirmVerified(booksRemoteDataSource)
+    }
 
     @Test
     fun `GIVEN reload WHEN searchBooks THEN page and books are reset`() = runTest {

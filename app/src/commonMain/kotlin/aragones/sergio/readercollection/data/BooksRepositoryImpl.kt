@@ -170,7 +170,7 @@ class BooksRepositoryImpl(
             Result.success(books.items?.map { it.toDomain() } ?: listOf())
         },
         onFailure = {
-            Result.success(emptyList())
+            Result.failure(it)
         },
     )
 
