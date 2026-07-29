@@ -40,6 +40,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.presentation.statistics.Entries
 import aragones.sergio.readercollection.presentation.statistics.Entry
@@ -158,7 +160,10 @@ fun BarChart(entries: Entries, onEntrySelected: (Int?) -> Unit) {
 fun HorizontalBarChart(entries: Entries, onEntrySelected: (String) -> Unit) {
     val colorPrimary = MaterialTheme.colorScheme.primary
     val textMeasurer = rememberTextMeasurer()
-    val labelTextStyle = MaterialTheme.typography.labelSmall.copy(color = colorPrimary)
+    val labelTextStyle = MaterialTheme.typography.labelSmall.copy(
+        color = colorPrimary,
+        textAlign = TextAlign.End,
+    )
     val valueTextStyle = MaterialTheme.typography.labelSmall.copy(color = colorPrimary)
     val chartHeight = (entries.entries.size * 50).dp.coerceAtLeast(200.dp)
 
@@ -213,8 +218,15 @@ fun HorizontalBarChart(entries: Entries, onEntrySelected: (String) -> Unit) {
                 )
 
                 // Y-axis label (left of axis)
-                val keyText = entry.key.take(14) // truncate long names
-                val keyMeasured = textMeasurer.measure(keyText, labelTextStyle)
+                val keyMeasured = textMeasurer.measure(
+                    text = entry.key,
+                    style = labelTextStyle,
+                    constraints = Constraints(
+                        maxWidth = (labelAreaWidth - 16.dp.toPx()).toInt(),
+                    ),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
                 drawText(
                     textLayoutResult = keyMeasured,
                     topLeft = Offset(
@@ -255,7 +267,10 @@ fun PieChart(
         color = colorPrimary,
         textAlign = TextAlign.Center,
     )
-    val labelTextStyle = MaterialTheme.typography.labelSmall.copy(color = colorPrimary)
+    val labelTextStyle = MaterialTheme.typography.labelSmall.copy(
+        color = colorPrimary,
+        textAlign = TextAlign.End,
+    )
     val valueTextStyle = MaterialTheme.typography.labelSmall.copy(
         color = colorSecondary.copy(alpha = 0.85f),
     )
@@ -401,8 +416,7 @@ private fun DrawScope.drawMPPieChart(
             )
 
             // Entry label (key)
-            val labelText = entry.key
-            val labelMeasured = textMeasurer.measure(labelText, labelTextStyle)
+            val labelMeasured = textMeasurer.measure(entry.key, labelTextStyle)
             val labelX = if (isRight) {
                 horizEnd.x + 4.dp.toPx()
             } else {
