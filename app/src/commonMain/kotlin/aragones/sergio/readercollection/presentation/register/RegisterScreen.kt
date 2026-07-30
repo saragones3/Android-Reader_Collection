@@ -186,6 +186,7 @@ private fun RegisterScreenPreview(
             onShowInfo = {},
             onRegisterDataChange = { _, _, _ -> },
             onRegister = { _, _ -> },
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
     }
 }

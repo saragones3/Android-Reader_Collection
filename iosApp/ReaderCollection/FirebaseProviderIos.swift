@@ -132,6 +132,7 @@ class FirebaseProviderIos: FirebaseProvider {
         return UserResponse(
             id: uuid,
             username: String(email.split(separator: "@").first ?? ""),
+            email: "",
             status: RequestStatus.pendingFriend,
         )
     }

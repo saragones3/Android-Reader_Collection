@@ -273,6 +273,7 @@ private fun AccountScreenPreview(
             onBack = {},
             onProfileDataChange = { _, _, _, _ -> },
             onSave = {},
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
     }
 }

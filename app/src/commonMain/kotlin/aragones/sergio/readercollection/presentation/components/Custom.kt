@@ -459,6 +459,26 @@ private fun CustomInputChipPreview() {
 annotation class CustomPreviewLightDark
 
 @Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.FUNCTION)
+@Preview(name = "Light-en", group = "Light", locale = "en", heightDp = 3000)
+@Preview(name = "Light-es", group = "Light", locale = "es", heightDp = 3000)
+@Preview(
+    name = "Dark-en",
+    group = "Dark",
+    uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_NORMAL,
+    locale = "en",
+    heightDp = 3000,
+)
+@Preview(
+    name = "Dark-es",
+    group = "Dark",
+    uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_NORMAL,
+    locale = "es",
+    heightDp = 3000,
+)
+annotation class CustomPreviewLightDarkLong
+
+@Retention(AnnotationRetention.BINARY)
 @Target(
     AnnotationTarget.ANNOTATION_CLASS,
     AnnotationTarget.FUNCTION,

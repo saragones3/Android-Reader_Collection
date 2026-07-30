@@ -36,6 +36,7 @@ extension UserResponseIos {
         return UserResponse(
             id: self.id,
             username: self.username,
+            email: "",
             status: status
         )
     }

@@ -6,6 +6,7 @@
 package aragones.sergio.readercollection.presentation.statistics
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -35,7 +37,7 @@ import aragones.sergio.readercollection.isAndroid
 import aragones.sergio.readercollection.presentation.LocalLanguage
 import aragones.sergio.readercollection.presentation.components.BarChart
 import aragones.sergio.readercollection.presentation.components.CustomCircularProgressIndicator
-import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDark
+import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDarkLong
 import aragones.sergio.readercollection.presentation.components.CustomToolbar
 import aragones.sergio.readercollection.presentation.components.HorizontalBarChart
 import aragones.sergio.readercollection.presentation.components.NoResultsComponent
@@ -294,19 +296,22 @@ private fun BooksByGenre(entries: Entries, onGenreSelected: (String?) -> Unit) {
     )
 }
 
-@CustomPreviewLightDark
+@CustomPreviewLightDarkLong
 @Composable
 private fun StatisticsScreenPreview(
     @PreviewParameter(StatisticsScreenPreviewParameterProvider::class) state: StatisticsUiState,
 ) {
     ReaderCollectionTheme {
-        StatisticsScreen(
-            state = state,
-            onImportClick = {},
-            onExportClick = {},
-            onGroupClick = { _, _, _, _, _ -> },
-            onBookClick = {},
-        )
+        CompositionLocalProvider(LocalLanguage provides "en") {
+            StatisticsScreen(
+                state = state,
+                onImportClick = {},
+                onExportClick = {},
+                onGroupClick = { _, _, _, _, _ -> },
+                onBookClick = {},
+                modifier = Modifier.background(MaterialTheme.colorScheme.background),
+            )
+        }
     }
 }
 

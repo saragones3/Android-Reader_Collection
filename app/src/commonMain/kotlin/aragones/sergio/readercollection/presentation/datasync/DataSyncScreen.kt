@@ -218,6 +218,7 @@ private fun DataSyncScreenPreview(
             onBack = {},
             onChange = {},
             onSync = {},
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
     }
 }
