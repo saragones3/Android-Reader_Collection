@@ -64,7 +64,7 @@ import aragones.sergio.readercollection.presentation.LocalLanguage
 import aragones.sergio.readercollection.presentation.components.CustomDropdownMenu
 import aragones.sergio.readercollection.presentation.components.CustomInputChip
 import aragones.sergio.readercollection.presentation.components.CustomOutlinedTextField
-import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDark
+import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDarkLong
 import aragones.sergio.readercollection.presentation.components.CustomToolbar
 import aragones.sergio.readercollection.presentation.components.DateCustomOutlinedTextField
 import aragones.sergio.readercollection.presentation.components.DropdownOutlinedTextField
@@ -129,9 +129,10 @@ fun BookDetailScreen(
     onSave: (Book) -> Unit,
     onChangeData: (Book) -> Unit,
     onSetImage: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.primary),
         verticalArrangement = Arrangement.Center,
@@ -612,7 +613,7 @@ private fun InputChipWithDropdownMenu(onChangeData: (String) -> Unit) {
     }
 }
 
-@CustomPreviewLightDark
+@CustomPreviewLightDarkLong
 @Composable
 fun BookDetailScreenPreview(
     @PreviewParameter(BookDetailScreenPreviewParameterProvider::class) state: BookDetailUiState,
@@ -630,6 +631,7 @@ fun BookDetailScreenPreview(
                 onSave = {},
                 onChangeData = {},
                 onSetImage = {},
+                modifier = Modifier.background(MaterialTheme.colorScheme.background),
             )
         }
     }

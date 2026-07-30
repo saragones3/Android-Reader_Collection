@@ -333,6 +333,7 @@ private fun AccountScreenPreview(
             onSave = {},
             onChangePublicProfile = {},
             onDeleteAccount = {},
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
     }
 }

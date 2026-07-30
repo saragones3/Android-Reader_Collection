@@ -173,6 +173,7 @@ private fun LoginScreenPreview(
             onLoginDataChange = { _, _ -> },
             onLogin = { _, _ -> },
             onGoToRegister = {},
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
     }
 }

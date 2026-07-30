@@ -28,6 +28,7 @@ configure<SpotlessExtension> {
 
     kotlin {
         target("**/*.kt")
+        targetExclude(".agents/**/*")
         ktlint(libs.versions.ktlint.get())
             .editorConfigOverride(
                 mapOf(

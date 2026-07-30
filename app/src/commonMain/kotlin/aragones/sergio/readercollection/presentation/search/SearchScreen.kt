@@ -84,6 +84,7 @@ fun SearchScreen(
     onLoadMoreClick: () -> Unit,
     onRefresh: () -> Unit,
     onBack: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
     val showTopButton by remember {
@@ -114,7 +115,7 @@ fun SearchScreen(
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
@@ -368,6 +369,7 @@ private fun SearchScreenPreview(
             onLoadMoreClick = {},
             onRefresh = {},
             onBack = {},
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
     }
 }

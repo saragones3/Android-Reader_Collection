@@ -1,4 +1,1 @@
-- Se ha añadido la posibilidad de añadir el email al perfil para poder recuperar la contraseña en caso de pérdida.
-- Se ha añadido la posibilidad de seleccionar fechas anteriores a 1900.
-- Se ha solucionado un error por el que la app se cerraba al abrirla después de varios días minimizada.
-- Se ha adaptado la app para su uso en Android 17.
+- Minor fixes
