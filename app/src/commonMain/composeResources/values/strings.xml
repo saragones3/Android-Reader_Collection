@@ -50,8 +50,18 @@
 
     //STATISTICS
     <string name="title_stats">Statistics</string>
+    <string name="reading_dashboard">Reading Dashboard</string>
+    <string name="reading_dashboard_description">A comprehensive view of your reading habits and your collection.</string>
+    <string name="total_books_read">Total books read</string>
+    <string name="books_per_year">Books per year</string>
+    <string name="pages_per_year">Pages per year</string>
+    <string name="books_per_month">Books per month</string>
+    <string name="top_authors">Top authors</string>
+    <string name="books_per_format">Books per format</string>
+    <string name="books_per_genre">Books per genre</string>
     <string name="shorter_book">Shorter book</string>
     <string name="longer_book">Longer book</string>
+    <string name="book_pages">%1$d pages</string>
     <string name="months">Months</string>
     <string name="formats">Formats</string>
     <string name="import_confirmation">Are you sure you want to IMPORT the data? This process could take a while.</string>

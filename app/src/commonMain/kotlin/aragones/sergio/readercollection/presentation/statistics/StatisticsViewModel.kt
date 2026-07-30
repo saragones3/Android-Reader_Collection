@@ -60,6 +60,7 @@ class StatisticsViewModel(
                 false -> StatisticsUiState.Success(
                     totalBooksRead = books.size,
                     booksByYearEntries = createBooksByYearStats(books),
+                    pagesByYearEntries = createPagesByYearStats(books),
                     booksByMonthEntries = createBooksByMonthStats(books),
                     booksByAuthorStats = createBooksByAuthorStats(books),
                     shorterBook = books
@@ -125,6 +126,25 @@ class StatisticsViewModel(
                 Entry(
                     key = entry.key,
                     size = entry.value.size,
+                ),
+            )
+        }
+        return Entries(entries)
+    }
+
+    private fun createPagesByYearStats(books: List<Book>): Entries {
+        val pagesByYear = books
+            .filter { it.readingDate != null }
+            .sortedBy { it.readingDate?.year }
+            .groupBy { it.readingDate?.toString("yyyy") ?: "" }
+            .filterKeys { it.isNotEmpty() }
+
+        val entries = mutableListOf<Entry>()
+        for (entry in pagesByYear.entries) {
+            entries.add(
+                Entry(
+                    key = entry.key,
+                    size = entry.value.sumOf { it.pageCount },
                 ),
             )
         }

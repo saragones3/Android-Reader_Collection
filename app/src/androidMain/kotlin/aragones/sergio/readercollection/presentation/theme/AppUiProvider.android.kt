@@ -47,12 +47,12 @@ actual object AppUiProvider {
     ) {
         val systemBarAsBackground = if (isDarkTheme) {
             SystemBarStyle.dark(
-                colors.secondary.toArgb(),
+                colors.background.toArgb(),
             )
         } else {
             SystemBarStyle.light(
-                colors.secondary.toArgb(),
-                colors.secondary.toArgb(),
+                colors.background.toArgb(),
+                colors.background.toArgb(),
             )
         }
         val systemBarOppositeToBackground = if (isDarkTheme) {

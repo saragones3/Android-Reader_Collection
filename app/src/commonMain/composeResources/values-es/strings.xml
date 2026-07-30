@@ -55,8 +55,18 @@
 
     //STATISTICS
     <string name="title_stats">Estadísticas</string>
+    <string name="reading_dashboard">Panel de lectura</string>
+    <string name="reading_dashboard_description">Una vista completa de tus hábitos de lectura y tu colección.</string>
+    <string name="total_books_read">Total de libros leídos</string>
+    <string name="books_per_year">Libros por año</string>
+    <string name="pages_per_year">Páginas por año</string>
+    <string name="books_per_month">Libros por mes</string>
+    <string name="top_authors">Autores más leídos</string>
+    <string name="books_per_format">Libros por formato</string>
+    <string name="books_per_genre">Libros por género</string>
     <string name="shorter_book">Libro más corto</string>
     <string name="longer_book">Libro más largo</string>
+    <string name="book_pages">%1$d páginas</string>
     <string name="months">Meses</string>
     <string name="formats">Formatos</string>
     <string name="import_confirmation">¿Estás seguro de que quieres IMPORTAR los datos? Este proceso puede llevar un tiempo.</string>
