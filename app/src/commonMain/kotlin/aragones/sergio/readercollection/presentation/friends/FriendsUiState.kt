@@ -5,9 +5,29 @@
 
 package aragones.sergio.readercollection.presentation.friends
 
-import aragones.sergio.readercollection.domain.model.Users
+import androidx.compose.runtime.Immutable
 
 sealed class FriendsUiState {
+
     data object Loading : FriendsUiState()
-    data class Success(val friends: Users) : FriendsUiState()
+
+    data class Success(
+        val tab: FriendsTab = FriendsTab.FRIENDS,
+        val friends: UsersUi,
+        val requests: UsersUi,
+    ) : FriendsUiState()
 }
+
+enum class FriendsTab {
+    FRIENDS,
+    REQUESTS,
+}
+
+data class UserUi(
+    val id: String,
+    val username: String,
+    val isPending: Boolean,
+)
+
+@Immutable
+data class UsersUi(val users: List<UserUi> = emptyList())

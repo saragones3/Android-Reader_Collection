@@ -29,6 +29,7 @@ fun FriendsView(
         FriendsScreen(
             state = state,
             onBack = onBack,
+            onSelectTab = viewModel::selectTab,
             onSelectFriend = onSelectFriend,
             onAcceptFriend = viewModel::acceptFriendRequest,
             onRejectFriend = viewModel::rejectFriendRequest,

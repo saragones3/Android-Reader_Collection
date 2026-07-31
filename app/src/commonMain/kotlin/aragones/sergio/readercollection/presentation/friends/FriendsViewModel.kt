@@ -10,7 +10,7 @@ import androidx.lifecycle.viewModelScope
 import aragones.sergio.readercollection.data.remote.model.RequestStatus
 import aragones.sergio.readercollection.domain.UserRepository
 import aragones.sergio.readercollection.domain.model.ErrorModel
-import aragones.sergio.readercollection.domain.model.Users
+import aragones.sergio.readercollection.domain.model.User
 import com.aragones.sergio.util.Constants
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,8 +37,30 @@ class FriendsViewModel(
     //region Public methods
     fun fetchFriends() = viewModelScope.launch {
         state.value = FriendsUiState.Loading
-        val friends = userRepository.getFriends()
-        state.value = FriendsUiState.Success(Users(friends))
+        val (friends, requests) = userRepository.getFriends().run {
+            filter {
+                it.status == RequestStatus.APPROVED ||
+                    it.status == RequestStatus.PENDING_MINE
+            }.map { it.toFriend() } to
+                filter {
+                    it.status == RequestStatus.REJECTED ||
+                        it.status == RequestStatus.PENDING_FRIEND
+                }.map { it.toRequest() }
+        }
+        state.value = FriendsUiState.Success(
+            tab = getTab(friends, requests),
+            friends = UsersUi(friends),
+            requests = UsersUi(requests),
+        )
+    }
+
+    fun selectTab(tab: FriendsTab) {
+        state.update {
+            when (it) {
+                is FriendsUiState.Loading -> it
+                is FriendsUiState.Success -> it.copy(tab = tab)
+            }
+        }
     }
 
     fun acceptFriendRequest(friendId: String) = viewModelScope.launch {
@@ -47,18 +69,24 @@ class FriendsViewModel(
                 infoDialogMessageId.value = Res.string.friend_action_successfully_done
                 state.update {
                     when (it) {
-                        FriendsUiState.Loading -> it
-                        is FriendsUiState.Success -> it.copy(
-                            friends = Users(
+                        is FriendsUiState.Loading -> {
+                            it
+                        }
+                        is FriendsUiState.Success -> {
+                            val newFriends = UsersUi(
                                 it.friends.users.map { friend ->
                                     if (friend.id == friendId) {
-                                        friend.copy(status = RequestStatus.APPROVED)
+                                        friend.copy(isPending = false)
                                     } else {
                                         friend
                                     }
                                 },
-                            ),
-                        )
+                            )
+                            it.copy(
+                                tab = getTab(newFriends.users, it.requests.users),
+                                friends = newFriends,
+                            )
+                        }
                     }
                 }
             },
@@ -77,12 +105,18 @@ class FriendsViewModel(
                 infoDialogMessageId.value = Res.string.friend_action_successfully_done
                 state.update {
                     when (it) {
-                        FriendsUiState.Loading -> it
-                        is FriendsUiState.Success -> it.copy(
-                            friends = Users(
+                        is FriendsUiState.Loading -> {
+                            it
+                        }
+                        is FriendsUiState.Success -> {
+                            val newFriends = UsersUi(
                                 it.friends.users.filter { friend -> friend.id != friendId },
-                            ),
-                        )
+                            )
+                            it.copy(
+                                tab = getTab(newFriends.users, it.requests.users),
+                                friends = newFriends,
+                            )
+                        }
                     }
                 }
             },
@@ -101,12 +135,18 @@ class FriendsViewModel(
                 infoDialogMessageId.value = Res.string.friend_action_successfully_done
                 state.update {
                     when (it) {
-                        FriendsUiState.Loading -> it
-                        is FriendsUiState.Success -> it.copy(
-                            friends = Users(
-                                it.friends.users.filter { friend -> friend.id != friendId },
-                            ),
-                        )
+                        is FriendsUiState.Loading -> {
+                            it
+                        }
+                        is FriendsUiState.Success -> {
+                            val newRequests = UsersUi(
+                                it.requests.users.filter { friend -> friend.id != friendId },
+                            )
+                            it.copy(
+                                tab = getTab(it.friends.users, newRequests.users),
+                                requests = newRequests,
+                            )
+                        }
                     }
                 }
             },
@@ -124,4 +164,23 @@ class FriendsViewModel(
         error.value = null
     }
     //endregion
+
+    private fun getTab(friends: List<UserUi>, requests: List<UserUi>): FriendsTab =
+        if (friends.isEmpty() && requests.isNotEmpty()) {
+            FriendsTab.REQUESTS
+        } else {
+            FriendsTab.FRIENDS
+        }
+
+    private fun User.toFriend(): UserUi = UserUi(
+        id = id,
+        username = username,
+        isPending = status == RequestStatus.PENDING_MINE,
+    )
+
+    private fun User.toRequest(): UserUi = UserUi(
+        id = id,
+        username = username,
+        isPending = status == RequestStatus.PENDING_FRIEND,
+    )
 }
