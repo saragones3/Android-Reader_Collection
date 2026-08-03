@@ -9,10 +9,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import aragones.sergio.readercollection.presentation.components.ConfirmationAlertDialog
 import aragones.sergio.readercollection.presentation.components.InformationAlertDialog
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionApp
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import reader_collection.app.generated.resources.Res
+import reader_collection.app.generated.resources.user_remove_confirmation
 
 @Composable
 fun FriendsView(
@@ -24,6 +27,7 @@ fun FriendsView(
     val state by viewModel.state.collectAsState()
     val error by viewModel.error.collectAsState()
     val infoDialogMessageId by viewModel.infoDialogMessageId.collectAsState()
+    val userDeletionMessage by viewModel.userDeletionMessage.collectAsState()
 
     ReaderCollectionApp {
         FriendsScreen(
@@ -33,10 +37,23 @@ fun FriendsView(
             onSelectFriend = onSelectFriend,
             onAcceptFriend = viewModel::acceptFriendRequest,
             onRejectFriend = viewModel::rejectFriendRequest,
-            onDeleteFriend = viewModel::deleteFriend,
+            onDeleteFriend = {
+                viewModel.showConfirmationDialog(Res.string.user_remove_confirmation, it)
+            },
             onAddFriend = onAddFriend,
         )
     }
+
+    ConfirmationAlertDialog(
+        textId = userDeletionMessage?.first,
+        onCancel = {
+            viewModel.closeDialogs()
+        },
+        onAccept = {
+            viewModel.closeDialogs()
+            userDeletionMessage?.second?.let { viewModel.deleteFriend(it) }
+        },
+    )
 
     val text = if (error != null) {
         val errorText = StringBuilder()

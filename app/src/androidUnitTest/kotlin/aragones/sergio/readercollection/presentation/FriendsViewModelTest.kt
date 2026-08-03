@@ -36,6 +36,7 @@ import org.junit.Rule
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.friend_action_failure
 import reader_collection.app.generated.resources.friend_action_successfully_done
+import reader_collection.app.generated.resources.user_remove_confirmation
 
 class FriendsViewModelTest {
 
@@ -363,55 +364,92 @@ class FriendsViewModelTest {
     }
 
     @Test
-    fun `GIVEN dialog shown WHEN closeDialogs THEN dialog is reset`() = runTest {
-        viewModel.infoDialogMessageId.test {
-            val infoDialogMessage = this
+    fun `GIVEN no dialog shown WHEN showConfirmationDialog THEN dialog is shown`() = runTest {
+        viewModel.userDeletionMessage.test {
             assertEquals(null, awaitItem())
 
-            coEvery {
-                userRemoteDataSource.acceptFriendRequest(any(), any())
-            } returns Result.success(Unit)
-            viewModel.acceptFriendRequest("")
-            assertEquals(
-                Res.string.friend_action_successfully_done,
-                awaitItem(),
-            )
+            viewModel.showConfirmationDialog(Res.string.user_remove_confirmation, "userId")
 
-            viewModel.error.test {
-                val error = this
+            assertEquals(Res.string.user_remove_confirmation to "userId", awaitItem())
+        }
+    }
+
+    @Test
+    fun `GIVEN same dialog message shown WHEN showConfirmationDialog THEN do nothing`() = runTest {
+        viewModel.userDeletionMessage.test {
+            assertEquals(null, awaitItem())
+            viewModel.showConfirmationDialog(Res.string.user_remove_confirmation, "userId")
+            assertEquals(Res.string.user_remove_confirmation to "userId", awaitItem())
+
+            viewModel.showConfirmationDialog(Res.string.user_remove_confirmation, "userId")
+
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun `GIVEN dialog shown WHEN closeDialogs THEN dialog is reset`() = runTest {
+        viewModel.userDeletionMessage.test {
+            val userDeletionMessage = this
+            assertEquals(null, awaitItem())
+
+            viewModel.showConfirmationDialog(Res.string.user_remove_confirmation, "userId")
+            assertEquals(Res.string.user_remove_confirmation to "userId", awaitItem())
+
+            viewModel.infoDialogMessageId.test {
+                val infoDialogMessage = this
                 assertEquals(null, awaitItem())
 
                 coEvery {
-                    userRemoteDataSource.rejectFriendRequest(any(), any())
-                } returns Result.failure(RuntimeException("Firestore error"))
-                viewModel.rejectFriendRequest("")
+                    userRemoteDataSource.acceptFriendRequest(any(), any())
+                } returns Result.success(Unit)
+                viewModel.acceptFriendRequest("")
                 assertEquals(
-                    ErrorModel(
-                        Constants.EMPTY_VALUE,
-                        Res.string.friend_action_failure,
-                    ),
+                    Res.string.friend_action_successfully_done,
                     awaitItem(),
                 )
 
-                viewModel.closeDialogs()
+                viewModel.error.test {
+                    val error = this
+                    assertEquals(null, awaitItem())
 
-                assertEquals(null, infoDialogMessage.awaitItem())
-                assertEquals(null, error.awaitItem())
+                    coEvery {
+                        userRemoteDataSource.rejectFriendRequest(any(), any())
+                    } returns Result.failure(RuntimeException("Firestore error"))
+                    viewModel.rejectFriendRequest("")
+                    assertEquals(
+                        ErrorModel(
+                            Constants.EMPTY_VALUE,
+                            Res.string.friend_action_failure,
+                        ),
+                        awaitItem(),
+                    )
+
+                    viewModel.closeDialogs()
+
+                    assertEquals(null, infoDialogMessage.awaitItem())
+                    assertEquals(null, userDeletionMessage.awaitItem())
+                    assertEquals(null, error.awaitItem())
+                }
             }
         }
     }
 
     @Test
     fun `GIVEN no dialog shown WHEN closeDialogs THEN do nothing`() = runTest {
-        viewModel.infoDialogMessageId.test {
+        viewModel.userDeletionMessage.test {
             assertEquals(null, awaitItem())
 
-            viewModel.error.test {
+            viewModel.infoDialogMessageId.test {
                 assertEquals(null, awaitItem())
 
-                viewModel.closeDialogs()
+                viewModel.error.test {
+                    assertEquals(null, awaitItem())
 
-                expectNoEvents()
+                    viewModel.closeDialogs()
+
+                    expectNoEvents()
+                }
             }
         }
     }

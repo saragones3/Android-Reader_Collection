@@ -30,6 +30,8 @@ class FriendsViewModel(
         field = MutableStateFlow<FriendsUiState>(FriendsUiState.Loading)
     val error: StateFlow<ErrorModel?>
         field = MutableStateFlow<ErrorModel?>(null)
+    val userDeletionMessage: StateFlow<Pair<StringResource, String>?>
+        field = MutableStateFlow<Pair<StringResource, String>?>(null)
     val infoDialogMessageId: StateFlow<StringResource?>
         field = MutableStateFlow<StringResource?>(null)
     //endregion
@@ -163,7 +165,12 @@ class FriendsViewModel(
         )
     }
 
+    fun showConfirmationDialog(textId: StringResource, userId: String) {
+        userDeletionMessage.value = textId to userId
+    }
+
     fun closeDialogs() {
+        userDeletionMessage.value = null
         infoDialogMessageId.value = null
         error.value = null
     }
