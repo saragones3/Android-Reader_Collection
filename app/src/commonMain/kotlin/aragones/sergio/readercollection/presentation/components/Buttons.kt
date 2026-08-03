@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.filled.Upload
@@ -18,8 +20,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -174,6 +179,53 @@ fun MainTextButton(text: String, onClick: () -> Unit, modifier: Modifier = Modif
     }
 }
 
+@Composable
+fun MainIconButton(
+    painter: AccessibilityPainter,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier,
+        colors = IconButtonDefaults.iconButtonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.secondary,
+        ),
+        shape = MaterialTheme.shapes.medium,
+    ) {
+        Icon(
+            painter = painter.painter,
+            contentDescription = painter.contentDescription,
+            tint = MaterialTheme.colorScheme.secondary,
+        )
+    }
+}
+
+@Composable
+fun SecondaryIconButton(
+    painter: AccessibilityPainter,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedIconButton(
+        onClick = onClick,
+        modifier = modifier,
+        shape = MaterialTheme.shapes.medium,
+        colors = IconButtonDefaults.outlinedIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.secondary,
+            contentColor = MaterialTheme.colorScheme.primary,
+        ),
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
+    ) {
+        Icon(
+            painter = painter.painter,
+            contentDescription = painter.contentDescription,
+            tint = MaterialTheme.colorScheme.primary,
+        )
+    }
+}
+
 @CustomPreviewLightDark
 @Composable
 private fun MainActionButtonPreview() {
@@ -243,6 +295,30 @@ private fun MainTextButtonPreview() {
     ReaderCollectionTheme {
         MainTextButton(
             text = "Log-in",
+            onClick = {},
+        )
+    }
+}
+
+@CustomPreviewLightDarkWithBackground
+@Composable
+private fun MainIconButtonPreview() {
+    ReaderCollectionTheme {
+        MainIconButton(
+            painter = rememberVectorPainter(Icons.Default.Check)
+                .withDescription(null),
+            onClick = {},
+        )
+    }
+}
+
+@CustomPreviewLightDarkWithBackground
+@Composable
+private fun SecondaryIconButtonPreview() {
+    ReaderCollectionTheme {
+        SecondaryIconButton(
+            painter = rememberVectorPainter(Icons.Default.Close)
+                .withDescription(null),
             onClick = {},
         )
     }

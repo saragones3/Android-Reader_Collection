@@ -139,11 +139,15 @@ class FriendsViewModel(
                             it
                         }
                         is FriendsUiState.Success -> {
+                            val newFriends = UsersUi(
+                                it.friends.users.filter { friend -> friend.id != friendId },
+                            )
                             val newRequests = UsersUi(
                                 it.requests.users.filter { friend -> friend.id != friendId },
                             )
                             it.copy(
-                                tab = getTab(it.friends.users, newRequests.users),
+                                tab = getTab(newFriends.users, newRequests.users),
+                                friends = newFriends,
                                 requests = newRequests,
                             )
                         }

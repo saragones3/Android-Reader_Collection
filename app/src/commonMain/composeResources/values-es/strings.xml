@@ -133,6 +133,7 @@
     <string name="find_friends_action">Buscar amigos</string>
     <string name="friends_tab_title">Mis amigos</string>
     <string name="requests_tab_title">Mis solicitudes</string>
+    <string name="view_library_action">Ver librería</string>
     <string name="pending_status">Pendiente</string>
     <string name="rejected_status">Rechazada</string>
     <string name="add_friend_action">Añadir</string>

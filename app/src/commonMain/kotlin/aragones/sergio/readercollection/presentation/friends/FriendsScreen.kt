@@ -5,12 +5,13 @@
 
 package aragones.sergio.readercollection.presentation.friends
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -26,12 +26,20 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.LibraryBooks
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAddAlt1
+import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
@@ -55,6 +63,8 @@ import aragones.sergio.readercollection.presentation.components.CustomPreviewLig
 import aragones.sergio.readercollection.presentation.components.CustomToolbar
 import aragones.sergio.readercollection.presentation.components.ListButton
 import aragones.sergio.readercollection.presentation.components.MainActionButton
+import aragones.sergio.readercollection.presentation.components.MainIconButton
+import aragones.sergio.readercollection.presentation.components.SecondaryIconButton
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import org.jetbrains.compose.resources.painterResource
@@ -74,6 +84,7 @@ import reader_collection.app.generated.resources.pending_status
 import reader_collection.app.generated.resources.reject_friend_action
 import reader_collection.app.generated.resources.rejected_status
 import reader_collection.app.generated.resources.requests_tab_title
+import reader_collection.app.generated.resources.view_library_action
 
 @Composable
 fun FriendsScreen(
@@ -209,6 +220,7 @@ private fun FriendsScreenContent(
                     onSelectFriend = onSelectFriend,
                     onAcceptFriend = onAcceptFriend,
                     onRejectFriend = onRejectFriend,
+                    onDeleteFriend = onDeleteFriend,
                 )
                 FriendsTab.REQUESTS -> RequestsTabContent(
                     requests = requests,
@@ -295,6 +307,7 @@ private fun LazyListScope.FriendsTabContent(
     onSelectFriend: (String) -> Unit,
     onAcceptFriend: (String) -> Unit,
     onRejectFriend: (String) -> Unit,
+    onDeleteFriend: (String) -> Unit,
 ) {
     if (friends.users.any { it.isPending }) {
         item {
@@ -308,34 +321,67 @@ private fun LazyListScope.FriendsTabContent(
             )
         }
         items(friends.users.filter { it.isPending }, key = { it.id }) { friend ->
-            FriendItem(
-                friend = friend,
-                onSelectFriend = { onSelectFriend(friend.id) },
-                onAcceptFriend = { onAcceptFriend(friend.id) },
-                onRejectFriend = { onRejectFriend(friend.id) },
-            )
+            FriendContainer {
+                FriendItem(
+                    friend = friend,
+                    onSelectFriend = { onSelectFriend(friend.id) },
+                    onAcceptFriend = { onAcceptFriend(friend.id) },
+                    onRejectFriend = { onRejectFriend(friend.id) },
+                    onDeleteFriend = { onDeleteFriend(friend.id) },
+                )
+            }
         }
         item {
             Spacer(Modifier.height(16.dp))
         }
     }
     items(friends.users.filter { !it.isPending }, key = { it.id }) { friend ->
-        FriendItem(
-            friend = friend,
-            onSelectFriend = { onSelectFriend(friend.id) },
-            onAcceptFriend = { onAcceptFriend(friend.id) },
-            onRejectFriend = { onRejectFriend(friend.id) },
-        )
+        FriendContainer {
+            FriendItem(
+                friend = friend,
+                onSelectFriend = { onSelectFriend(friend.id) },
+                onAcceptFriend = { onAcceptFriend(friend.id) },
+                onRejectFriend = { onRejectFriend(friend.id) },
+                onDeleteFriend = { onDeleteFriend(friend.id) },
+            )
+        }
     }
 }
 
 private fun LazyListScope.RequestsTabContent(requests: UsersUi, onDeleteFriend: (String) -> Unit) {
     items(requests.users, key = { it.id }) { friend ->
-        RequestItem(
-            friend = friend,
-            onDeleteFriend = { onDeleteFriend(friend.id) },
-        )
+        FriendContainer {
+            RequestItem(
+                friend = friend,
+                onDeleteFriend = { onDeleteFriend(friend.id) },
+            )
+        }
     }
+}
+
+@Composable
+private fun FriendContainer(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth().padding(vertical = 12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
+        ),
+        border = BorderStroke(
+            width = 0.1.dp,
+            color = MaterialTheme.colorScheme.primary,
+        ),
+        content = {
+            Column(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                content = content,
+            )
+        },
+    )
 }
 
 @Composable
@@ -344,129 +390,94 @@ private fun FriendItem(
     onSelectFriend: () -> Unit,
     onAcceptFriend: () -> Unit,
     onRejectFriend: () -> Unit,
-    modifier: Modifier = Modifier,
+    onDeleteFriend: () -> Unit,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-    ) {
-        MainUserInfo(
-            username = friend.username,
-            modifier = Modifier.clickable {
-                if (!friend.isPending) {
-                    onSelectFriend()
-                }
-            },
-            subtitleContent = {
-                if (friend.isPending) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(Res.string.pending_status),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        lineHeight = 24.sp,
-                    )
-                }
-            },
-        )
-        if (friend.isPending) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-            ) {
-                Button(
-                    onClick = onAcceptFriend,
-                    modifier = Modifier.widthIn(max = 320.dp),
-                    shape = MaterialTheme.shapes.small,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                    ),
-                ) {
-                    Text(
-                        text = stringResource(Res.string.add_friend_action),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        maxLines = 1,
-                    )
-                }
-                Button(
+    MainUserInfo(
+        username = friend.username,
+        endContent = {
+            if (friend.isPending) {
+                SecondaryIconButton(
+                    rememberVectorPainter(Icons.Default.Close)
+                        .withDescription(stringResource(Res.string.reject_friend_action)),
                     onClick = onRejectFriend,
-                    modifier = Modifier.widthIn(max = 320.dp),
-                    shape = MaterialTheme.shapes.small,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                    ),
-                ) {
-                    Text(
-                        text = stringResource(Res.string.reject_friend_action),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onError,
-                        maxLines = 1,
+                )
+                MainIconButton(
+                    rememberVectorPainter(Icons.Default.Check)
+                        .withDescription(stringResource(Res.string.add_friend_action)),
+                    onClick = onAcceptFriend,
+                )
+            } else {
+                IconButton(onClick = onDeleteFriend) {
+                    Icon(
+                        imageVector = Icons.Default.PersonRemove,
+                        contentDescription = stringResource(Res.string.delete),
+                        tint = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
+        },
+    )
+    if (!friend.isPending) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = onSelectFriend,
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.small,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.tertiary,
+                contentColor = MaterialTheme.colorScheme.secondary,
+            ),
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.LibraryBooks,
+                contentDescription = "",
+                tint = MaterialTheme.colorScheme.secondary,
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = stringResource(Res.string.view_library_action),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.secondary,
+                maxLines = 1,
+            )
         }
     }
 }
 
 @Composable
-private fun RequestItem(
-    friend: UserUi,
-    onDeleteFriend: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-    ) {
-        MainUserInfo(
-            username = friend.username,
-            subtitleContent = {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text =
-                        if (friend.isPending) {
-                            stringResource(Res.string.pending_status)
-                        } else {
-                            stringResource(Res.string.rejected_status)
-                        },
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontSize = 14.sp,
-                    color =
-                        if (friend.isPending) {
-                            MaterialTheme.colorScheme.tertiary
-                        } else {
-                            MaterialTheme.colorScheme.error
-                        },
-                    lineHeight = 24.sp,
+private fun RequestItem(friend: UserUi, onDeleteFriend: () -> Unit) {
+    MainUserInfo(
+        username = friend.username,
+        subtitleContent = {
+            Text(
+                text =
+                    if (friend.isPending) {
+                        stringResource(Res.string.pending_status)
+                    } else {
+                        stringResource(Res.string.rejected_status)
+                    },
+                style = MaterialTheme.typography.bodyMedium,
+                fontSize = 14.sp,
+                color =
+                    if (friend.isPending) {
+                        MaterialTheme.colorScheme.tertiary
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
+                lineHeight = 24.sp,
+            )
+        },
+        endContent = {
+            if (!friend.isPending) {
+                Spacer(modifier = Modifier.width(16.dp))
+                SecondaryIconButton(
+                    rememberVectorPainter(Icons.Default.Delete)
+                        .withDescription(stringResource(Res.string.delete)),
+                    onClick = onDeleteFriend,
                 )
-            },
-            extraContent = {
-                if (!friend.isPending) {
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Button(
-                        onClick = onDeleteFriend,
-                        modifier = Modifier.widthIn(max = 320.dp),
-                        shape = MaterialTheme.shapes.small,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                        ),
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.delete),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                            maxLines = 2,
-                        )
-                    }
-                }
-            },
-        )
-    }
+            }
+        },
+    )
 }
 
 @Composable
@@ -474,7 +485,7 @@ private fun MainUserInfo(
     username: String,
     modifier: Modifier = Modifier,
     subtitleContent: (@Composable () -> Unit)? = null,
-    extraContent: (@Composable () -> Unit)? = null,
+    endContent: (@Composable () -> Unit)? = null,
 ) {
     Row(
         modifier = modifier,
@@ -500,10 +511,13 @@ private fun MainUserInfo(
                 color = MaterialTheme.colorScheme.primary,
                 lineHeight = 24.sp,
             )
-            subtitleContent?.invoke()
+            if (subtitleContent != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                subtitleContent.invoke()
+            }
         }
         Spacer(modifier = Modifier.width(4.dp))
-        extraContent?.invoke()
+        endContent?.invoke()
     }
 }
 
