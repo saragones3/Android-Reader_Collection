@@ -123,10 +123,10 @@
     <string name="delete_account_action">Delete account</string>
 
     //FRIENDS
-    <string name="your_friends_title">Your friends</string>
+    <string name="community">Community</string>
+    <string name="community_description">Connect with readers and explore their libraries.</string>
     <string name="no_friends_yet_title">No friends yet</string>
-    <string name="no_friends_yet_subtitle">Start connecting with people!</string>
-    <string name="find_friends_action">Find friends</string>
+    <string name="no_friends_yet_subtitle">Find other readers to share your collections with and discover new reads together.</string>
     <string name="friends_tab_title">My friends</string>
     <string name="requests_tab_title">My requests</string>
     <string name="view_library_action">View library</string>
@@ -137,11 +137,14 @@
     <string name="friend_action_successfully_done">Your request has been successfully done</string>
     <string name="friend_action_failure">Your request could not be done. Please, try again</string>
     <string name="friend_removed">Friend removed!</string>
+    <string name="results_for">Results for "%1$s"</string>
+    <string name="view_profile">View profile</string>
+    <string name="send_request">Send\nRequest</string>
+    <string name="no_friends_found">We did not found any profile for "%1$s". Make sure you wrote ir correctly, with capital letters and lowercase when necessary, and that the user's public profile is activated</string>
 
     //ADD FRIENDS
     <string name="add_friends_title">Add friends</string>
     <string name="search_friends_instructions">Introduce your friend's username to search it</string>
-    <string name="no_friends_found">There is no user with that username, or it has not activated the public profile yet</string>
 
     //DATA SYNCHRONIZATION
     <string name="syncing_options_title">Syncing options</string>
@@ -213,7 +216,6 @@
     <string name="go_to_start">Go to start of the list</string>
     <string name="go_to_end">Go to end of the list</string>
     <string name="go_to_add_new_book">Go to add book</string>
-    <string name="go_to_add_new_friend">Go to add friend</string>
     <string name="add_photo">Add photo</string>
 
     //IMAGES

@@ -208,7 +208,7 @@ fun SearchBar(
     requestFocusByDefault: Boolean = true,
     searchOnClear: Boolean = false,
 ) {
-    var textFieldValueState by remember {
+    var textFieldValueState by remember(text) {
         mutableStateOf(
             TextFieldValue(
                 text = text,

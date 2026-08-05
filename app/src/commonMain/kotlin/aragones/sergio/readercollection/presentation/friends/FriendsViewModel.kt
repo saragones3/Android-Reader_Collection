@@ -65,6 +65,128 @@ class FriendsViewModel(
         }
     }
 
+    fun searchFriends(query: String) = viewModelScope.launch {
+        state.update {
+            when (it) {
+                is FriendsUiState.Loading -> it
+                is FriendsUiState.Success -> it.copy(
+                    searchQuery = query,
+                    searchResults = UsersUi(),
+                    isSearching = query.isNotEmpty(),
+                )
+            }
+        }
+
+        if (query.isEmpty()) return@launch
+
+        userRepository.getUserWith(query).fold(
+            onSuccess = { user ->
+                state.update {
+                    when (it) {
+                        is FriendsUiState.Loading -> it
+                        is FriendsUiState.Success -> it.copy(
+                            searchResults = UsersUi(
+                                listOf(user.toSearchUi()).filter { user -> user.isPending },
+                            ),
+                            isSearching = false,
+                        )
+                    }
+                }
+            },
+            onFailure = { failure ->
+                state.update { currentState ->
+                    when (currentState) {
+                        is FriendsUiState.Loading -> {
+                            currentState
+                        }
+                        is FriendsUiState.Success -> {
+                            when (failure) {
+                                is NoSuchElementException -> {
+                                    currentState.copy(
+                                        isSearching = false,
+                                        searchResults = UsersUi(),
+                                    )
+                                }
+                                else -> {
+                                    error.value = ErrorModel(
+                                        Constants.EMPTY_VALUE,
+                                        Res.string.friend_action_failure,
+                                    )
+                                    currentState.copy(
+                                        isSearching = false,
+                                        searchResults = UsersUi(),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    fun requestFriendship(friend: UserUi) = viewModelScope.launch {
+        state.update {
+            when (it) {
+                is FriendsUiState.Loading -> it
+                is FriendsUiState.Success -> it.copy(
+                    searchResults = UsersUi(
+                        it.searchResults.users.map { user ->
+                            if (user.id == friend.id) user.copy(isLoading = true) else user
+                        },
+                    ),
+                )
+            }
+        }
+
+        val requestedFriend = friend.toDomain()
+
+        userRepository.requestFriendship(requestedFriend).fold(
+            onSuccess = {
+                state.update {
+                    when (it) {
+                        is FriendsUiState.Loading -> {
+                            it
+                        }
+                        is FriendsUiState.Success -> {
+                            val newRequests =
+                                UsersUi(it.requests.users + listOf(requestedFriend.toRequest()))
+                            it.copy(
+                                tab = FriendsTab.REQUESTS,
+                                searchQuery = "",
+                                requests = newRequests,
+                                isSearching = false,
+                                searchResults = UsersUi(
+                                    it.searchResults.users.filter { user ->
+                                        user.id != friend.id
+                                    },
+                                ),
+                            )
+                        }
+                    }
+                }
+            },
+            onFailure = {
+                state.update {
+                    when (it) {
+                        is FriendsUiState.Loading -> it
+                        is FriendsUiState.Success -> it.copy(
+                            searchResults = UsersUi(
+                                it.searchResults.users.map { user ->
+                                    if (user.id == friend.id) user.copy(isLoading = false) else user
+                                },
+                            ),
+                        )
+                    }
+                }
+                error.value = ErrorModel(
+                    Constants.EMPTY_VALUE,
+                    Res.string.friend_action_failure,
+                )
+            },
+        )
+    }
+
     fun acceptFriendRequest(friendId: String) = viewModelScope.launch {
         userRepository.acceptFriendRequest(friendId).fold(
             onSuccess = {
@@ -193,5 +315,17 @@ class FriendsViewModel(
         id = id,
         username = username,
         isPending = status == RequestStatus.PENDING_FRIEND,
+    )
+
+    private fun User.toSearchUi(): UserUi = UserUi(
+        id = id,
+        username = username,
+        isPending = status == RequestStatus.PENDING_FRIEND,
+    )
+
+    private fun UserUi.toDomain(): User = User(
+        id = id,
+        username = username,
+        status = RequestStatus.PENDING_FRIEND,
     )
 }

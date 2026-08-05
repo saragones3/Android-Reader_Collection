@@ -13,8 +13,11 @@ sealed class FriendsUiState {
 
     data class Success(
         val tab: FriendsTab = FriendsTab.FRIENDS,
+        val searchQuery: String = "",
         val friends: UsersUi,
         val requests: UsersUi,
+        val isSearching: Boolean = false,
+        val searchResults: UsersUi = UsersUi(),
     ) : FriendsUiState()
 }
 
@@ -27,6 +30,7 @@ data class UserUi(
     val id: String,
     val username: String,
     val isPending: Boolean,
+    val isLoading: Boolean = false,
 )
 
 @Immutable
