@@ -104,18 +104,17 @@ class FirebaseProviderWeb : FirebaseProvider {
         deleteDocumentJs(getFirestoreJs(), PUBLIC_PROFILES_PATH, userId).await()
     }
 
-    override suspend fun getUserFromDatabase(username: String, userId: String): UserResponse? {
-        val result = queryDocumentsJs(
-            getFirestoreJs(),
-            PUBLIC_PROFILES_PATH,
-            EMAIL_KEY,
-            username,
-        ).await()
+    override suspend fun getPublicUsers(username: String, userId: String): List<UserResponse> {
+        val result = getDocumentsJs(getFirestoreJs(), PUBLIC_PROFILES_PATH).await()
         val docs = json.decodeFromString<List<Map<String, String>>>(result.toString())
-        return docs.firstOrNull()?.let {
+        return docs.mapNotNull {
             val uuid = it[UUID_KEY]
             val email = it[EMAIL_KEY]
-            if (uuid != null && email != null && uuid != userId) {
+            if (uuid != null &&
+                email != null &&
+                uuid != userId &&
+                email.contains(username, true)
+            ) {
                 UserResponse(
                     id = uuid,
                     username = email.split("@").first(),

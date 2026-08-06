@@ -144,7 +144,7 @@
     <string name="results_for">Resultados para "%1$s"</string>
     <string name="view_profile">Ver Perfil</string>
     <string name="send_request">Enviar\nSolicitud</string>
-    <string name="no_friends_found">No hemos encontrado ningún perfil que coincida con "%1$s". Asegúrate de haberlo escrito correctamente, con mayúsculas y minúsculas cuando corresponda, y que el usuario tenga el perfil público activado.</string>
+    <string name="no_friends_found">No hemos encontrado ningún perfil que coincida con "%1$s". Asegúrate de haberlo escrito correctamente y que el usuario tenga el perfil público activado.</string>
 
     //ADD FRIENDS
     <string name="add_friends_title">Añadir amigos</string>

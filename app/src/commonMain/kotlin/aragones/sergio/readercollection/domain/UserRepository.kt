@@ -29,7 +29,7 @@ interface UserRepository {
     suspend fun updateDisplayName(displayName: String): Result<Unit>
     suspend fun setPublicProfile(value: Boolean): Result<Unit>
     suspend fun loadConfig()
-    suspend fun getUserWith(username: String): Result<User>
+    suspend fun getUsersWith(username: String): Result<List<User>>
     suspend fun getFriends(): List<User>
     suspend fun getFriend(friendId: String): Result<User>
     suspend fun requestFriendship(friend: User): Result<Unit>

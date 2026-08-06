@@ -367,7 +367,7 @@ class FirebaseProviderTest {
     }
 
     @Test
-    fun `GIVEN success response and existent user WHEN get user from database THEN return user`() =
+    fun `GIVEN success response and existent user WHEN get user from database THEN return user list`() =
         runTest {
             val user = UserResponse(
                 id = "testFriendId",
@@ -378,25 +378,25 @@ class FirebaseProviderTest {
             val documentSnapshot = mockk<DocumentSnapshot>()
             every { documentSnapshot.getString("email") } returns user.username
             every { documentSnapshot.getString("uuid") } returns user.id
-            givenGetPublicProfileSuccess(user.username, listOf(documentSnapshot))
+            givenGetAllPublicProfilesSuccess(listOf(documentSnapshot))
 
-            val result = firebaseProvider.getUserFromDatabase(user.username, userId)
+            val result = firebaseProvider.getPublicUsers(user.username, userId)
 
-            assertEquals(user, result)
+            assertEquals(listOf(user), result)
             verify(exactly = 1) { firestore.collection("public_profiles") }
             confirmVerified(firestore)
         }
 
     @Test
-    fun `GIVEN success response and non existent user WHEN get user from database THEN return null`() =
+    fun `GIVEN success response and non existent user WHEN get user from database THEN return empty list`() =
         runTest {
             val username = "testuser"
             val userId = "testUserId"
-            givenGetPublicProfileSuccess(username, emptyList())
+            givenGetAllPublicProfilesSuccess(emptyList())
 
-            val result = firebaseProvider.getUserFromDatabase(username, userId)
+            val result = firebaseProvider.getPublicUsers(username, userId)
 
-            assertEquals(null, result)
+            assertEquals(emptyList(), result)
             verify(exactly = 1) { firestore.collection("public_profiles") }
             confirmVerified(firestore)
         }
@@ -406,10 +406,10 @@ class FirebaseProviderTest {
         val username = "testuser"
         val userId = "testUserId"
         val exception = RuntimeException("Firestore error")
-        givenGetPublicProfileFailure(username, exception)
+        givenGetAllPublicProfilesFailure(exception)
 
         try {
-            firebaseProvider.getUserFromDatabase(username, userId)
+            firebaseProvider.getPublicUsers(username, userId)
         } catch (e: Exception) {
             assertEquals(exception, e)
         }
@@ -1021,6 +1021,29 @@ class FirebaseProviderTest {
         coEvery { task.exception } returns exception
         every { collectionReference.document(userId) } returns documentReference
         every { documentReference.delete() } returns task
+    }
+
+    private fun givenGetAllPublicProfilesSuccess(documents: List<DocumentSnapshot>) {
+        val collectionReference = getPublicProfile()
+        val task = mockk<Task<QuerySnapshot>>()
+        val querySnapshot = mockk<QuerySnapshot>()
+        every { firestore.collection("public_profiles") } returns collectionReference
+        every { collectionReference.get() } returns task
+        every { task.isComplete } returns true
+        every { task.isCanceled } returns false
+        every { task.exception } returns null
+        every { task.result } returns querySnapshot
+        every { querySnapshot.documents } returns documents
+    }
+
+    private fun givenGetAllPublicProfilesFailure(exception: Exception) {
+        val collectionReference = getPublicProfile()
+        val task = mockk<Task<QuerySnapshot>>()
+        every { firestore.collection("public_profiles") } returns collectionReference
+        every { collectionReference.get() } returns task
+        every { task.isComplete } returns true
+        every { task.isCanceled } returns false
+        every { task.exception } returns exception
     }
 
     private fun givenGetPublicProfileSuccess(username: String, documents: List<DocumentSnapshot>) {

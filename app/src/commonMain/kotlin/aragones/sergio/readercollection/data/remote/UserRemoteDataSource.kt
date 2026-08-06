@@ -79,11 +79,10 @@ class UserRemoteDataSource(
         firebaseProvider.deletePublicProfile(userId)
     }
 
-    suspend fun getUser(username: String, userId: String): Result<UserResponse> = runCatching {
-        val email = username.takeIf { it.contains("@") } ?: "${username}$MAIL_END"
-        val user = firebaseProvider.getUserFromDatabase(email, userId)
-        user ?: throw NoSuchElementException("User not found")
-    }
+    suspend fun getUsers(username: String, userId: String): Result<List<UserResponse>> =
+        runCatching {
+            firebaseProvider.getPublicUsers(username, userId)
+        }
 
     suspend fun getFriends(userId: String): Result<List<UserResponse>> = runCatching {
         firebaseProvider.getFriends(userId)

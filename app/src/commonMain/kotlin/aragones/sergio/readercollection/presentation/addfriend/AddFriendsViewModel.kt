@@ -39,10 +39,10 @@ class AddFriendsViewModel(
     fun searchUserWith(username: String) = viewModelScope.launch {
         if (username.isNotEmpty()) {
             state.value = AddFriendsUiState.Loading(username)
-            userRepository.getUserWith(username).fold(
-                onSuccess = { user ->
+            userRepository.getUsersWith(username).fold(
+                onSuccess = { users ->
                     state.value = AddFriendsUiState.Success(
-                        users = UsersUi(listOf(user.toUi())),
+                        users = UsersUi(users.map { it.toUi() }),
                         query = username,
                     )
                 },

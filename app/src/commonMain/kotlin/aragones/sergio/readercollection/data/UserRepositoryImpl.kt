@@ -181,28 +181,29 @@ class UserRepositoryImpl(
         userLocalDataSource.storePublicProfile(isActive)
     }
 
-    override suspend fun getUserWith(username: String): Result<User> = withContext(ioDispatcher) {
-        withTimeout(TIMEOUT) {
-            userRemoteDataSource.getUser(username, userId)
-        }.fold(
-            onSuccess = { user ->
-                val friend = withTimeout(TIMEOUT) {
-                    userRemoteDataSource.getFriends(userId)
-                }.fold(
-                    onSuccess = { friends ->
-                        friends.firstOrNull { it.id == user.id }
-                    },
-                    onFailure = {
-                        null
-                    },
-                ) ?: user
-                Result.success(friend.toDomain())
-            },
-            onFailure = {
-                Result.failure(it)
-            },
-        )
-    }
+    override suspend fun getUsersWith(username: String): Result<List<User>> =
+        withContext(ioDispatcher) {
+            withTimeout(TIMEOUT) {
+                userRemoteDataSource.getUsers(username, userId)
+            }.fold(
+                onSuccess = { users ->
+                    val friends = withTimeout(TIMEOUT) {
+                        userRemoteDataSource.getFriends(userId)
+                    }.fold(
+                        onSuccess = { it },
+                        onFailure = { emptyList() },
+                    )
+                    val result = users
+                        .map { user ->
+                            friends.firstOrNull { it.id == user.id } ?: user
+                        }.map { it.toDomain() }
+                    Result.success(result)
+                },
+                onFailure = {
+                    Result.failure(it)
+                },
+            )
+        }
 
     override suspend fun getFriends(): List<User> = withContext(ioDispatcher) {
         withTimeout(TIMEOUT) {

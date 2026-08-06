@@ -177,13 +177,14 @@ class FriendsViewModelTest {
         runTest {
             val query = "query"
             val user = User("1", "", RequestStatus.PENDING_FRIEND)
+            val users = listOf(user)
             val userUi = UserUi("1", "", true)
             coEvery {
                 userRemoteDataSource.getFriends(testUserId)
             } returns Result.success(emptyList())
             coEvery {
-                userRemoteDataSource.getUser(query, testUserId)
-            } returns Result.success(user.toRemoteData())
+                userRemoteDataSource.getUsers(query, testUserId)
+            } returns Result.success(users.map { it.toRemoteData() })
 
             viewModel.state.test {
                 assertEquals(FriendsUiState.Loading, awaitItem())
@@ -218,7 +219,7 @@ class FriendsViewModelTest {
                 )
             }
             coVerify(exactly = 2) { userRemoteDataSource.getFriends(testUserId) }
-            coVerify { userRemoteDataSource.getUser(query, testUserId) }
+            coVerify { userRemoteDataSource.getUsers(query, testUserId) }
             confirmVerified(userRemoteDataSource)
         }
 
@@ -227,12 +228,13 @@ class FriendsViewModelTest {
         runTest {
             val query = "query"
             val user = User("1", "", RequestStatus.APPROVED)
+            val users = listOf(user)
             coEvery {
                 userRemoteDataSource.getFriends(testUserId)
             } returns Result.success(emptyList())
             coEvery {
-                userRemoteDataSource.getUser(query, testUserId)
-            } returns Result.success(user.toRemoteData())
+                userRemoteDataSource.getUsers(query, testUserId)
+            } returns Result.success(users.map { it.toRemoteData() })
 
             viewModel.state.test {
                 assertEquals(FriendsUiState.Loading, awaitItem())
@@ -267,55 +269,7 @@ class FriendsViewModelTest {
                 )
             }
             coVerify(exactly = 2) { userRemoteDataSource.getFriends(testUserId) }
-            coVerify { userRemoteDataSource.getUser(query, testUserId) }
-            confirmVerified(userRemoteDataSource)
-        }
-
-    @Test
-    fun `GIVEN query and NoSuchElementException WHEN searchFriends THEN no result is shown but no error`() =
-        runTest {
-            val query = "query"
-            coEvery {
-                userRemoteDataSource.getFriends(testUserId)
-            } returns Result.success(emptyList())
-            coEvery {
-                userRemoteDataSource.getUser(query, testUserId)
-            } returns Result.failure(NoSuchElementException())
-
-            viewModel.state.test {
-                assertEquals(FriendsUiState.Loading, awaitItem())
-
-                viewModel.fetchFriends()
-                assertEquals(
-                    FriendsUiState.Success(friends = UsersUi(), requests = UsersUi()),
-                    awaitItem(),
-                )
-
-                viewModel.searchFriends(query)
-
-                assertEquals(
-                    FriendsUiState.Success(
-                        searchQuery = query,
-                        friends = UsersUi(),
-                        requests = UsersUi(),
-                        isSearching = true,
-                        searchResults = UsersUi(),
-                    ),
-                    awaitItem(),
-                )
-                assertEquals(
-                    FriendsUiState.Success(
-                        searchQuery = query,
-                        friends = UsersUi(),
-                        requests = UsersUi(),
-                        isSearching = false,
-                        searchResults = UsersUi(),
-                    ),
-                    awaitItem(),
-                )
-            }
-            coVerify { userRemoteDataSource.getFriends(testUserId) }
-            coVerify { userRemoteDataSource.getUser(query, testUserId) }
+            coVerify { userRemoteDataSource.getUsers(query, testUserId) }
             confirmVerified(userRemoteDataSource)
         }
 
@@ -324,7 +278,7 @@ class FriendsViewModelTest {
         val query = "query"
         coEvery { userRemoteDataSource.getFriends(testUserId) } returns Result.success(emptyList())
         coEvery {
-            userRemoteDataSource.getUser(query, testUserId)
+            userRemoteDataSource.getUsers(query, testUserId)
         } returns Result.failure(RuntimeException())
 
         viewModel.error.test {
@@ -369,7 +323,7 @@ class FriendsViewModelTest {
             }
         }
         coVerify { userRemoteDataSource.getFriends(testUserId) }
-        coVerify { userRemoteDataSource.getUser(query, testUserId) }
+        coVerify { userRemoteDataSource.getUsers(query, testUserId) }
         confirmVerified(userRemoteDataSource)
     }
 
@@ -378,13 +332,14 @@ class FriendsViewModelTest {
         runTest {
             val query = "query"
             val user = User("1", "", RequestStatus.PENDING_FRIEND)
+            val users = listOf(user)
             val userUi = UserUi("1", "", true)
             coEvery {
                 userRemoteDataSource.getFriends(testUserId)
             } returns Result.success(emptyList())
             coEvery {
-                userRemoteDataSource.getUser(query, testUserId)
-            } returns Result.success(user.toRemoteData())
+                userRemoteDataSource.getUsers(query, testUserId)
+            } returns Result.success(users.map { it.toRemoteData() })
 
             viewModel.state.test {
                 assertEquals(FriendsUiState.Loading, awaitItem())
@@ -430,7 +385,7 @@ class FriendsViewModelTest {
                 )
             }
             coVerify(exactly = 2) { userRemoteDataSource.getFriends(testUserId) }
-            coVerify { userRemoteDataSource.getUser(query, testUserId) }
+            coVerify { userRemoteDataSource.getUsers(query, testUserId) }
             confirmVerified(userRemoteDataSource)
         }
 
@@ -438,13 +393,14 @@ class FriendsViewModelTest {
     fun `GIVEN friend and success response WHEN requestFriendship THEN friend is added to requests`() =
         runTest {
             val user = User("1", "user1", RequestStatus.PENDING_FRIEND)
+            val users = listOf(user)
             val userUi = UserUi("1", "user1", true)
             coEvery {
                 userRemoteDataSource.getFriends(testUserId)
             } returns Result.success(emptyList())
             coEvery {
-                userRemoteDataSource.getUser(any(), any())
-            } returns Result.success(user.toRemoteData())
+                userRemoteDataSource.getUsers(any(), any())
+            } returns Result.success(users.map { it.toRemoteData() })
             coEvery {
                 userRemoteDataSource.requestFriendship(any(), any())
             } returns Result.success(Unit)
@@ -504,7 +460,7 @@ class FriendsViewModelTest {
                 )
             }
             coVerify(exactly = 2) { userRemoteDataSource.getFriends(testUserId) }
-            coVerify { userRemoteDataSource.getUser("user1", testUserId) }
+            coVerify { userRemoteDataSource.getUsers("user1", testUserId) }
             coVerify {
                 userRemoteDataSource.requestFriendship(
                     UserResponse(
@@ -521,13 +477,14 @@ class FriendsViewModelTest {
     @Test
     fun `GIVEN friend and failure response WHEN requestFriendship THEN error is shown`() = runTest {
         val user = User("1", "user1", RequestStatus.PENDING_FRIEND)
+        val users = listOf(user)
         val userUi = UserUi("1", "user1", true)
         coEvery {
             userRemoteDataSource.getFriends(testUserId)
         } returns Result.success(emptyList())
         coEvery {
-            userRemoteDataSource.getUser(any(), any())
-        } returns Result.success(user.toRemoteData())
+            userRemoteDataSource.getUsers(any(), any())
+        } returns Result.success(users.map { it.toRemoteData() })
         coEvery {
             userRemoteDataSource.requestFriendship(any(), any())
         } returns Result.failure(RuntimeException())
@@ -600,7 +557,7 @@ class FriendsViewModelTest {
         }
 
         coVerify(exactly = 2) { userRemoteDataSource.getFriends(testUserId) }
-        coVerify { userRemoteDataSource.getUser("user1", testUserId) }
+        coVerify { userRemoteDataSource.getUsers("user1", testUserId) }
         coVerify {
             userRemoteDataSource.requestFriendship(
                 UserResponse(

@@ -79,46 +79,37 @@ class FriendsViewModel(
 
         if (query.isEmpty()) return@launch
 
-        userRepository.getUserWith(query).fold(
-            onSuccess = { user ->
-                state.update {
-                    when (it) {
-                        is FriendsUiState.Loading -> it
-                        is FriendsUiState.Success -> it.copy(
+        userRepository.getUsersWith(query).fold(
+            onSuccess = { users ->
+                state.update { currentState ->
+                    when (currentState) {
+                        is FriendsUiState.Loading -> currentState
+                        is FriendsUiState.Success -> currentState.copy(
                             searchResults = UsersUi(
-                                listOf(user.toSearchUi()).filter { user -> user.isPending },
+                                users
+                                    .map { user -> user.toSearchUi() }
+                                    .filter { user ->
+                                        user.isPending &&
+                                            !currentState.requests.users.contains(user)
+                                    },
                             ),
                             isSearching = false,
                         )
                     }
                 }
             },
-            onFailure = { failure ->
-                state.update { currentState ->
-                    when (currentState) {
-                        is FriendsUiState.Loading -> {
-                            currentState
-                        }
-                        is FriendsUiState.Success -> {
-                            when (failure) {
-                                is NoSuchElementException -> {
-                                    currentState.copy(
-                                        isSearching = false,
-                                        searchResults = UsersUi(),
-                                    )
-                                }
-                                else -> {
-                                    error.value = ErrorModel(
-                                        Constants.EMPTY_VALUE,
-                                        Res.string.friend_action_failure,
-                                    )
-                                    currentState.copy(
-                                        isSearching = false,
-                                        searchResults = UsersUi(),
-                                    )
-                                }
-                            }
-                        }
+            onFailure = {
+                state.update {
+                    error.value = ErrorModel(
+                        Constants.EMPTY_VALUE,
+                        Res.string.friend_action_failure,
+                    )
+                    when (it) {
+                        is FriendsUiState.Loading -> it
+                        is FriendsUiState.Success -> it.copy(
+                            isSearching = false,
+                            searchResults = UsersUi(),
+                        )
                     }
                 }
             },
@@ -151,16 +142,17 @@ class FriendsViewModel(
                         is FriendsUiState.Success -> {
                             val newRequests =
                                 UsersUi(it.requests.users + listOf(requestedFriend.toRequest()))
+                            val newSearchResults = UsersUi(
+                                it.searchResults.users.filter { user ->
+                                    user.id != friend.id
+                                },
+                            )
+                            val areThereMoreResults = newSearchResults.users.isNotEmpty()
                             it.copy(
-                                tab = FriendsTab.REQUESTS,
-                                searchQuery = "",
+                                tab = FriendsTab.REQUESTS.takeIf { !areThereMoreResults } ?: it.tab,
+                                searchQuery = "".takeIf { !areThereMoreResults } ?: it.searchQuery,
                                 requests = newRequests,
-                                isSearching = false,
-                                searchResults = UsersUi(
-                                    it.searchResults.users.filter { user ->
-                                        user.id != friend.id
-                                    },
-                                ),
+                                searchResults = newSearchResults,
                             )
                         }
                     }
@@ -270,7 +262,12 @@ class FriendsViewModel(
                                 it.requests.users.filter { friend -> friend.id != friendId },
                             )
                             it.copy(
-                                tab = getTab(newFriends.users, newRequests.users),
+                                tab = getTab(newFriends.users, newRequests.users)
+                                    .takeIf {
+                                        newFriends.users.isEmpty() ||
+                                            newRequests.users.isEmpty()
+                                    }
+                                    ?: it.tab,
                                 friends = newFriends,
                                 requests = newRequests,
                             )

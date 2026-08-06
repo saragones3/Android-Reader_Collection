@@ -140,7 +140,7 @@
     <string name="results_for">Results for "%1$s"</string>
     <string name="view_profile">View profile</string>
     <string name="send_request">Send\nRequest</string>
-    <string name="no_friends_found">We did not found any profile for "%1$s". Make sure you wrote ir correctly, with capital letters and lowercase when necessary, and that the user's public profile is activated</string>
+    <string name="no_friends_found">We did not found any profile for "%1$s". Make sure you wrote ir correctly and that the user's public profile is activated</string>
 
     //ADD FRIENDS
     <string name="add_friends_title">Add friends</string>

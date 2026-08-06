@@ -116,25 +116,26 @@ class FirebaseProviderIos: FirebaseProvider {
             .delete()
     }
     
-    func getUserFromDatabase(username: String, userId: String) async throws -> UserResponse? {
+    func getPublicUsers(username: String, userId: String) async throws -> [UserResponse] {
         let result = try await firestore
             .collection(PUBLIC_PROFILES_PATH)
-            .whereField(EMAIL_KEY, isEqualTo: username)
             .getDocuments()
             .documents
-            .first
-        guard let result = result,
-              let uuid = result.get(UUID_KEY) as? String,
-              let email = result.get(EMAIL_KEY) as? String,
-              uuid != userId else {
-            return nil
+        
+        return result.compactMap { document in
+            guard let uuid = document.get(UUID_KEY) as? String,
+                  let email = document.get(EMAIL_KEY) as? String,
+                  uuid != userId,
+                  email.localizedCaseInsensitiveContains(username) else {
+                return nil
+            }
+            return UserResponse(
+                id: uuid,
+                username: String(email.split(separator: "@").first ?? ""),
+                email: "",
+                status: RequestStatus.pendingFriend,
+            )
         }
-        return UserResponse(
-            id: uuid,
-            username: String(email.split(separator: "@").first ?? ""),
-            email: "",
-            status: RequestStatus.pendingFriend,
-        )
     }
     
     func getFriends(userId: String) async throws -> [UserResponse] {
