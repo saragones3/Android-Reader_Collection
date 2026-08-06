@@ -1047,30 +1047,23 @@ Feature: RNF-11 Gestión de pérdida de conexión
 
 ## Trazabilidad
 
-| Feature | Pantalla | ViewModel | Estado |
-|---|---|---|---|
-| US-AUTH-001 | `LoginScreen` | `LoginViewModel` | ✅ Implementado |
-| US-AUTH-002 | `RegisterScreen` | `RegisterViewModel` | ✅ Implementado |
-| US-AUTH-003 | `SettingsScreen` | `SettingsViewModel` | ✅ Implementado |
-| US-AUTH-004 | `AccountScreen` | `AccountViewModel` | ✅ Implementado |
-| US-BOOK-001 | `BooksScreen` | `BooksViewModel` | ✅ Implementado |
-| US-BOOK-002 | `BookListScreen` | `BookListViewModel` | ✅ Implementado |
-| US-BOOK-003 | `BookDetailScreen` | `BookDetailViewModel` | ✅ Implementado |
-| US-BOOK-004 | `BookDetailScreen` | `BookDetailViewModel` | ✅ Implementado |
-| US-BOOK-005 | `BookDetailScreen` | `BookDetailViewModel` | ✅ Implementado |
-| US-BOOK-006 | `BookDetailScreen` | `BookDetailViewModel` | ✅ Implementado |
-| US-BOOK-007 | `BooksScreen` | `BooksViewModel` | ✅ Implementado |
-| US-BOOK-008 | `BooksScreen` / `BookListScreen` | `BooksViewModel` / `BookListViewModel` | ✅ Implementado |
-| US-SRCH-001 | `SearchScreen` | `SearchViewModel` | ✅ Implementado |
-| US-STAT-001 | `StatisticsScreen` | `StatisticsViewModel` | ✅ Implementado |
-| US-STAT-002 | `StatisticsScreen` | `StatisticsViewModel` | ✅ Implementado |
-| US-STAT-003 | `StatisticsScreen` | `StatisticsViewModel` | ✅ Implementado |
-| US-FRND-001 | `AddFriendsScreen` | `AddFriendsViewModel` | ✅ Implementado |
-| US-FRND-002 | `FriendsScreen` | `FriendsViewModel` | ✅ Implementado |
-| US-FRND-003 | `FriendDetailScreen` | `FriendDetailViewModel` | ✅ Implementado |
-| US-SETT-001 | `SettingsScreen` | `SettingsViewModel` | ✅ Implementado |
-| US-SYNC-001 | `DataSyncScreen` | `DataSyncViewModel` | ✅ Implementado |
-| US-SYNC-002 | `DataSyncScreen` | `DataSyncViewModel` | ✅ Implementado |
-| US-DISP-001 | `DisplaySettingsScreen` | `DisplaySettingsViewModel` | ✅ Implementado |
-| US-DISP-002 | `DisplaySettingsScreen` | `DisplaySettingsViewModel` | ✅ Implementado |
-| US-DISP-003 | `DisplaySettingsScreen` | `DisplaySettingsViewModel` | ✅ Implementado |
+| Feature                                                                      | Pantalla | ViewModel | Estado |
+|------------------------------------------------------------------------------|---|---|---|
+| US-AUTH-001                                                                  | `LoginScreen` | `LoginViewModel` | ✅ Implementado |
+| US-AUTH-002                                                                  | `RegisterScreen` | `RegisterViewModel` | ✅ Implementado |
+| US-AUTH-003                                                                  | `SettingsScreen` | `SettingsViewModel` | ✅ Implementado |
+| US-AUTH-004                                                                  | `AccountScreen` | `AccountViewModel` | ✅ Implementado |
+| US-BOOK-001                                                                  | `BooksScreen` | `BooksViewModel` | ✅ Implementado |
+| US-BOOK-002                                                                  | `BookListScreen` | `BookListViewModel` | ✅ Implementado |
+| US-BOOK-003                                                                  | `BookDetailScreen` | `BookDetailViewModel` | ✅ Implementado |
+| US-BOOK-004                                                                  | `BookDetailScreen` | `BookDetailViewModel` | ✅ Implementado |
+| US-BOOK-005                                                                  | `BookDetailScreen` | `BookDetailViewModel` | ✅ Implementado |
+| US-BOOK-006                                                                  | `BookDetailScreen` | `BookDetailViewModel` | ✅ Implementado |
+| US-BOOK-007                                                                  | `BooksScreen` | `BooksViewModel` | ✅ Implementado |
+| US-BOOK-008                                                                  | `BooksScreen` / `BookListScreen` | `BooksViewModel` / `BookListViewModel` | ✅ Implementado |
+| US-SRCH-001                                                                  | `SearchScreen` | `SearchViewModel` | ✅ Implementado |
+| US-STAT-001                                                                  | `StatisticsScreen` | `StatisticsViewModel` | ✅ Implementado |
+| US-STAT-002                                                                  | `StatisticsScreen` | `StatisticsViewModel` | ✅ Implementado |
+| US-STAT-003                                                                  | `StatisticsScreen` | `StatisticsViewModel` | ✅ Implementado |
+| US-FRND-001, US-FRND-002, US-FRND-003                                        | `FriendsScreen` | `FriendsViewModel` | ✅ Implementado |
+| US-SETT-001, US-SYNC-001, US-SYNC-002, US-DISP-001, US-DISP-002, US-DISP-003 | `SettingsScreen` | `SettingsViewModel` | ✅ Implementado |

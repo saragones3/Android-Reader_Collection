@@ -7,8 +7,5 @@ package aragones.sergio.readercollection.presentation.settings
 
 sealed class SettingsOption {
     object Account : SettingsOption()
-    object Friends : SettingsOption()
-    object DataSync : SettingsOption()
-    object DisplaySettings : SettingsOption()
     object Logout : SettingsOption()
 }

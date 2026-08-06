@@ -66,7 +66,6 @@ fun AccountScreen(
     onProfileDataChange: (String, String) -> Unit,
     onBack: () -> Unit,
     onSave: () -> Unit,
-    onChangePublicProfile: (Boolean) -> Unit,
     onDeleteAccount: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -211,7 +210,6 @@ private fun AccountScreenPreview(
             onProfileDataChange = { _, _ -> },
             onBack = {},
             onSave = {},
-            onChangePublicProfile = {},
             onDeleteAccount = {},
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
@@ -229,7 +227,6 @@ private class AccountScreenPreviewParameterProvider :
                 password = "Password",
                 emailError = null,
                 passwordError = null,
-                isProfilePublic = true,
                 isLoading = false,
             ),
             AccountUiState(
@@ -238,7 +235,6 @@ private class AccountScreenPreviewParameterProvider :
                 emailError = Res.string.invalid_email,
                 password = "",
                 passwordError = Res.string.invalid_password,
-                isProfilePublic = false,
                 isLoading = false,
             ),
             AccountUiState(
@@ -247,7 +243,6 @@ private class AccountScreenPreviewParameterProvider :
                 password = "Password",
                 emailError = null,
                 passwordError = null,
-                isProfilePublic = true,
                 isLoading = true,
             ),
         )

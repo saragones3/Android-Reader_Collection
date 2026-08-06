@@ -109,7 +109,6 @@
     <string name="visualization_title">Visualization</string>
     <string name="account_title">Account</string>
     <string name="account_description">Manage your account</string>
-    <string name="friends_description">Manage your friends list</string>
     <string name="data_sync_title">Data Synchronization</string>
     <string name="data_sync_description">Manage your data synchronization</string>
     <string name="automatic_sync_title">Automatic sync</string>
@@ -117,8 +116,6 @@
     <string name="sync_now_action">Sync now</string>
     <string name="last_synced">Last synced: %1$s</string>
     <string name="data_sync_successfully">Your data has been successfully synced</string>
-    <string name="display_settings_title">Display Settings</string>
-    <string name="display_settings_description">Personalize display settings</string>
     <string name="english">English</string>
     <string name="spanish">Spanish</string>
     <string name="app_language">App language</string>
@@ -169,14 +166,6 @@
     //ADD FRIENDS
     <string name="add_friends_title">Add friends</string>
     <string name="search_friends_instructions">Introduce your friend's username to search it</string>
-
-    //DATA SYNCHRONIZATION
-    <string name="syncing_options_title">Syncing options</string>
-    <string name="manual_sync_title">Manual sync</string>
-    <string name="manual_sync_description">Sync your data manually</string>
-
-    //DISPLAY SETTINGS
-    <string name="sort_order">Sort order</string>
 
     //POPUPS
     <string name="accept">Accept</string>

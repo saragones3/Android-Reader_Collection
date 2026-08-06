@@ -19,9 +19,6 @@ import reader_collection.app.generated.resources.user_remove_confirmation
 
 @Composable
 fun FriendsView(
-    onBack: () -> Unit,
-    onSelectFriend: (String) -> Unit,
-    onAddFriend: () -> Unit,
     onBookClick: (String, String) -> Unit,
     onShowAll: (String, String?, Boolean, String) -> Unit,
     viewModel: FriendsViewModel = koinViewModel(),
@@ -34,10 +31,8 @@ fun FriendsView(
     ReaderCollectionApp(navigationBarSameAsBackground = false) {
         FriendsScreen(
             state = state,
-            onBack = onBack,
             onSearch = viewModel::searchFriends,
             onSelectTab = viewModel::selectTab,
-            onSelectFriend = onSelectFriend,
             onViewFriendLibrary = {
                 viewModel.toggleLibrary(it)
             },
@@ -49,7 +44,6 @@ fun FriendsView(
                 viewModel.showConfirmationDialog(Res.string.user_remove_confirmation, it)
             },
             onRequestFriend = viewModel::requestFriendship,
-            onAddFriend = onAddFriend,
         )
     }
 

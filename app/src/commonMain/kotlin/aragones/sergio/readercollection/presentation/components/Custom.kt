@@ -6,7 +6,6 @@
 package aragones.sergio.readercollection.presentation.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -68,7 +67,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalFocusManager
@@ -101,8 +99,6 @@ import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import aragones.sergio.readercollection.presentation.theme.RoseBud
 import aragones.sergio.readercollection.presentation.theme.isLight
 import com.aragones.sergio.util.Constants
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
@@ -111,11 +107,9 @@ import reader_collection.app.generated.resources.clear_text
 import reader_collection.app.generated.resources.connection_lost
 import reader_collection.app.generated.resources.connection_lost_description
 import reader_collection.app.generated.resources.empty_library_description
-import reader_collection.app.generated.resources.image_no_results
 import reader_collection.app.generated.resources.library_ready_title
 import reader_collection.app.generated.resources.no_matching_records
 import reader_collection.app.generated.resources.no_matching_records_description
-import reader_collection.app.generated.resources.no_results_text
 import reader_collection.app.generated.resources.pending
 import reader_collection.app.generated.resources.retry_search
 import reader_collection.app.generated.resources.search
@@ -126,38 +120,6 @@ import reader_collection.app.generated.resources.star_filled
 import reader_collection.app.generated.resources.star_half_filled
 import reader_collection.app.generated.resources.star_rate_description
 import reader_collection.app.generated.resources.star_status_description
-
-@Composable
-fun NoResultsComponent(
-    modifier: Modifier = Modifier,
-    text: String = stringResource(Res.string.no_results_text),
-    image: DrawableResource = Res.drawable.image_no_results,
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Image(
-            painter = painterResource(image),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .fillMaxWidth(0.5f),
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
-        )
-        Text(
-            text = text,
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .padding(24.dp),
-            style = MaterialTheme.typography.displayLarge,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-        )
-    }
-}
 
 @Composable
 fun StarRatingBar(
@@ -823,14 +785,6 @@ internal fun getBoldTextFor(text: String, placeholder: String): AnnotatedString 
             append(text)
         }
     }
-
-@CustomPreviewLightDarkWithBackground
-@Composable
-private fun NoResultsComponentPreview() {
-    ReaderCollectionTheme {
-        NoResultsComponent()
-    }
-}
 
 @CustomPreviewLightDarkWithBackground
 @Composable

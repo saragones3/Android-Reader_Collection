@@ -49,11 +49,7 @@ fun SettingsView(
             state = state,
             onClickOption = {
                 when (it) {
-                    is SettingsOption.Account,
-                    is SettingsOption.Friends,
-                    is SettingsOption.DataSync,
-                    is SettingsOption.DisplaySettings,
-                    -> onClickOption(it)
+                    is SettingsOption.Account -> onClickOption(it)
                     is SettingsOption.Logout -> viewModel.showConfirmationDialog(
                         Res.string.profile_logout_confirmation,
                     )

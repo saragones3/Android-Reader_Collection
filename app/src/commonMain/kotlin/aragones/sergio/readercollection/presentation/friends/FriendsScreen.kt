@@ -102,10 +102,8 @@ import reader_collection.app.generated.resources.view_library_action
 @Composable
 fun FriendsScreen(
     state: FriendsUiState,
-    onBack: () -> Unit,
     onSearch: (String) -> Unit,
     onSelectTab: (FriendsTab) -> Unit,
-    onSelectFriend: (String) -> Unit,
     onViewFriendLibrary: (String) -> Unit,
     onBookClick: (String, String) -> Unit,
     onShowAll: (String, String?, Boolean, String) -> Unit,
@@ -113,7 +111,6 @@ fun FriendsScreen(
     onRejectFriend: (String) -> Unit,
     onDeleteFriend: (String) -> Unit,
     onRequestFriend: (UserUi) -> Unit,
-    onAddFriend: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -690,10 +687,8 @@ private fun FriendsScreenPreview(
     ReaderCollectionTheme {
         FriendsScreen(
             state = state,
-            onBack = {},
             onSearch = {},
             onSelectTab = {},
-            onSelectFriend = {},
             onViewFriendLibrary = {},
             onBookClick = { _, _ -> },
             onShowAll = { _, _, _, _ -> },
@@ -701,7 +696,6 @@ private fun FriendsScreenPreview(
             onRejectFriend = {},
             onDeleteFriend = {},
             onRequestFriend = {},
-            onAddFriend = {},
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
     }

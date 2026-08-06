@@ -54,7 +54,6 @@ class AccountViewModel(
                 emailError = null,
                 password = userRepository.userData.password,
                 passwordError = null,
-                isProfilePublic = userRepository.isProfilePublic,
             )
         }
     }
@@ -92,23 +91,6 @@ class AccountViewModel(
                 )
             }
         }
-    }
-
-    fun setPublicProfile(value: Boolean) = viewModelScope.launch {
-        state.update { it.copy(isLoading = true) }
-        userRepository.setPublicProfile(value).fold(
-            onSuccess = {
-                state.update {
-                    it.copy(
-                        isProfilePublic = value,
-                        isLoading = false,
-                    )
-                }
-            },
-            onFailure = {
-                manageError(ErrorModel(Constants.EMPTY_VALUE, Res.string.error_server))
-            },
-        )
     }
 
     fun deleteUser() = viewModelScope.launch {

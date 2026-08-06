@@ -12,13 +12,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import aragones.sergio.readercollection.presentation.account.AccountView
-import aragones.sergio.readercollection.presentation.addfriend.AddFriendsView
 import aragones.sergio.readercollection.presentation.bookdetail.BookDetailView
 import aragones.sergio.readercollection.presentation.booklist.BookListView
 import aragones.sergio.readercollection.presentation.books.BooksView
-import aragones.sergio.readercollection.presentation.datasync.DataSyncView
-import aragones.sergio.readercollection.presentation.displaysettings.DisplaySettingsView
-import aragones.sergio.readercollection.presentation.frienddetail.FriendDetailView
 import aragones.sergio.readercollection.presentation.friends.FriendsView
 import aragones.sergio.readercollection.presentation.login.LoginView
 import aragones.sergio.readercollection.presentation.register.RegisterView
@@ -198,29 +194,6 @@ fun NavGraphBuilder.friendsGraph(navController: NavHostController) {
             exitTransition = { ExitTransition.None },
         ) {
             FriendsView(
-                onBack = {},
-                onSelectFriend = { userId ->
-                    navController.navigate(Route.FriendDetail(userId))
-                },
-                onAddFriend = {
-                    navController.navigate(Route.AddFriends)
-                },
-                onBookClick = { bookId, friendId ->
-                    navController.navigate(
-                        Route.BookDetail(bookId, friendId),
-                    )
-                },
-            )
-        }
-        composable<Route.FriendDetail>(
-            enterTransition = { slideIntoContainer() },
-            popEnterTransition = { EnterTransition.None },
-            popExitTransition = { slideOutOfContainer() },
-        ) {
-            FriendDetailView(
-                onBack = {
-                    navController.navigateUp()
-                },
                 onBookClick = { bookId, friendId ->
                     navController.navigate(
                         Route.BookDetail(bookId, friendId),
@@ -265,16 +238,6 @@ fun NavGraphBuilder.friendsGraph(navController: NavHostController) {
                 },
             )
         }
-        composable<Route.AddFriends>(
-            enterTransition = { slideIntoContainer() },
-            exitTransition = { slideOutOfContainer() },
-        ) {
-            AddFriendsView(
-                onBack = {
-                    navController.navigateUp()
-                },
-            )
-        }
     }
 }
 
@@ -287,21 +250,8 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController, navigator: N
             SettingsView(
                 onClickOption = {
                     when (it) {
-                        is SettingsOption.Account -> {
-                            navController.navigate(Route.Account)
-                        }
-                        is SettingsOption.Friends -> {}
-                        is SettingsOption.DataSync -> {
-                            navController.navigate(Route.DataSync)
-                        }
-                        is SettingsOption.DisplaySettings -> {
-                            navController.navigate(
-                                Route.DisplaySettings,
-                            )
-                        }
-                        is SettingsOption.Logout -> {
-                            navigator.goToLanding()
-                        }
+                        is SettingsOption.Account -> navController.navigate(Route.Account)
+                        is SettingsOption.Logout -> navigator.goToLanding()
                     }
                 },
                 onRelaunch = {
@@ -319,29 +269,6 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController, navigator: N
                 },
                 onLogout = {
                     navigator.goToLanding()
-                },
-            )
-        }
-        composable<Route.DataSync>(
-            enterTransition = { slideIntoContainer() },
-            exitTransition = { slideOutOfContainer() },
-        ) {
-            DataSyncView(
-                onBack = {
-                    navController.navigateUp()
-                },
-            )
-        }
-        composable<Route.DisplaySettings>(
-            enterTransition = { slideIntoContainer() },
-            exitTransition = { slideOutOfContainer() },
-        ) {
-            DisplaySettingsView(
-                onBack = {
-                    navController.navigateUp()
-                },
-                onRelaunch = {
-                    navigator.goToMain(withOptions = false)
                 },
             )
         }

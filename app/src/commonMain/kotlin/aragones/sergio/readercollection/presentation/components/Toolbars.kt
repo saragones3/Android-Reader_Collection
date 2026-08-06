@@ -50,14 +50,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
-import aragones.sergio.readercollection.presentation.theme.isLight
 import com.aragones.sergio.util.extensions.isNotBlank
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.enter_title
 import reader_collection.app.generated.resources.go_back
 import reader_collection.app.generated.resources.ic_default_book_cover_blue
-import reader_collection.app.generated.resources.ic_default_book_cover_white
 import reader_collection.app.generated.resources.search
 import reader_collection.app.generated.resources.title_search
 
@@ -336,11 +334,7 @@ private fun CollapsingToolbarPreview() {
             middleContent = {
                 ImageWithLoading(
                     imageUrl = null,
-                    placeholder = if (MaterialTheme.colorScheme.isLight()) {
-                        Res.drawable.ic_default_book_cover_white
-                    } else {
-                        Res.drawable.ic_default_book_cover_blue
-                    },
+                    placeholder = Res.drawable.ic_default_book_cover_blue,
                     modifier = it,
                     shape = MaterialTheme.shapes.medium,
                 )

@@ -68,16 +68,4 @@ sealed class Route {
 
     @Serializable
     data object Account : Route()
-
-    @Serializable
-    data class FriendDetail(val userId: String) : Route()
-
-    @Serializable
-    data object AddFriends : Route()
-
-    @Serializable
-    data object DataSync : Route()
-
-    @Serializable
-    data object DisplaySettings : Route()
 }
