@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
@@ -38,6 +39,7 @@ import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.delete
 import reader_collection.app.generated.resources.export_data
 import reader_collection.app.generated.resources.import_data
+import reader_collection.app.generated.resources.logout_title
 import reader_collection.app.generated.resources.sign_in
 
 @Composable
@@ -67,6 +69,60 @@ fun MainActionButton(
         enabled = enabled,
         colors = buttonColors,
     ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(8.dp),
+            style = MaterialTheme.typography.labelLarge,
+            color = textColor,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+fun MainOutlinedButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    type: ButtonType = ButtonType.MAIN,
+    painter: AccessibilityPainter? = null,
+    enabled: Boolean = true,
+) {
+    val buttonColors = when (type) {
+        ButtonType.MAIN -> ButtonDefaults.outlinedButtonColors(
+            containerColor = MaterialTheme.colorScheme.secondary,
+            disabledContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f),
+            contentColor = MaterialTheme.colorScheme.primary,
+            disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+        )
+        ButtonType.DESTRUCTIVE -> ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.onError,
+        )
+    }
+    val textColor = when (type) {
+        ButtonType.MAIN -> MaterialTheme.colorScheme.primary
+        ButtonType.DESTRUCTIVE -> MaterialTheme.colorScheme.error
+    }
+    val borderColor = when (type) {
+        ButtonType.MAIN -> MaterialTheme.colorScheme.primary
+        ButtonType.DESTRUCTIVE -> MaterialTheme.colorScheme.error
+    }
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        shape = MaterialTheme.shapes.medium,
+        colors = buttonColors,
+        border = BorderStroke(width = 1.dp, color = borderColor),
+    ) {
+        painter?.let {
+            Icon(
+                painter = it.painter,
+                contentDescription = it.contentDescription,
+                tint = textColor,
+            )
+            Spacer(Modifier.width(8.dp))
+        }
         Text(
             text = text,
             modifier = Modifier.padding(8.dp),
@@ -247,6 +303,35 @@ private fun MainDestructiveActionButtonPreview() {
             enabled = true,
             onClick = {},
             type = ButtonType.DESTRUCTIVE,
+        )
+    }
+}
+
+@CustomPreviewLightDarkWithBackground
+@Composable
+private fun MainOutlinedButtonPreview() {
+    ReaderCollectionTheme {
+        MainOutlinedButton(
+            text = stringResource(Res.string.logout_title),
+            onClick = {},
+            painter = rememberVectorPainter(
+                Icons.AutoMirrored.Default.Logout,
+            ).withDescription(null),
+        )
+    }
+}
+
+@CustomPreviewLightDarkWithBackground
+@Composable
+private fun MainDestructiveOutlinedButtonPreview() {
+    ReaderCollectionTheme {
+        MainOutlinedButton(
+            text = stringResource(Res.string.logout_title),
+            onClick = {},
+            type = ButtonType.DESTRUCTIVE,
+            painter = rememberVectorPainter(
+                Icons.AutoMirrored.Default.Logout,
+            ).withDescription(null),
         )
     }
 }

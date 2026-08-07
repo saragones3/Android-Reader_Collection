@@ -209,6 +209,9 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController, navigator: N
                         is SettingsOption.Logout -> navigator.goToLanding()
                     }
                 },
+                onRelaunch = {
+                    navigator.goToMain(withOptions = false)
+                },
             )
         }
         composable<Route.Account>(
