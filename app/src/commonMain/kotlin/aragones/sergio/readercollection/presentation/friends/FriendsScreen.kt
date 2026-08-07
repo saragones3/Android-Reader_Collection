@@ -5,7 +5,6 @@
 
 package aragones.sergio.readercollection.presentation.friends
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -33,8 +32,6 @@ import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -59,6 +56,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import aragones.sergio.readercollection.presentation.components.CustomCard
 import aragones.sergio.readercollection.presentation.components.CustomCircularProgressIndicator
 import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDark
 import aragones.sergio.readercollection.presentation.components.CustomToolbar
@@ -438,23 +436,10 @@ private fun FriendContainer(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth().padding(vertical = 12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
-        ),
-        border = BorderStroke(
-            width = 0.1.dp,
-            color = MaterialTheme.colorScheme.primary,
-        ),
-        content = {
-            Column(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                content = content,
-            )
-        },
+    CustomCard(
+        modifier = modifier,
+        contentModifier = Modifier.fillMaxWidth(),
+        content = content,
     )
 }
 

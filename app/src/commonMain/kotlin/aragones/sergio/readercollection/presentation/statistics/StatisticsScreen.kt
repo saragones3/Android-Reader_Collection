@@ -5,7 +5,6 @@
 
 package aragones.sergio.readercollection.presentation.statistics
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -23,8 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Upload
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -47,6 +44,7 @@ import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.isAndroid
 import aragones.sergio.readercollection.presentation.LocalLanguage
 import aragones.sergio.readercollection.presentation.components.BarChart
+import aragones.sergio.readercollection.presentation.components.CustomCard
 import aragones.sergio.readercollection.presentation.components.CustomCircularProgressIndicator
 import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDarkLong
 import aragones.sergio.readercollection.presentation.components.CustomToolbar
@@ -273,17 +271,9 @@ private fun SectionContainer(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth().padding(vertical = 12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
-        ),
-        border = BorderStroke(
-            width = 0.1.dp,
-            color = MaterialTheme.colorScheme.primary,
-        ),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+    CustomCard(
+        modifier = modifier,
+        content = {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -303,8 +293,8 @@ private fun SectionContainer(
             }
             Spacer(Modifier.height(8.dp))
             content()
-        }
-    }
+        },
+    )
 }
 
 @Composable

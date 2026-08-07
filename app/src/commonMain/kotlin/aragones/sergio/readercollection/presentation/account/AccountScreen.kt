@@ -32,8 +32,10 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -144,9 +146,13 @@ fun AccountScreen(
 
 @Composable
 private fun AccountToolbar(scrollState: ScrollState, onBack: (() -> Unit)) {
-    val elevation = when (scrollState.value) {
-        0 -> 0.dp
-        else -> 4.dp
+    val elevation by remember {
+        derivedStateOf {
+            when (scrollState.value) {
+                0 -> 0.dp
+                else -> 4.dp
+            }
+        }
     }
     CustomToolbar(
         title = stringResource(Res.string.account_title),
