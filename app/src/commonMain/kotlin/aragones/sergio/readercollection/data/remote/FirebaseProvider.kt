@@ -38,6 +38,7 @@ interface FirebaseProvider {
         booksToRemove: List<BookResponse>,
     )
     suspend fun deleteBooks(userId: String)
+    suspend fun getLastUpdated(userId: String): Any?
     fun fetchRemoteConfigString(key: String, onCompletion: (String) -> Unit)
     suspend fun getRemoteConfigString(key: String): String
 }

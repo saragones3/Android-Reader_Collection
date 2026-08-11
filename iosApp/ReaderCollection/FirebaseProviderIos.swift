@@ -348,6 +348,15 @@ class FirebaseProviderIos: FirebaseProvider {
         try await batch.commit()
     }
     
+    func getLastUpdated(userId: String) async throws -> Any {
+        let timestamp = try await firestore
+            .collection(USERS_PATH)
+            .document(userId)
+            .getDocument()
+            .get("lastUpdated") as? Timestamp
+        return timestamp?.toDate() ?? NSNull()
+    }
+    
     func fetchRemoteConfigString(key: String, onCompletion: @escaping (String) -> Void) {
         onCompletion(remoteConfig.configValue(forKey: key).stringValue)
         

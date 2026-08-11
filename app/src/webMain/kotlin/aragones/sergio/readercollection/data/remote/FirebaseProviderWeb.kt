@@ -228,6 +228,11 @@ class FirebaseProviderWeb : FirebaseProvider {
         deleteBooksJs(getFirestoreJs(), userId).await()
     }
 
+    override suspend fun getLastUpdated(userId: String): Any? {
+        val result = getLastUpdatedJs(getFirestoreJs(), userId).await()
+        return json.decodeFromString<JsonObject>(result.toString()).toAny()
+    }
+
     override fun fetchRemoteConfigString(key: String, onCompletion: (String) -> Unit) {
         val config = getRemoteConfigJs()
         onCompletion(getRemoteConfigStringJs(config, key))
@@ -391,6 +396,9 @@ external fun deleteFriendshipJs(db: JsAny, userId: String, friendId: String): Pr
 
 @JsFun("(db, userId) => window.firebaseFirestoreModule.deleteFriends(db, userId)")
 external fun deleteFriendsJs(db: JsAny, userId: String): Promise<JsAny?>
+
+@JsFun("(db, userId) => window.firebaseFirestoreModule.getLastUpdated(db, userId)")
+external fun getLastUpdatedJs(db: JsAny, userId: String): Promise<JsString?>
 
 @JsFun("() => window.firebaseRemoteConfig")
 external fun getRemoteConfigJs(): JsAny

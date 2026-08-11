@@ -21,7 +21,9 @@ import io.mockk.verify
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.time.Instant
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.LocalDate
 
 class UserRemoteDataSourceTest {
 
@@ -665,6 +667,37 @@ class UserRemoteDataSourceTest {
         coVerify(exactly = 1) { firebaseProvider.deleteUserFromDatabase(userId) }
         coVerify(exactly = 0) { firebaseProvider.deletePublicProfile(userId) }
         coVerify(exactly = 0) { firebaseProvider.deleteUser() }
+        confirmVerified(firebaseProvider)
+    }
+
+    @Test
+    fun `GIVEN success response WHEN get last updated THEN return timestamp`() = runTest {
+        val userId = "testUserId"
+        val lastUpdated = 1786344084000L // August 10, 2026, 08:41:24 UTC
+        coEvery {
+            firebaseProvider.getLastUpdated(any())
+        } returns Instant.fromEpochMilliseconds(lastUpdated)
+
+        val result = dataSource.getLastUpdated(userId)
+
+        assertEquals(
+            Result.success(LocalDate.orNull(2026, 8, 10)),
+            result,
+        )
+        coVerify(exactly = 1) { firebaseProvider.getLastUpdated(userId) }
+        confirmVerified(firebaseProvider)
+    }
+
+    @Test
+    fun `GIVEN failure response WHEN get last updated THEN return failure`() = runTest {
+        val userId = "testUserId"
+        val exception = RuntimeException("Firestore error")
+        coEvery { firebaseProvider.getLastUpdated(any()) } throws exception
+
+        val result = dataSource.getLastUpdated(userId)
+
+        assertEquals(Result.failure(exception), result)
+        coVerify(exactly = 1) { firebaseProvider.getLastUpdated(userId) }
         confirmVerified(firebaseProvider)
     }
 

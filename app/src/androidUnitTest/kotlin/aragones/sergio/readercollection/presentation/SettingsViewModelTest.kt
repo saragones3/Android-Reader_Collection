@@ -35,6 +35,7 @@ import kotlin.test.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.LocalDate
 import org.junit.Rule
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.data_sync_successfully
@@ -73,48 +74,56 @@ class SettingsViewModelTest {
     )
 
     @Test
-    fun `GIVEN version WHEN onResume THEN state is updated with version`() = runTest {
-        val version = "1.2.3"
-        val language = "en"
-        val sortParam = "title"
-        val isSortDescending = true
-        val themeMode = 1
-        every { userLocalDataSource.isProfilePublic } returns false
-        every { userLocalDataSource.getCurrentVersion() } returns version
-        every { userLocalDataSource.isAutomaticSyncEnabled } returns false
-        every { userLocalDataSource.language } returns language
-        every { userLocalDataSource.sortParam } returns sortParam
-        every { userLocalDataSource.isSortDescending } returns isSortDescending
-        every { userLocalDataSource.themeMode } returns themeMode
+    fun `GIVEN version WHEN onResume THEN state is updated with version and last synced`() =
+        runTest {
+            val version = "1.2.3"
+            val language = "en"
+            val sortParam = "title"
+            val isSortDescending = true
+            val themeMode = 1
+            val lastUpdated = LocalDate.orNull(2026, 8, 10)
+            every { userLocalDataSource.isProfilePublic } returns false
+            every { userLocalDataSource.getCurrentVersion() } returns version
+            every { userLocalDataSource.isAutomaticSyncEnabled } returns false
+            every { userLocalDataSource.language } returns language
+            every { userLocalDataSource.sortParam } returns sortParam
+            every { userLocalDataSource.isSortDescending } returns isSortDescending
+            every { userLocalDataSource.themeMode } returns themeMode
+            coEvery {
+                userRemoteDataSource.getLastUpdated(any())
+            } returns Result.success(lastUpdated)
 
-        viewModel.state.test {
-            assertEquals(SettingsUiState.empty(), awaitItem())
+            viewModel.state.test {
+                assertEquals(SettingsUiState.empty(), awaitItem())
 
-            viewModel.onResume()
+                viewModel.onResume()
 
-            assertEquals(
-                SettingsUiState.empty().copy(
-                    isProfilePublic = false,
-                    isAutomaticSyncEnabled = false,
-                    version = version,
-                    language = language,
-                    sortParam = sortParam,
-                    isSortDescending = isSortDescending,
-                    themeMode = themeMode,
-                ),
-                awaitItem(),
-            )
+                assertEquals(
+                    SettingsUiState.empty().copy(
+                        isProfilePublic = false,
+                        isAutomaticSyncEnabled = false,
+                        lastSynced = "August 10, 2026",
+                        version = version,
+                        language = language,
+                        sortParam = sortParam,
+                        isSortDescending = isSortDescending,
+                        themeMode = themeMode,
+                    ),
+                    awaitItem(),
+                )
+            }
+            verify { userLocalDataSource.isProfilePublic }
+            verify { userLocalDataSource.isAutomaticSyncEnabled }
+            verify { userLocalDataSource.language }
+            verify { userLocalDataSource.sortParam }
+            verify { userLocalDataSource.isSortDescending }
+            verify { userLocalDataSource.themeMode }
+            verify { userLocalDataSource.userId }
+            verify { userLocalDataSource.getCurrentVersion() }
+            coVerify { userRemoteDataSource.getLastUpdated(any()) }
+            verify { booksLocalDataSource.retrieveRemoteConfigValues() }
+            confirmVerified(booksLocalDataSource, userLocalDataSource, userRemoteDataSource)
         }
-        verify { userLocalDataSource.isProfilePublic }
-        verify { userLocalDataSource.isAutomaticSyncEnabled }
-        verify { userLocalDataSource.language }
-        verify { userLocalDataSource.sortParam }
-        verify { userLocalDataSource.isSortDescending }
-        verify { userLocalDataSource.themeMode }
-        verify { userLocalDataSource.getCurrentVersion() }
-        verify { booksLocalDataSource.retrieveRemoteConfigValues() }
-        confirmVerified(booksLocalDataSource, userLocalDataSource)
-    }
 
     @Test
     fun `GIVEN true and success response WHEN setPublicProfile THEN register public profile`() =
@@ -229,10 +238,11 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `GIVEN new books and out-of-date books WHEN syncData THEN add new books and remove out-of-date books and show success message`() =
+    fun `GIVEN new books and out-of-date books WHEN syncData THEN add new books and remove out-of-date books and show success message and update last synced`() =
         runTest {
             val newBook = Book("bookId1")
             val outOfDateBook = Book("bookId2")
+            val lastUpdated = LocalDate.orNull(2026, 8, 10)
             coEvery {
                 booksRemoteDataSource.getBooks(any())
             } returns Result.success(listOf(outOfDateBook.toRemoteData()))
@@ -240,15 +250,35 @@ class SettingsViewModelTest {
             coEvery {
                 booksRemoteDataSource.syncBooks(any(), any(), any())
             } returns Result.success(Unit)
+            coEvery {
+                userRemoteDataSource.getLastUpdated(any())
+            } returns Result.success(lastUpdated)
+            every { userLocalDataSource.language } returns "en"
 
-            viewModel.infoDialogMessageId.test {
-                assertEquals(null, awaitItem())
+            viewModel.state.test {
+                val state = this
+                assertEquals(SettingsUiState.empty(), awaitItem())
 
-                viewModel.syncData()
+                viewModel.infoDialogMessageId.test {
+                    assertEquals(null, awaitItem())
 
-                assertEquals(Res.string.data_sync_successfully, awaitItem())
+                    viewModel.syncData()
+
+                    assertEquals(
+                        SettingsUiState.empty().copy(isLoading = true),
+                        state.awaitItem(),
+                    )
+                    assertEquals(Res.string.data_sync_successfully, awaitItem())
+                    assertEquals(
+                        SettingsUiState.empty().copy(
+                            isLoading = false,
+                            lastSynced = "August 10, 2026",
+                        ),
+                        state.awaitItem(),
+                    )
+                }
             }
-            verify { userLocalDataSource.userId }
+            verify(exactly = 2) { userLocalDataSource.userId }
             coVerify { booksRemoteDataSource.getBooks(any()) }
             coVerify { booksLocalDataSource.getAllBooks() }
             coVerify {
@@ -258,28 +288,56 @@ class SettingsViewModelTest {
                     booksToRemove = listOf(outOfDateBook.toRemoteData()),
                 )
             }
+            coVerify { userRemoteDataSource.getLastUpdated(any()) }
+            verify { userLocalDataSource.language }
             verify { booksLocalDataSource.retrieveRemoteConfigValues() }
-            confirmVerified(booksLocalDataSource, booksRemoteDataSource, userLocalDataSource)
+            confirmVerified(
+                booksLocalDataSource,
+                booksRemoteDataSource,
+                userLocalDataSource,
+                userRemoteDataSource,
+            )
         }
 
     @Test
-    fun `GIVEN new books but no out-of-date books WHEN syncData THEN add just new books and show success message`() =
+    fun `GIVEN new books but no out-of-date books WHEN syncData THEN add just new books and show success message and update last synced`() =
         runTest {
             val newBook = Book("bookId")
+            val lastUpdated = LocalDate.orNull(2026, 8, 10)
             coEvery { booksRemoteDataSource.getBooks(any()) } returns Result.success(emptyList())
             coEvery { booksLocalDataSource.getAllBooks() } returns flowOf(listOf(newBook))
             coEvery {
                 booksRemoteDataSource.syncBooks(any(), any(), any())
             } returns Result.success(Unit)
+            coEvery {
+                userRemoteDataSource.getLastUpdated(any())
+            } returns Result.success(lastUpdated)
+            every { userLocalDataSource.language } returns "en"
 
-            viewModel.infoDialogMessageId.test {
-                assertEquals(null, awaitItem())
+            viewModel.state.test {
+                val state = this
+                assertEquals(SettingsUiState.empty(), awaitItem())
 
-                viewModel.syncData()
+                viewModel.infoDialogMessageId.test {
+                    assertEquals(null, awaitItem())
 
-                assertEquals(Res.string.data_sync_successfully, awaitItem())
+                    viewModel.syncData()
+
+                    assertEquals(
+                        SettingsUiState.empty().copy(isLoading = true),
+                        state.awaitItem(),
+                    )
+                    assertEquals(Res.string.data_sync_successfully, awaitItem())
+                    assertEquals(
+                        SettingsUiState.empty().copy(
+                            isLoading = false,
+                            lastSynced = "August 10, 2026",
+                        ),
+                        state.awaitItem(),
+                    )
+                }
             }
-            verify { userLocalDataSource.userId }
+            verify(exactly = 2) { userLocalDataSource.userId }
             coVerify { booksRemoteDataSource.getBooks(any()) }
             coVerify { booksLocalDataSource.getAllBooks() }
             coVerify {
@@ -289,14 +347,22 @@ class SettingsViewModelTest {
                     booksToRemove = emptyList(),
                 )
             }
+            coVerify { userRemoteDataSource.getLastUpdated(any()) }
+            verify { userLocalDataSource.language }
             verify { booksLocalDataSource.retrieveRemoteConfigValues() }
-            confirmVerified(booksLocalDataSource, booksRemoteDataSource, userLocalDataSource)
+            confirmVerified(
+                booksLocalDataSource,
+                booksRemoteDataSource,
+                userLocalDataSource,
+                userRemoteDataSource,
+            )
         }
 
     @Test
-    fun `GIVEN no new books and out-of-date books WHEN syncData THEN remove just out-of-date books and show success message`() =
+    fun `GIVEN no new books and out-of-date books WHEN syncData THEN remove just out-of-date books and show success message and update last synced`() =
         runTest {
             val outOfDateBook = Book("bookId")
+            val lastUpdated = LocalDate.orNull(2026, 8, 10)
             coEvery {
                 booksRemoteDataSource.getBooks(any())
             } returns Result.success(listOf(outOfDateBook.toRemoteData()))
@@ -304,15 +370,35 @@ class SettingsViewModelTest {
             coEvery {
                 booksRemoteDataSource.syncBooks(any(), any(), any())
             } returns Result.success(Unit)
+            coEvery {
+                userRemoteDataSource.getLastUpdated(any())
+            } returns Result.success(lastUpdated)
+            every { userLocalDataSource.language } returns "en"
 
-            viewModel.infoDialogMessageId.test {
-                assertEquals(null, awaitItem())
+            viewModel.state.test {
+                val state = this
+                assertEquals(SettingsUiState.empty(), awaitItem())
 
-                viewModel.syncData()
+                viewModel.infoDialogMessageId.test {
+                    assertEquals(null, awaitItem())
 
-                assertEquals(Res.string.data_sync_successfully, awaitItem())
+                    viewModel.syncData()
+
+                    assertEquals(
+                        SettingsUiState.empty().copy(isLoading = true),
+                        state.awaitItem(),
+                    )
+                    assertEquals(Res.string.data_sync_successfully, awaitItem())
+                    assertEquals(
+                        SettingsUiState.empty().copy(
+                            isLoading = false,
+                            lastSynced = "August 10, 2026",
+                        ),
+                        state.awaitItem(),
+                    )
+                }
             }
-            verify { userLocalDataSource.userId }
+            verify(exactly = 2) { userLocalDataSource.userId }
             coVerify { booksRemoteDataSource.getBooks(any()) }
             coVerify { booksLocalDataSource.getAllBooks() }
             coVerify {
@@ -322,8 +408,15 @@ class SettingsViewModelTest {
                     booksToRemove = listOf(outOfDateBook.toRemoteData()),
                 )
             }
+            coVerify { userRemoteDataSource.getLastUpdated(any()) }
+            verify { userLocalDataSource.language }
             verify { booksLocalDataSource.retrieveRemoteConfigValues() }
-            confirmVerified(booksLocalDataSource, booksRemoteDataSource, userLocalDataSource)
+            confirmVerified(
+                booksLocalDataSource,
+                booksRemoteDataSource,
+                userLocalDataSource,
+                userRemoteDataSource,
+            )
         }
 
     @Test
@@ -570,12 +663,16 @@ class SettingsViewModelTest {
 
     @Test
     fun `GIVEN dialog shown WHEN closeDialogs THEN dialog is reset`() = runTest {
+        val lastUpdated = LocalDate.orNull(2026, 8, 10)
         coEvery { booksRemoteDataSource.getBooks(any()) } returns Result.success(emptyList())
         coEvery { booksLocalDataSource.getAllBooks() } returns flowOf(emptyList())
         coEvery {
             booksRemoteDataSource.syncBooks(any(), any(), any())
         } returns Result.success(Unit)
         every { userLocalDataSource.language } returns "en"
+        coEvery {
+            userRemoteDataSource.getLastUpdated(any())
+        } returns Result.success(lastUpdated)
 
         viewModel.infoDialogMessageId.test {
             val infoDialogMessage = this

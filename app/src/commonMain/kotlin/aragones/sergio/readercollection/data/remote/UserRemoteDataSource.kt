@@ -7,6 +7,7 @@ package aragones.sergio.readercollection.data.remote
 
 import aragones.sergio.readercollection.data.remote.model.CustomExceptions
 import aragones.sergio.readercollection.data.remote.model.UserResponse
+import kotlinx.datetime.LocalDate
 
 class UserRemoteDataSource(
     private val firebaseProvider: FirebaseProvider,
@@ -116,6 +117,10 @@ class UserRemoteDataSource(
         firebaseProvider.deleteUserFromDatabase(userId)
         firebaseProvider.deletePublicProfile(userId)
         firebaseProvider.deleteUser()
+    }
+
+    suspend fun getLastUpdated(userId: String): Result<LocalDate?> = runCatching {
+        firebaseProvider.getLastUpdated(userId).fromNativeDate()
     }
 
     suspend fun getCalculatedMinVersion(): Int {

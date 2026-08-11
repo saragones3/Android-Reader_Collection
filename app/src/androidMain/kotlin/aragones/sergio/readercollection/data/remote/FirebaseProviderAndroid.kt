@@ -331,6 +331,14 @@ class FirebaseProviderAndroid(
         batch.commit().await()
     }
 
+    override suspend fun getLastUpdated(userId: String): Any? = firestore
+        .collection(USERS_PATH)
+        .document(userId)
+        .get()
+        .await()
+        .getTimestamp("lastUpdated")
+        .toInstant()
+
     override fun fetchRemoteConfigString(key: String, onCompletion: (String) -> Unit) {
         onCompletion(remoteConfig.getString(key))
 

@@ -19,6 +19,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.datetime.LocalDate
 
 class UserRepositoryImpl(
     private val userLocalDataSource: UserLocalDataSource,
@@ -283,6 +284,15 @@ class UserRepositoryImpl(
                 },
             )
         }
+    }
+
+    override suspend fun getLastUpdated(): LocalDate? = withContext(ioDispatcher) {
+        withTimeout(TIMEOUT) {
+            userRemoteDataSource.getLastUpdated(userId)
+        }.fold(
+            onSuccess = { it },
+            onFailure = { null },
+        )
     }
 
     override fun storeAutomaticSync(value: Boolean) {

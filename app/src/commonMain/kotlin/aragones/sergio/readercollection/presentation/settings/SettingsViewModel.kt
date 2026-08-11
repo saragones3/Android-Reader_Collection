@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import aragones.sergio.readercollection.domain.BooksRepository
 import aragones.sergio.readercollection.domain.UserRepository
 import aragones.sergio.readercollection.domain.model.ErrorModel
+import aragones.sergio.readercollection.utils.UiDateMapper.getValueToShow
 import com.aragones.sergio.util.Constants
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,12 +42,15 @@ class SettingsViewModel(
     //endregion
 
     //region Lifecycle methods
-    fun onResume() {
+    fun onResume() = viewModelScope.launch {
         state.update {
             it.copy(
                 isProfilePublic = userRepository.isProfilePublic,
                 isAutomaticSyncEnabled = userRepository.isAutomaticSyncEnabled,
-                lastSynced = "", // TODO:
+                lastSynced = userRepository
+                    .getLastUpdated()
+                    .getValueToShow(userRepository.language)
+                    ?: "",
                 language = userRepository.language,
                 sortParam = userRepository.sortParam,
                 isSortDescending = userRepository.isSortDescending,
@@ -89,7 +93,13 @@ class SettingsViewModel(
         booksRepository.syncBooks(userRepository.userId).fold(
             onSuccess = {
                 infoDialogMessageId.value = Res.string.data_sync_successfully
-                state.value = state.value.copy(isLoading = false)
+                state.value = state.value.copy(
+                    isLoading = false,
+                    lastSynced = userRepository
+                        .getLastUpdated()
+                        .getValueToShow(userRepository.language)
+                        ?: "",
+                )
             },
             onFailure = {
                 state.value = state.value.copy(isLoading = false)

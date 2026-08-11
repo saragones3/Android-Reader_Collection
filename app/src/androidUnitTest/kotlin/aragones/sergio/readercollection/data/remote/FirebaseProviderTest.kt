@@ -45,6 +45,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
@@ -900,6 +901,50 @@ class FirebaseProviderTest {
     }
 
     @Test
+    fun `GIVEN success response WHEN get last updated THEN return timestamp`() = runTest {
+        val userId = "testUserId"
+        val lastUpdated = Timestamp(1786344084, 0) // August 10, 2026, 08:41:24 UTC
+        givenGetLastUpdatedSuccess(userId, lastUpdated)
+
+        val result = firebaseProvider.getLastUpdated(userId)
+
+        assertEquals(
+            Instant.fromEpochSeconds(lastUpdated.seconds, lastUpdated.nanoseconds),
+            result,
+        )
+        verify(exactly = 1) { firestore.collection("users") }
+        confirmVerified(firestore)
+    }
+
+    @Test
+    fun `GIVEN success response and no timestamp WHEN get last updated THEN return null`() =
+        runTest {
+            val userId = "testUserId"
+            givenGetLastUpdatedSuccess(userId, null)
+
+            val result = firebaseProvider.getLastUpdated(userId)
+
+            assertEquals(null, result)
+            verify(exactly = 1) { firestore.collection("users") }
+            confirmVerified(firestore)
+        }
+
+    @Test
+    fun `GIVEN failure response WHEN get last updated THEN throw exception`() = runTest {
+        val userId = "testUserId"
+        val exception = RuntimeException("Firestore error")
+        givenGetLastUpdatedFailure(userId, exception)
+
+        try {
+            firebaseProvider.getLastUpdated(userId)
+        } catch (e: Exception) {
+            assertEquals(exception, e)
+        }
+        verify(exactly = 1) { firestore.collection("users") }
+        confirmVerified(firestore)
+    }
+
+    @Test
     fun `GIVEN success response and values for language WHEN fetch remote config values is called THEN formats and states are updated with new values`() {
         val key = "key"
         val value = "data"
@@ -1570,6 +1615,27 @@ class FirebaseProviderTest {
         every { task2.isComplete } returns true
         every { task2.isCanceled } returns false
         every { task2.exception } returns exception
+    }
+
+    private fun givenGetLastUpdatedSuccess(userId: String, timestamp: Timestamp?) {
+        val documentReference = getUser(userId)
+        val task = mockk<Task<DocumentSnapshot>>()
+        val documentSnapshot = mockk<DocumentSnapshot>()
+        every { documentReference.get() } returns task
+        every { task.isComplete } returns true
+        every { task.isCanceled } returns false
+        every { task.exception } returns null
+        every { task.result } returns documentSnapshot
+        every { documentSnapshot.getTimestamp("lastUpdated") } returns timestamp
+    }
+
+    private fun givenGetLastUpdatedFailure(userId: String, exception: Exception) {
+        val documentReference = getUser(userId)
+        val task = mockk<Task<DocumentSnapshot>>()
+        every { documentReference.get() } returns task
+        every { task.isComplete } returns true
+        every { task.isCanceled } returns false
+        every { task.exception } returns exception
     }
 
     private fun givenRemoteConfigFetchSuccess(key: String, value: String) {
