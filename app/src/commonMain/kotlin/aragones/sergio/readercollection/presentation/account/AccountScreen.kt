@@ -8,29 +8,19 @@ package aragones.sergio.readercollection.presentation.account
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.PublicOff
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -42,12 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import aragones.sergio.readercollection.presentation.components.ButtonType
 import aragones.sergio.readercollection.presentation.components.CustomCircularProgressIndicator
 import aragones.sergio.readercollection.presentation.components.CustomOutlinedTextField
 import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDark
@@ -59,19 +47,13 @@ import com.aragones.sergio.util.CustomInputType
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
-import reader_collection.app.generated.resources.account_details_title
-import reader_collection.app.generated.resources.account_management_title
 import reader_collection.app.generated.resources.account_title
 import reader_collection.app.generated.resources.delete_account_action
-import reader_collection.app.generated.resources.delete_account_description
-import reader_collection.app.generated.resources.delete_account_title
 import reader_collection.app.generated.resources.email
 import reader_collection.app.generated.resources.hide_password
 import reader_collection.app.generated.resources.invalid_email
 import reader_collection.app.generated.resources.invalid_password
 import reader_collection.app.generated.resources.password
-import reader_collection.app.generated.resources.public_profile_description
-import reader_collection.app.generated.resources.public_profile_title
 import reader_collection.app.generated.resources.save
 import reader_collection.app.generated.resources.show_info
 import reader_collection.app.generated.resources.show_password
@@ -101,11 +83,9 @@ fun AccountScreen(
                 .widthIn(max = 500.dp)
                 .align(Alignment.CenterHorizontally)
                 .fillMaxSize()
-                .padding(12.dp)
+                .padding(vertical = 24.dp, horizontal = 12.dp)
                 .verticalScroll(scrollState),
         ) {
-            Spacer(Modifier.height(12.dp))
-            HeaderText(text = stringResource(Res.string.account_details_title))
             ProfileInfo(
                 username = state.username,
                 email = state.email,
@@ -129,14 +109,16 @@ fun AccountScreen(
                 enabled = state.emailError == null && state.passwordError == null,
                 onClick = onSave,
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            HeaderText(text = stringResource(Res.string.account_management_title))
-            PublicProfileItem(
-                isEnabled = state.isProfilePublic,
-                onChange = onChangePublicProfile,
+            Spacer(Modifier.weight(1f))
+            MainActionButton(
+                text = stringResource(Res.string.delete_account_action),
+                enabled = true,
+                onClick = onDeleteAccount,
+                modifier = Modifier
+                    .widthIn(min = 200.dp)
+                    .align(Alignment.CenterHorizontally),
+                type = ButtonType.DESTRUCTIVE,
             )
-            Spacer(Modifier.height(12.dp))
-            DeleteAccountItem(onClick = onDeleteAccount)
         }
     }
     if (state.isLoading) {
@@ -160,17 +142,6 @@ private fun AccountToolbar(scrollState: ScrollState, onBack: (() -> Unit)) {
         backgroundColor = MaterialTheme.colorScheme.background,
         onBack = onBack,
     )
-}
-
-@Composable
-private fun HeaderText(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text = text,
-        modifier = modifier.semantics { heading() },
-        style = MaterialTheme.typography.displayMedium,
-        color = MaterialTheme.colorScheme.primary,
-    )
-    Spacer(modifier = Modifier.height(16.dp))
 }
 
 @Composable
@@ -227,102 +198,6 @@ private fun ProfileInfo(
         isRequired = true,
         onEndIconClicked = { passwordVisibility = !passwordVisibility },
     )
-}
-
-@Composable
-private fun PublicProfileItem(
-    isEnabled: Boolean,
-    onChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = stringResource(Res.string.public_profile_title),
-                style = MaterialTheme.typography.bodyLarge,
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(Res.string.public_profile_description),
-                style = MaterialTheme.typography.bodyMedium,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.tertiary,
-            )
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        Switch(
-            checked = isEnabled,
-            onCheckedChange = onChange,
-            thumbContent = {
-                Icon(
-                    imageVector = if (isEnabled) {
-                        Icons.Default.Public
-                    } else {
-                        Icons.Default.PublicOff
-                    },
-                    contentDescription = null,
-                    modifier = Modifier.padding(4.dp),
-                )
-            },
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = MaterialTheme.colorScheme.secondary,
-                checkedIconColor = MaterialTheme.colorScheme.primary,
-                uncheckedThumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f),
-                uncheckedIconColor = MaterialTheme.colorScheme.secondary,
-                uncheckedTrackColor = MaterialTheme.colorScheme.secondary,
-                uncheckedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f),
-            ),
-        )
-    }
-}
-
-@Composable
-fun DeleteAccountItem(onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = stringResource(Res.string.delete_account_title),
-                style = MaterialTheme.typography.bodyLarge,
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(Res.string.delete_account_description),
-                style = MaterialTheme.typography.bodyMedium,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.tertiary,
-            )
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        Button(
-            onClick = onClick,
-            modifier = Modifier.widthIn(max = 320.dp),
-            shape = MaterialTheme.shapes.small,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error,
-            ),
-        ) {
-            Text(
-                text = stringResource(Res.string.delete_account_action),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onError,
-                maxLines = 2,
-            )
-        }
-    }
 }
 
 @CustomPreviewLightDark

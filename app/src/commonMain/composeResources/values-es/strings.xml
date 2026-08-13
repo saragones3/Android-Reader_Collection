@@ -129,12 +129,9 @@
         <item>Oscuro</item>
     </string-array>
     <string name="logout_title">Cerrar sesión</string>
-    <string name="logout_description">Cierra la sesión</string>
     <string name="version">Versión %1$s</string>
 
     //ACCOUNT
-    <string name="account_details_title">Detalles de la cuenta</string>
-    <string name="account_management_title">Gestión de la cuenta</string>
     <string name="username">Usuario</string>
     <string name="email_info">Si añades un email, podrás recuperar la contraseña en caso de que se te olvide.</string>
     <string name="save">Guardar</string>

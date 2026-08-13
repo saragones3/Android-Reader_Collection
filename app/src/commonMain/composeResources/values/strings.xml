@@ -125,12 +125,9 @@
         <item>Dark</item>
     </string-array>
     <string name="logout_title">Logout</string>
-    <string name="logout_description">Close this session</string>
     <string name="version">Version %1$s</string>
 
     //ACCOUNT
-    <string name="account_details_title">Account details</string>
-    <string name="account_management_title">Account management</string>
     <string name="username">Username</string>
     <string name="email_info">If you add an email, you will be able to recover the password if you forget it.</string>
     <string name="save">Save</string>
