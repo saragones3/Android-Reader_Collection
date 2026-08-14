@@ -37,6 +37,7 @@ import aragones.sergio.readercollection.presentation.components.CustomPreviewLig
 import aragones.sergio.readercollection.presentation.navigation.Navigator
 import aragones.sergio.readercollection.presentation.navigation.Route
 import aragones.sergio.readercollection.presentation.navigation.booksGraph
+import aragones.sergio.readercollection.presentation.navigation.friendsGraph
 import aragones.sergio.readercollection.presentation.navigation.settingsGraph
 import aragones.sergio.readercollection.presentation.navigation.statisticsGraph
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
@@ -46,6 +47,8 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
+import reader_collection.app.generated.resources.friends_title
+import reader_collection.app.generated.resources.ic_book_friends
 import reader_collection.app.generated.resources.ic_book_statistics
 import reader_collection.app.generated.resources.ic_bookshelf
 import reader_collection.app.generated.resources.ic_settings
@@ -111,9 +114,9 @@ private fun BottomNavigationBar(
                     Text(
                         text = title,
                         style = if (selected) {
-                            MaterialTheme.typography.displaySmall
-                        } else {
                             MaterialTheme.typography.bodyMedium
+                        } else {
+                            MaterialTheme.typography.bodySmall
                         },
                         color = MaterialTheme.colorScheme.secondary,
                         overflow = TextOverflow.Ellipsis,
@@ -135,6 +138,7 @@ private fun NavigationStack(navController: NavHostController, navigator: Navigat
         navController.createGraph(startDestination = Route.Books) {
             booksGraph(navController)
             statisticsGraph(navController)
+            friendsGraph(navController)
             settingsGraph(navController, navigator)
         }
     }
@@ -164,5 +168,6 @@ private enum class NavItem(
 ) {
     BOOKS(Route.Books, Res.drawable.ic_bookshelf, Res.string.title_books),
     STATISTICS(Route.Statistics, Res.drawable.ic_book_statistics, Res.string.title_stats),
+    FRIENDS(Route.Friends, Res.drawable.ic_book_friends, Res.string.friends_title),
     SETTINGS(Route.Settings, Res.drawable.ic_settings, Res.string.title_settings),
 }

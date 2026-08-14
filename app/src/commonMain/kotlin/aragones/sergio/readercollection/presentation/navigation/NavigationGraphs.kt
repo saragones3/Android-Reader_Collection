@@ -191,51 +191,14 @@ fun NavGraphBuilder.statisticsGraph(navController: NavHostController) {
     }
 }
 
-fun NavGraphBuilder.settingsGraph(navController: NavHostController, navigator: Navigator) {
-    navigation<Route.Settings>(startDestination = Route.SettingsHome) {
-        composable<Route.SettingsHome>(
+fun NavGraphBuilder.friendsGraph(navController: NavHostController) {
+    navigation<Route.Friends>(startDestination = Route.FriendsHome) {
+        composable<Route.FriendsHome>(
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
         ) {
-            SettingsView(
-                onClickOption = {
-                    when (it) {
-                        is SettingsOption.Account -> navController.navigate(Route.Account)
-                        is SettingsOption.Friends -> navController.navigate(Route.Friends)
-                        is SettingsOption.DataSync -> navController.navigate(Route.DataSync)
-                        is SettingsOption.DisplaySettings -> navController.navigate(
-                            Route.DisplaySettings,
-                        )
-                        is SettingsOption.Logout -> navigator.goToLanding()
-                    }
-                },
-                onRelaunch = {
-                    navigator.goToMain(withOptions = false)
-                },
-            )
-        }
-        composable<Route.Account>(
-            enterTransition = { slideIntoContainer() },
-            exitTransition = { slideOutOfContainer() },
-        ) {
-            AccountView(
-                onBack = {
-                    navController.navigateUp()
-                },
-                onLogout = {
-                    navigator.goToLanding()
-                },
-            )
-        }
-        composable<Route.Friends>(
-            enterTransition = { slideIntoContainer() },
-            popEnterTransition = { EnterTransition.None },
-            popExitTransition = { slideOutOfContainer() },
-        ) {
             FriendsView(
-                onBack = {
-                    navController.navigateUp()
-                },
+                onBack = {},
                 onSelectFriend = { userId ->
                     navController.navigate(Route.FriendDetail(userId))
                 },
@@ -277,6 +240,53 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController, navigator: N
             AddFriendsView(
                 onBack = {
                     navController.navigateUp()
+                },
+            )
+        }
+    }
+}
+
+fun NavGraphBuilder.settingsGraph(navController: NavHostController, navigator: Navigator) {
+    navigation<Route.Settings>(startDestination = Route.SettingsHome) {
+        composable<Route.SettingsHome>(
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+        ) {
+            SettingsView(
+                onClickOption = {
+                    when (it) {
+                        is SettingsOption.Account -> {
+                            navController.navigate(Route.Account)
+                        }
+                        is SettingsOption.Friends -> {}
+                        is SettingsOption.DataSync -> {
+                            navController.navigate(Route.DataSync)
+                        }
+                        is SettingsOption.DisplaySettings -> {
+                            navController.navigate(
+                                Route.DisplaySettings,
+                            )
+                        }
+                        is SettingsOption.Logout -> {
+                            navigator.goToLanding()
+                        }
+                    }
+                },
+                onRelaunch = {
+                    navigator.goToMain(withOptions = false)
+                },
+            )
+        }
+        composable<Route.Account>(
+            enterTransition = { slideIntoContainer() },
+            exitTransition = { slideOutOfContainer() },
+        ) {
+            AccountView(
+                onBack = {
+                    navController.navigateUp()
+                },
+                onLogout = {
+                    navigator.goToLanding()
                 },
             )
         }

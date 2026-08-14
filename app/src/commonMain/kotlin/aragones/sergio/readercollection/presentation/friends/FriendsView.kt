@@ -29,7 +29,7 @@ fun FriendsView(
     val infoDialogMessageId by viewModel.infoDialogMessageId.collectAsState()
     val userDeletionMessage by viewModel.userDeletionMessage.collectAsState()
 
-    ReaderCollectionApp {
+    ReaderCollectionApp(navigationBarSameAsBackground = false) {
         FriendsScreen(
             state = state,
             onBack = onBack,

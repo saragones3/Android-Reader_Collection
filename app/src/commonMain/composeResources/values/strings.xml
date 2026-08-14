@@ -102,7 +102,6 @@
     <string name="visualization_title">Visualization</string>
     <string name="account_title">Account</string>
     <string name="account_description">Manage your account</string>
-    <string name="friends_title">Friends</string>
     <string name="friends_description">Manage your friends list</string>
     <string name="data_sync_title">Data Synchronization</string>
     <string name="data_sync_description">Manage your data synchronization</string>
@@ -139,6 +138,7 @@
     <string name="delete_account_action">Delete account</string>
 
     //FRIENDS
+    <string name="friends_title">Friends</string>
     <string name="community">Community</string>
     <string name="community_description">Connect with readers and explore their libraries.</string>
     <string name="no_friends_yet_title">No friends yet</string>

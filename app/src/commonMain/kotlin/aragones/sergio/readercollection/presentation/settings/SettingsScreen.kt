@@ -88,8 +88,6 @@ import reader_collection.app.generated.resources.automatic_sync_description
 import reader_collection.app.generated.resources.automatic_sync_title
 import reader_collection.app.generated.resources.data_sync_title
 import reader_collection.app.generated.resources.english
-import reader_collection.app.generated.resources.friends_description
-import reader_collection.app.generated.resources.friends_title
 import reader_collection.app.generated.resources.last_synced
 import reader_collection.app.generated.resources.logout_title
 import reader_collection.app.generated.resources.profile_title
@@ -229,13 +227,6 @@ private fun AccountSettingsCard(
                 subtitle = stringResource(Res.string.account_description),
                 onClick = {
                     onClickOption(SettingsOption.Account)
-                },
-            )
-            SettingItem(
-                title = stringResource(Res.string.friends_title),
-                subtitle = stringResource(Res.string.friends_description),
-                onClick = {
-                    onClickOption(SettingsOption.Friends)
                 },
             )
             PublicProfileItem(

@@ -107,7 +107,7 @@ fun FriendsScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
-        FriendsScreenToolbar(onBack = onBack)
+        FriendsScreenToolbar()
         when (state) {
             FriendsUiState.Loading -> {
                 CustomCircularProgressIndicator()
@@ -158,11 +158,10 @@ fun FriendsScreen(
 }
 
 @Composable
-private fun FriendsScreenToolbar(onBack: (() -> Unit)) {
+private fun FriendsScreenToolbar() {
     CustomToolbar(
         title = stringResource(Res.string.friends_title),
         backgroundColor = MaterialTheme.colorScheme.background,
-        onBack = onBack,
     )
 }
 

@@ -106,7 +106,6 @@
     <string name="visualization_title">Visualización</string>
     <string name="account_title">Cuenta</string>
     <string name="account_description">Gestiona tu cuenta</string>
-    <string name="friends_title">Amigos</string>
     <string name="friends_description">Gestiona tu lista de amigos</string>
     <string name="data_sync_title">Sincronización de datos</string>
     <string name="data_sync_description">Gestiona la sincronización de tus datos</string>
@@ -143,6 +142,7 @@
     <string name="delete_account_action">Borrar cuenta</string>
 
     //FRIENDS
+    <string name="friends_title">Amigos</string>
     <string name="community">Comunidad</string>
     <string name="community_description">Conecta con otros lectores y explora sus librerías.</string>
     <string name="no_friends_yet_title">Aún no tienes amigos</string>
