@@ -57,8 +57,10 @@ import aragones.sergio.readercollection.presentation.components.BookItem
 import aragones.sergio.readercollection.presentation.components.CustomFilterChip
 import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDark
 import aragones.sergio.readercollection.presentation.components.CustomSearchBar
+import aragones.sergio.readercollection.presentation.components.EmptyStateCard
+import aragones.sergio.readercollection.presentation.components.ErrorStateCard
 import aragones.sergio.readercollection.presentation.components.ListButton
-import aragones.sergio.readercollection.presentation.components.NoResultsComponent
+import aragones.sergio.readercollection.presentation.components.NoResultsStateCard
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import kotlinx.coroutines.launch
@@ -69,7 +71,6 @@ import reader_collection.app.generated.resources.enter_title
 import reader_collection.app.generated.resources.error_server
 import reader_collection.app.generated.resources.go_to_end
 import reader_collection.app.generated.resources.go_to_start
-import reader_collection.app.generated.resources.image_no_search
 import reader_collection.app.generated.resources.load_more
 import reader_collection.app.generated.resources.no_search_yet_text
 import reader_collection.app.generated.resources.title_search
@@ -151,14 +152,11 @@ fun SearchScreen(
         ) {
             when (state) {
                 is SearchUiState.Empty -> {
-                    NoResultsComponent(
-                        text = stringResource(Res.string.no_search_yet_text),
-                        image = Res.drawable.image_no_search,
-                    )
+                    NoResultsContent(query = "")
                 }
                 is SearchUiState.Success -> {
                     if (state.books.books.isEmpty() && !state.isLoading) {
-                        NoResultsContent()
+                        NoResultsContent(query = state.query ?: "")
                     } else {
                         SearchContent(
                             books = state.books,
@@ -184,7 +182,7 @@ fun SearchScreen(
                     }
                 }
                 is SearchUiState.Error -> {
-                    ErrorContent()
+                    ErrorContent(onRetry = onRefresh)
                 }
             }
             PullToRefreshBox(
@@ -240,25 +238,29 @@ private fun Filters(
 }
 
 @Composable
-private fun NoResultsContent() {
+private fun NoResultsContent(query: String) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
         item {
-            NoResultsComponent()
+            if (query.isNotEmpty()) {
+                NoResultsStateCard(query)
+            } else {
+                EmptyStateCard(subtitle = stringResource(Res.string.no_search_yet_text))
+            }
         }
     }
 }
 
 @Composable
-private fun ErrorContent() {
+private fun ErrorContent(onRetry: () -> Unit) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
         item {
-            NoResultsComponent(text = stringResource(Res.string.error_server))
+            ErrorStateCard(onRetry = onRetry)
         }
     }
 }

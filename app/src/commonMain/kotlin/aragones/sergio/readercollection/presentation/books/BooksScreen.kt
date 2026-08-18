@@ -63,11 +63,13 @@ import aragones.sergio.readercollection.presentation.components.CustomCircularPr
 import aragones.sergio.readercollection.presentation.components.CustomFilterChip
 import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDark
 import aragones.sergio.readercollection.presentation.components.CustomToolbar
+import aragones.sergio.readercollection.presentation.components.EmptyStateCard
 import aragones.sergio.readercollection.presentation.components.ListButton
 import aragones.sergio.readercollection.presentation.components.MainActionButton
-import aragones.sergio.readercollection.presentation.components.NoResultsComponent
+import aragones.sergio.readercollection.presentation.components.NoResultsStateCard
 import aragones.sergio.readercollection.presentation.components.ReadingBookItem
 import aragones.sergio.readercollection.presentation.components.SearchBar
+import aragones.sergio.readercollection.presentation.components.StateCardData
 import aragones.sergio.readercollection.presentation.components.TopAppBarIcon
 import aragones.sergio.readercollection.presentation.components.VerticalBookItem
 import aragones.sergio.readercollection.presentation.components.withDescription
@@ -81,6 +83,8 @@ import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.accept
+import reader_collection.app.generated.resources.empty_library_description
+import reader_collection.app.generated.resources.explore_catalog_action
 import reader_collection.app.generated.resources.go_to_add_new_book
 import reader_collection.app.generated.resources.ic_save_book
 import reader_collection.app.generated.resources.image_user_reading
@@ -128,6 +132,7 @@ fun BooksScreen(
             onShowAll = onShowAll,
             onSwitchToLeft = onSwitchToLeft,
             onSwitchToRight = onSwitchToRight,
+            onAddBook = onAddBook,
         )
         ListButton(
             painter = painterResource(Res.drawable.ic_save_book)
@@ -180,6 +185,7 @@ private fun BooksScreenContent(
     onShowAll: (String) -> Unit,
     onSwitchToLeft: (Int) -> Unit,
     onSwitchToRight: (Int) -> Unit,
+    onAddBook: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val subtitle = when (state) {
@@ -224,11 +230,27 @@ private fun BooksScreenContent(
         )
         Spacer(Modifier.height(16.dp))
         when (state) {
-            is BooksUiState.Empty -> NoResultsComponent(
-                modifier = Modifier.semantics {
-                    liveRegion = LiveRegionMode.Polite
-                },
-            )
+            is BooksUiState.Empty -> if (state.query.isEmpty()) {
+                EmptyStateCard(
+                    subtitle = stringResource(Res.string.empty_library_description),
+                    modifier = Modifier
+                        .semantics {
+                            liveRegion = LiveRegionMode.Polite
+                        }.padding(24.dp),
+                    action = StateCardData.Action(
+                        title = stringResource(Res.string.explore_catalog_action),
+                        onClick = onAddBook,
+                    ),
+                )
+            } else {
+                NoResultsStateCard(
+                    query = state.query,
+                    modifier = Modifier
+                        .semantics {
+                            liveRegion = LiveRegionMode.Polite
+                        }.padding(24.dp),
+                )
+            }
             is BooksUiState.Success -> BooksComponent(
                 books = state.books,
                 query = state.query,

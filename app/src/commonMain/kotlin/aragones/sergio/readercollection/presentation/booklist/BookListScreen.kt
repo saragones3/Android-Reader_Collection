@@ -52,7 +52,6 @@ import aragones.sergio.readercollection.presentation.components.CustomCircularPr
 import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDark
 import aragones.sergio.readercollection.presentation.components.CustomToolbar
 import aragones.sergio.readercollection.presentation.components.ListButton
-import aragones.sergio.readercollection.presentation.components.NoResultsComponent
 import aragones.sergio.readercollection.presentation.components.TopAppBarIcon
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.search.reachedBottom
@@ -137,9 +136,7 @@ fun BookListScreen(
         Box(
             modifier = Modifier.fillMaxSize(),
         ) {
-            if (state.books.books.isEmpty()) {
-                NoResultsComponent()
-            } else {
+            if (state.books.books.isNotEmpty()) {
                 BookListContent(
                     books = state.books,
                     isDraggingEnabled = state.isDraggingEnabled,

@@ -48,8 +48,8 @@ import aragones.sergio.readercollection.presentation.components.CustomCard
 import aragones.sergio.readercollection.presentation.components.CustomCircularProgressIndicator
 import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDarkLong
 import aragones.sergio.readercollection.presentation.components.CustomToolbar
+import aragones.sergio.readercollection.presentation.components.EmptyStateCard
 import aragones.sergio.readercollection.presentation.components.HorizontalBarChart
-import aragones.sergio.readercollection.presentation.components.NoResultsComponent
 import aragones.sergio.readercollection.presentation.components.PieChart
 import aragones.sergio.readercollection.presentation.components.SecondaryButton
 import aragones.sergio.readercollection.presentation.components.SecondaryOutlinedButton
@@ -67,6 +67,7 @@ import reader_collection.app.generated.resources.books_per_format
 import reader_collection.app.generated.resources.books_per_genre
 import reader_collection.app.generated.resources.books_per_month
 import reader_collection.app.generated.resources.books_per_year
+import reader_collection.app.generated.resources.empty_read_library_description
 import reader_collection.app.generated.resources.export_data
 import reader_collection.app.generated.resources.formats
 import reader_collection.app.generated.resources.import_data
@@ -145,7 +146,10 @@ private fun StatisticsContent(
             modifier = Modifier.padding(vertical = 16.dp),
         )
         when (state) {
-            is StatisticsUiState.Empty -> NoResultsComponent()
+            is StatisticsUiState.Empty -> EmptyStateCard(
+                subtitle = stringResource(Res.string.empty_read_library_description),
+                modifier = Modifier.padding(24.dp),
+            )
             is StatisticsUiState.Success -> StatisticsComponent(
                 state = state,
                 onGroupClick = onGroupClick,
