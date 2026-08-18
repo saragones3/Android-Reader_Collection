@@ -257,5 +257,14 @@
 
     //OTHERS
     <string name="no_rated_description">Sin puntuar</string>
+    <string name="library_ready_title">Tu biblioteca está lista</string>
+    <string name="empty_library_description">Los estantes están vacíos pero llenos de posibilidades. Añade libros para comenzar a construir tu colección personal.</string>
+    <string name="empty_read_library_description">Los estantes están vacíos pero llenos de posibilidades. Lee libros para comenzar a construir tus hábitos de lectura.</string>
+    <string name="explore_catalog_action">Explorar catálogo</string>
+    <string name="no_matching_records">No hay registros coincidentes</string>
+    <string name="no_matching_records_description">No hemos podido encontrar ningún libro que coincida con "%1$s" en el catálogo. Intenta ajustar la ortografía o los filtros.</string>
+    <string name="connection_lost">Conexión perdida</string>
+    <string name="connection_lost_description">No se ha podido acceder al catálogo externo. Por favor, comprueba tu conexión a internet e inténtalo de nuevo.</string>
+    <string name="retry_search">Reintentar búsqueda</string>
 
 </resources>

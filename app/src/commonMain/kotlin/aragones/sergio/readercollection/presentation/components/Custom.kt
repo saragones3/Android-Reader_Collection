@@ -31,9 +31,12 @@ import androidx.compose.material.icons.automirrored.filled.StarHalf
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
@@ -58,6 +61,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -65,14 +69,18 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_TYPE_NORMAL
 import androidx.compose.ui.tooling.preview.Preview
@@ -80,6 +88,7 @@ import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.presentation.theme.LightRoseBud
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import aragones.sergio.readercollection.presentation.theme.RoseBud
+import aragones.sergio.readercollection.presentation.theme.isLight
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
@@ -87,9 +96,16 @@ import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.book_rating_description
 import reader_collection.app.generated.resources.clear_text
+import reader_collection.app.generated.resources.connection_lost
+import reader_collection.app.generated.resources.connection_lost_description
 import reader_collection.app.generated.resources.delete
+import reader_collection.app.generated.resources.empty_library_description
 import reader_collection.app.generated.resources.image_no_results
+import reader_collection.app.generated.resources.library_ready_title
+import reader_collection.app.generated.resources.no_matching_records
+import reader_collection.app.generated.resources.no_matching_records_description
 import reader_collection.app.generated.resources.no_results_text
+import reader_collection.app.generated.resources.retry_search
 import reader_collection.app.generated.resources.search
 import reader_collection.app.generated.resources.star_empty
 import reader_collection.app.generated.resources.star_filled
@@ -407,6 +423,167 @@ fun CustomCard(
     )
 }
 
+@Composable
+fun EmptyStateCard(
+    subtitle: String,
+    modifier: Modifier = Modifier,
+    action: StateCardData.Action? = null,
+) {
+    StateCard(
+        data = StateCardData.Empty(
+            title = stringResource(Res.string.library_ready_title),
+            subtitle = AnnotatedString(subtitle),
+            action = action,
+        ),
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun NoResultsStateCard(query: String, modifier: Modifier = Modifier) {
+    val boldText = "\"" + query + "\""
+    val fullText = stringResource(Res.string.no_matching_records_description, query)
+    val annotatedString = buildAnnotatedString {
+        val startIndex = fullText.indexOf(boldText)
+        if (startIndex != -1) {
+            append(fullText.substring(0, startIndex))
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                append(boldText)
+            }
+            append(fullText.substring(startIndex + boldText.length))
+        } else {
+            append(fullText)
+        }
+    }
+    StateCard(
+        data = StateCardData.NoResults(
+            title = stringResource(Res.string.no_matching_records),
+            subtitle = annotatedString,
+        ),
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun ErrorStateCard(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    StateCard(
+        data = StateCardData.Error(
+            title = stringResource(Res.string.connection_lost),
+            subtitle = AnnotatedString(stringResource(Res.string.connection_lost_description)),
+            action = StateCardData.Action(
+                title = stringResource(Res.string.retry_search),
+                onClick = onRetry,
+                icon = rememberVectorPainter(Icons.Default.Refresh).withDescription(null),
+            ),
+        ),
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun StateCard(data: StateCardData, modifier: Modifier = Modifier) {
+    val isLight = MaterialTheme.colorScheme.isLight()
+    val backgroundColor = when (data) {
+        is StateCardData.Empty, is StateCardData.NoResults -> MaterialTheme.colorScheme.surface
+        is StateCardData.Error -> MaterialTheme.colorScheme.error.run {
+            if (isLight) {
+                this.copy(alpha = 0.05f)
+            } else {
+                this.copy(alpha = 0.2f)
+            }
+        }
+    }
+    val borderColor = when (data) {
+        is StateCardData.Empty, is StateCardData.NoResults -> MaterialTheme.colorScheme.primary
+        is StateCardData.Error -> MaterialTheme.colorScheme.error
+    }
+    val iconColor = when (data) {
+        is StateCardData.Empty, is StateCardData.NoResults -> MaterialTheme.colorScheme.tertiary
+        is StateCardData.Error -> MaterialTheme.colorScheme.error
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor,
+            contentColor = MaterialTheme.colorScheme.primary,
+        ),
+        border = BorderStroke(
+            width = 1.dp,
+            color = borderColor,
+        ),
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Icon(
+                imageVector = data.icon,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(48.dp),
+            )
+            Text(
+                text = data.title,
+                style = MaterialTheme.typography.displayMedium,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = data.subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.tertiary,
+                textAlign = TextAlign.Center,
+            )
+            data.action?.let { action ->
+                Spacer(Modifier.height(8.dp))
+                SecondaryOutlinedButton(
+                    text = action.title,
+                    onClick = action.onClick,
+                    painter = action.icon,
+                )
+            }
+        }
+    }
+}
+
+sealed class StateCardData {
+    abstract val icon: ImageVector
+    abstract val title: String
+    abstract val subtitle: AnnotatedString
+    abstract val action: Action?
+
+    data class Empty(
+        override val icon: ImageVector = Icons.AutoMirrored.Filled.MenuBook,
+        override val title: String,
+        override val subtitle: AnnotatedString,
+        override val action: Action? = null,
+    ) : StateCardData()
+
+    data class NoResults(
+        override val icon: ImageVector = Icons.Default.SearchOff,
+        override val title: String,
+        override val subtitle: AnnotatedString,
+        override val action: Action? = null,
+    ) : StateCardData()
+
+    data class Error(
+        override val icon: ImageVector = Icons.Default.WifiOff,
+        override val title: String,
+        override val subtitle: AnnotatedString,
+        override val action: Action?,
+    ) : StateCardData()
+
+    data class Action(
+        val title: String,
+        val onClick: () -> Unit,
+        val icon: AccessibilityPainter? = null,
+    )
+}
+
 @CustomPreviewLightDarkWithBackground
 @Composable
 private fun NoResultsComponentPreview() {
@@ -503,6 +680,36 @@ private fun CustomCardPreview() {
                 )
             },
         )
+    }
+}
+
+@CustomPreviewLightDarkWithBackground
+@Composable
+private fun EmptyStateCardPreview() {
+    ReaderCollectionTheme {
+        EmptyStateCard(
+            subtitle = stringResource(Res.string.empty_library_description),
+            action = StateCardData.Action(
+                title = "Explorar catálogo",
+                onClick = {},
+            ),
+        )
+    }
+}
+
+@CustomPreviewLightDarkWithBackground
+@Composable
+private fun NoResultsStateCardPreview() {
+    ReaderCollectionTheme {
+        NoResultsStateCard(query = "Obscure Title XYZ")
+    }
+}
+
+@CustomPreviewLightDarkWithBackground
+@Composable
+private fun ErrorStateCardPreview() {
+    ReaderCollectionTheme {
+        ErrorStateCard(onRetry = {})
     }
 }
 

@@ -261,5 +261,14 @@
 
     //OTHERS
     <string name="no_rated_description">No rated</string>
+    <string name="library_ready_title">Your library is ready</string>
+    <string name="empty_library_description">The shelves are empty but full of possibilities. Add books to start building your personal collection.</string>
+    <string name="empty_read_library_description">The shelves are empty but full of possibilities. Read books to start building your reading habits.</string>
+    <string name="explore_catalog_action">Explore catalog</string>
+    <string name="no_matching_records">No matching records</string>
+    <string name="no_matching_records_description">We couldn't find any books matching "%1$s" in the catalog. Try adjusting your spelling or filters.</string>
+    <string name="connection_lost">Connection Lost</string>
+    <string name="connection_lost_description">Unable to reach the external catalog. Please check your network connection and try the search again.</string>
+    <string name="retry_search">Retry Search</string>
 
 </resources>
