@@ -46,7 +46,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -344,7 +343,6 @@ private fun CollapsingToolbarPreview() {
                     },
                     modifier = it,
                     shape = MaterialTheme.shapes.medium,
-                    contentScale = ContentScale.Fit,
                 )
             },
             endContent = {

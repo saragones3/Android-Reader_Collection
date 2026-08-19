@@ -31,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
@@ -40,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import aragones.sergio.readercollection.presentation.theme.RoseBud
-import aragones.sergio.readercollection.presentation.theme.isLight
 import aragones.sergio.readercollection.presentation.theme.selector
 import com.aragones.sergio.util.extensions.isNotBlank
 import org.jetbrains.compose.resources.stringResource
@@ -48,7 +46,6 @@ import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.decrease_priority_description
 import reader_collection.app.generated.resources.dragging_enabled_description
 import reader_collection.app.generated.resources.ic_default_book_cover_blue
-import reader_collection.app.generated.resources.ic_default_book_cover_white
 import reader_collection.app.generated.resources.increase_priority_description
 import reader_collection.app.generated.resources.new_book
 import reader_collection.app.generated.resources.no_rated_description
@@ -93,18 +90,13 @@ fun BookItem(
             }
             ImageWithLoading(
                 imageUrl = book.thumbnail,
-                placeholder = if (MaterialTheme.colorScheme.isLight()) {
-                    Res.drawable.ic_default_book_cover_blue
-                } else {
-                    Res.drawable.ic_default_book_cover_white
-                },
+                placeholder = Res.drawable.ic_default_book_cover_blue,
                 modifier = Modifier
                     .padding(horizontal = 24.dp)
                     .widthIn(max = 115.dp)
                     .fillMaxHeight(),
                 contentDescription = book.title,
                 shape = MaterialTheme.shapes.medium,
-                contentScale = ContentScale.FillWidth,
             )
             BookInfo(
                 book = book,
@@ -214,14 +206,10 @@ fun ReadingBookItem(
         Spacer(Modifier.height(8.dp))
         ImageWithLoading(
             imageUrl = book.thumbnail,
-            placeholder = if (MaterialTheme.colorScheme.isLight()) {
-                Res.drawable.ic_default_book_cover_blue
-            } else {
-                Res.drawable.ic_default_book_cover_white
-            },
+            placeholder = Res.drawable.ic_default_book_cover_blue,
             contentDescription = book.title,
-            contentScale = ContentScale.FillWidth,
             shape = MaterialTheme.shapes.small,
+            imagePadding = 28.dp,
         )
     }
 }
@@ -299,17 +287,12 @@ fun VerticalBookItem(
         ) {
             ImageWithLoading(
                 imageUrl = book.thumbnail,
-                placeholder = if (MaterialTheme.colorScheme.isLight()) {
-                    Res.drawable.ic_default_book_cover_blue
-                } else {
-                    Res.drawable.ic_default_book_cover_white
-                },
+                placeholder = Res.drawable.ic_default_book_cover_blue,
                 modifier = Modifier
                     .height(200.dp)
                     .fillMaxWidth(),
                 contentDescription = book.title,
                 shape = MaterialTheme.shapes.medium,
-                contentScale = ContentScale.Crop,
             )
             Spacer(Modifier.height(8.dp))
             BookBasicInfo(title = book.title ?: "", subtitle = book.authorsToString())

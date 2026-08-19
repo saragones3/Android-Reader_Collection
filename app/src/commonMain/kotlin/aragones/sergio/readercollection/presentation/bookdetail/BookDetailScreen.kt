@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -49,7 +48,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -192,74 +190,73 @@ fun BookDetailScreen(
                 }
             }
             val scrollState = rememberScrollState()
-            CustomToolbar(
-                title = "",
-                modifier = Modifier,
-                backgroundColor = MaterialTheme.colorScheme.primary,
-                backTintColor = MaterialTheme.colorScheme.secondary,
-                onBack = onBack,
-                actions = actions,
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .height(400.dp)
-                        .padding(bottom = 24.dp),
-                ) {
-                    ImageWithLoading(
-                        imageUrl = state.book.thumbnail ?: state.book.image,
-                        placeholder = if (MaterialTheme.colorScheme.isLight()) {
-                            Res.drawable.ic_default_book_cover_white
-                        } else {
-                            Res.drawable.ic_default_book_cover_blue
-                        },
-                        contentDescription = state.book.title,
-                        shape = MaterialTheme.shapes.medium,
-                        contentScale = ContentScale.Fit,
-                    )
-                    if (state.isEditable) {
-                        FloatingActionButton(
-                            onClick = onSetImage,
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(vertical = 8.dp)
-                                .offset(0.dp, 24.dp),
-                            contentColor = MaterialTheme.colorScheme.secondary,
-                            containerColor = MaterialTheme.colorScheme.primary,
-                        ) {
-                            Icon(
-                                painter = rememberVectorPainter(Icons.Default.AddAPhoto),
-                                contentDescription = stringResource(Res.string.add_photo),
-                                tint = MaterialTheme.colorScheme.secondary,
-                            )
-                        }
-                    }
-                }
+            Box(modifier = Modifier.fillMaxSize()) {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-//                        .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))// Due to an unknown error, if I set this, multiline text fields stop working correctly
-                        .background(MaterialTheme.colorScheme.background),
+                        .fillMaxSize()
+                        .verticalScroll(scrollState),
                 ) {
-                    BookDetailContent(
-                        book = state.book,
-                        isEditable = state.isEditable,
-                        onChangeData = onChangeData,
+                    Box(
+                        modifier = Modifier.height(400.dp),
+                    ) {
+                        ImageWithLoading(
+                            imageUrl = state.book.thumbnail ?: state.book.image,
+                            placeholder = if (MaterialTheme.colorScheme.isLight()) {
+                                Res.drawable.ic_default_book_cover_blue
+                            } else {
+                                Res.drawable.ic_default_book_cover_white
+                            },
+                            modifier = Modifier.fillMaxSize(),
+                            contentDescription = state.book.title,
+                            imagePadding = 48.dp,
+                        )
+                        if (state.isEditable) {
+                            FloatingActionButton(
+                                onClick = onSetImage,
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(vertical = 8.dp),
+                                contentColor = MaterialTheme.colorScheme.secondary,
+                                containerColor = MaterialTheme.colorScheme.primary,
+                            ) {
+                                Icon(
+                                    painter = rememberVectorPainter(Icons.Default.AddAPhoto),
+                                    contentDescription = stringResource(Res.string.add_photo),
+                                    tint = MaterialTheme.colorScheme.secondary,
+                                )
+                            }
+                        }
+                    }
+                    Column(
                         modifier = Modifier
-                            .widthIn(max = 500.dp)
-                            .align(Alignment.CenterHorizontally)
-                            .padding(
-                                start = 12.dp,
-                                top = 24.dp,
-                                end = 12.dp,
-                                bottom = 0.dp,
-                            ),
-                    )
+                            .fillMaxWidth()
+//                        .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))// Due to an unknown error, if I set this, multiline text fields stop working correctly
+                            .background(MaterialTheme.colorScheme.background),
+                    ) {
+                        BookDetailContent(
+                            book = state.book,
+                            isEditable = state.isEditable,
+                            onChangeData = onChangeData,
+                            modifier = Modifier
+                                .widthIn(max = 500.dp)
+                                .align(Alignment.CenterHorizontally)
+                                .padding(
+                                    start = 12.dp,
+                                    top = 24.dp,
+                                    end = 12.dp,
+                                    bottom = 0.dp,
+                                ),
+                        )
+                    }
                 }
+                CustomToolbar(
+                    title = "",
+                    modifier = Modifier,
+                    backgroundColor = androidx.compose.ui.graphics.Color.Transparent,
+                    backTintColor = MaterialTheme.colorScheme.secondary,
+                    onBack = onBack,
+                    actions = actions,
+                )
             }
         }
     }
