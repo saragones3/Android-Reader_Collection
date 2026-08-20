@@ -9,12 +9,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,7 +24,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.automirrored.filled.StarHalf
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
@@ -42,7 +44,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +64,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
@@ -84,6 +84,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_TYPE_NORMAL
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.presentation.theme.LightRoseBud
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
@@ -98,7 +99,6 @@ import reader_collection.app.generated.resources.book_rating_description
 import reader_collection.app.generated.resources.clear_text
 import reader_collection.app.generated.resources.connection_lost
 import reader_collection.app.generated.resources.connection_lost_description
-import reader_collection.app.generated.resources.delete
 import reader_collection.app.generated.resources.empty_library_description
 import reader_collection.app.generated.resources.image_no_results
 import reader_collection.app.generated.resources.library_ready_title
@@ -152,10 +152,9 @@ fun StarRatingBar(
     modifier: Modifier = Modifier,
     maxStars: Int = 5,
     isSelectable: Boolean = false,
+    starSize: Dp = 24.dp,
+    starSpacing: Dp = 2.dp,
 ) {
-    val starSize = with(LocalDensity.current) { (12f * density).dp }
-    val starSpacing = with(LocalDensity.current) { (0.5f * density).dp }
-
     val contentDescription =
         stringResource(Res.string.book_rating_description, (rating * 10 / maxStars).toInt())
     Row(
@@ -192,8 +191,7 @@ fun StarRatingBar(
                 stringResource(Res.string.star_status_description, stateText, i, maxStars)
             val starContentDescription =
                 pluralStringResource(Res.plurals.star_rate_description, i, statusDescription, i)
-            IconButton(
-                onClick = { onRatingChanged(i.toFloat()) },
+            Box(
                 modifier = Modifier
                     .then(
                         if (!isSelectable) {
@@ -202,7 +200,7 @@ fun StarRatingBar(
                             Modifier
                         },
                     ).size(starSize),
-                enabled = isSelectable,
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     painter = rememberVectorPainter(icon),
@@ -210,6 +208,36 @@ fun StarRatingBar(
                     tint = tint,
                     modifier = Modifier.fillMaxSize(),
                 )
+                if (isSelectable) {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .clickable {
+                                    val selectedRating = i - 0.5f
+                                    onRatingChanged(
+                                        if (selectedRating == rating) 0f else selectedRating,
+                                    )
+                                },
+                        )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = {
+                                        val selectedRating = i.toFloat()
+                                        onRatingChanged(
+                                            if (selectedRating == rating) 0f else selectedRating,
+                                        )
+                                    },
+                                ),
+                        )
+                    }
+                }
             }
             if (i < maxStars) {
                 Spacer(modifier = Modifier.width(starSpacing))
@@ -391,10 +419,54 @@ fun CustomInputChip(
         },
         modifier = modifier,
         trailingIcon = trailingIcon,
-        shape = RoundedCornerShape(24.dp),
+        shape = MaterialTheme.shapes.medium,
         colors = InputChipDefaults.inputChipColors(
             containerColor = MaterialTheme.colorScheme.primary,
             selectedContainerColor = MaterialTheme.colorScheme.primary,
+        ),
+    )
+}
+
+@Composable
+fun CustomOutlinedInputChip(
+    text: String,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    onEndIconClick: (() -> Unit)? = null,
+    endIcon: AccessibilityPainter? = null,
+) {
+    val trailingIcon: @Composable (() -> Unit)? = endIcon?.let {
+        {
+            Icon(
+                painter = endIcon.painter,
+                contentDescription = endIcon.contentDescription,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp).clickable { onEndIconClick?.invoke() },
+            )
+        }
+    }
+    InputChip(
+        selected = false,
+        onClick = onClick ?: {},
+        label = {
+            Text(
+                text = text,
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+            )
+        },
+        modifier = modifier,
+        trailingIcon = trailingIcon,
+        shape = MaterialTheme.shapes.medium,
+        colors = InputChipDefaults.inputChipColors(
+            containerColor = Color.Transparent,
+            selectedContainerColor = Color.Transparent,
+        ),
+        border = BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.primary,
         ),
     )
 }
@@ -643,7 +715,19 @@ private fun CustomInputChipPreview() {
         CustomInputChip(
             text = "Value",
             endIcon = rememberVectorPainter(Icons.Default.Close)
-                .withDescription(stringResource(Res.string.delete)),
+                .withDescription(null),
+        )
+    }
+}
+
+@CustomPreviewLightDark
+@Composable
+private fun CustomOutlinedInputChipPreview() {
+    ReaderCollectionTheme {
+        CustomOutlinedInputChip(
+            text = "Value",
+            endIcon = rememberVectorPainter(Icons.Default.KeyboardArrowDown)
+                .withDescription(null),
         )
     }
 }

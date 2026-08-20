@@ -29,7 +29,7 @@ fun BookDetailView(onBack: () -> Unit, viewModel: BookDetailViewModel = koinView
     val imageDialogMessageId by viewModel.imageDialogMessageId.collectAsState()
     val error by viewModel.bookDetailError.collectAsState()
 
-    ReaderCollectionApp(statusBarSameAsBackground = false) {
+    ReaderCollectionApp {
         BookDetailScreen(
             state = state,
             onBack = onBack,

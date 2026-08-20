@@ -162,12 +162,13 @@ private fun BookInfo(book: Book, modifier: Modifier = Modifier) {
 @Composable
 private fun RatingStars(rating: Double, modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier,
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         StarRatingBar(
             rating = rating.toFloat() / 2,
             onRatingChanged = {},
+            modifier = Modifier.weight(1f, fill = false),
         )
         Spacer(Modifier.width(12.dp))
         Text(
