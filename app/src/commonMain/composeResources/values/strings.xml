@@ -47,6 +47,11 @@
     <string name="title_search">Search</string>
     <string name="enter_title">Enter title</string>
     <string name="enter_author">Enter author</string>
+    <string name="filters">Filters:</string>
+    <plurals name="search_results_count">
+        <item quantity="one">About %1$d result</item>
+        <item quantity="other">About %1$d results</item>
+    </plurals>
 
     //STATISTICS
     <string name="title_stats">Statistics</string>

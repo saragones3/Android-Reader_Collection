@@ -54,7 +54,6 @@ import aragones.sergio.readercollection.presentation.components.CustomToolbar
 import aragones.sergio.readercollection.presentation.components.ListButton
 import aragones.sergio.readercollection.presentation.components.TopAppBarIcon
 import aragones.sergio.readercollection.presentation.components.withDescription
-import aragones.sergio.readercollection.presentation.search.reachedBottom
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import com.aragones.sergio.util.BookState
 import kotlinx.coroutines.Job
@@ -286,6 +285,12 @@ private fun <T> MutableList<T>.move(from: Int, to: Int) {
     if (from == to) return
     val element = this.removeAt(from)
     this.add(to, element)
+}
+
+private fun LazyListState.reachedBottom(buffer: Int = 1): Boolean {
+    val lastVisibleItem = this.layoutInfo.visibleItemsInfo.lastOrNull()
+    return lastVisibleItem?.index != 0 &&
+        lastVisibleItem?.index == this.layoutInfo.totalItemsCount - buffer
 }
 
 @CustomPreviewLightDark

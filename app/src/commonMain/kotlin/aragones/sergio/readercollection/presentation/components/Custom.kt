@@ -656,6 +656,21 @@ sealed class StateCardData {
     )
 }
 
+@Composable
+internal fun getBoldTextFor(text: String, placeholder: String): AnnotatedString =
+    buildAnnotatedString {
+        val startIndex = text.indexOf(placeholder)
+        if (startIndex != -1) {
+            append(text.substring(0, startIndex))
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                append(placeholder)
+            }
+            append(text.substring(startIndex + placeholder.length))
+        } else {
+            append(text)
+        }
+    }
+
 @CustomPreviewLightDarkWithBackground
 @Composable
 private fun NoResultsComponentPreview() {

@@ -13,15 +13,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
@@ -30,6 +35,7 @@ import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -46,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.IntOffset
@@ -53,7 +60,6 @@ import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.Books
 import aragones.sergio.readercollection.domain.model.ErrorModel
-import aragones.sergio.readercollection.presentation.components.BookItem
 import aragones.sergio.readercollection.presentation.components.CustomFilterChip
 import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDark
 import aragones.sergio.readercollection.presentation.components.CustomSearchBar
@@ -61,18 +67,24 @@ import aragones.sergio.readercollection.presentation.components.EmptyStateCard
 import aragones.sergio.readercollection.presentation.components.ErrorStateCard
 import aragones.sergio.readercollection.presentation.components.ListButton
 import aragones.sergio.readercollection.presentation.components.NoResultsStateCard
+import aragones.sergio.readercollection.presentation.components.VerticalBookItem
+import aragones.sergio.readercollection.presentation.components.getBoldTextFor
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.enter_author
 import reader_collection.app.generated.resources.enter_title
 import reader_collection.app.generated.resources.error_server
+import reader_collection.app.generated.resources.filters
 import reader_collection.app.generated.resources.go_to_end
 import reader_collection.app.generated.resources.go_to_start
 import reader_collection.app.generated.resources.load_more
 import reader_collection.app.generated.resources.no_search_yet_text
+import reader_collection.app.generated.resources.results_for
+import reader_collection.app.generated.resources.search_results_count
 import reader_collection.app.generated.resources.title_search
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,7 +99,7 @@ fun SearchScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val listState = rememberLazyListState()
+    val listState = rememberLazyGridState()
     val showTopButton by remember {
         derivedStateOf {
             listState.firstVisibleItemIndex != 0
@@ -160,6 +172,7 @@ fun SearchScreen(
                     } else {
                         SearchContent(
                             books = state.books,
+                            query = query ?: "",
                             listState = listState,
                             showTopButton = showTopButton && !isLoading,
                             showBottomButton = showBottomButton && !isLoading,
@@ -221,6 +234,13 @@ private fun Filters(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Text(
+            text = stringResource(Res.string.filters),
+            style = MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.Normal,
+            color = MaterialTheme.colorScheme.primary,
+            maxLines = 1,
+        )
         for (entry in SearchParam.entries) {
             CustomFilterChip(
                 title = stringResource(entry.value),
@@ -268,7 +288,8 @@ private fun ErrorContent(onRetry: () -> Unit) {
 @Composable
 private fun SearchContent(
     books: Books,
-    listState: LazyListState,
+    query: String,
+    listState: LazyGridState,
     showTopButton: Boolean,
     showBottomButton: Boolean,
     onTopButtonClick: () -> Unit,
@@ -277,21 +298,44 @@ private fun SearchContent(
     onLoadMoreClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val bookItems = books.books.filter { it.id.isNotBlank() }
     Box(modifier) {
-        LazyColumn(
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
             state = listState,
-            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
         ) {
-            itemsIndexed(books.books) { index, book ->
-                if (book.id.isNotBlank()) {
-                    BookItem(
-                        book = book,
-                        onBookClick = onBookClick,
-                        showDivider = index < books.books.size - 1,
-                    )
-                } else {
+            stickyHeader {
+                ResultsTitle(
+                    query = query,
+                    resultsCount = bookItems.size,
+                )
+            }
+            itemsIndexed(
+                items = bookItems,
+                key = { index, book -> "$index-${book.id}" },
+            ) { _, book ->
+                VerticalBookItem(
+                    book = book,
+                    isSwitchLeftIconEnabled = false,
+                    isSwitchRightIconEnabled = false,
+                    onClick = { onBookClick(book.id) },
+                    onSwitchToLeft = {},
+                    onSwitchToRight = {},
+                    onLongClick = {},
+                )
+            }
+            books.books.firstOrNull { it.id.isBlank() }?.let {
+                item(span = { GridItemSpan(2) }) {
                     LoadMoreButton(onLoadMoreClick)
                 }
+            }
+            item(span = { GridItemSpan(2) }) {
+                Spacer(Modifier.height(8.dp))
             }
         }
 
@@ -325,6 +369,50 @@ private fun SearchContent(
 }
 
 @Composable
+private fun ResultsTitle(query: String, resultsCount: Int, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(vertical = 16.dp),
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            Text(
+                text = getBoldTextFor(
+                    text = stringResource(Res.string.results_for, query),
+                    placeholder = "\"" + query + "\"",
+                ),
+                style = MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = getBoldTextFor(
+                    text = pluralStringResource(
+                        Res.plurals.search_results_count,
+                        resultsCount,
+                        resultsCount,
+                    ),
+                    placeholder = resultsCount.toString(),
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        HorizontalDivider(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
+}
+
+@Composable
 private fun LoadMoreButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Button(
         onClick = onClick,
@@ -351,7 +439,7 @@ private fun LoadMoreButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
-internal fun LazyListState.reachedBottom(buffer: Int = 1): Boolean {
+private fun LazyGridState.reachedBottom(buffer: Int = 1): Boolean {
     val lastVisibleItem = this.layoutInfo.visibleItemsInfo.lastOrNull()
     return lastVisibleItem?.index != 0 &&
         lastVisibleItem?.index == this.layoutInfo.totalItemsCount - buffer
@@ -403,7 +491,7 @@ private class SearchScreenPreviewParameterProvider :
                     ),
                 ),
                 isLoading = true,
-                query = null,
+                query = "Title to search books",
                 param = SearchParam.TITLE,
             ),
             SearchUiState.Success(
