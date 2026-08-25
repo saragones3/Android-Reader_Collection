@@ -201,7 +201,7 @@ class StatisticsViewModel(
 
     private fun createGenreStats(books: List<Book>): Entries = Entries(
         books
-            .flatMap { it.categories ?: emptyList() }
+            .flatMap { it.categories.orEmpty() }
             .groupBy { it.id }
             .entries
             .mapNotNull { entry ->

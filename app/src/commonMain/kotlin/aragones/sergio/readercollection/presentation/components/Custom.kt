@@ -23,12 +23,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.StarHalf
+import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
@@ -39,10 +42,12 @@ import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
@@ -50,9 +55,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -67,6 +74,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -86,10 +94,13 @@ import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_TYPE_NORMAL
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import aragones.sergio.readercollection.domain.model.Book
+import aragones.sergio.readercollection.domain.model.Books
 import aragones.sergio.readercollection.presentation.theme.LightRoseBud
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import aragones.sergio.readercollection.presentation.theme.RoseBud
 import aragones.sergio.readercollection.presentation.theme.isLight
+import com.aragones.sergio.util.Constants
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
@@ -105,8 +116,11 @@ import reader_collection.app.generated.resources.library_ready_title
 import reader_collection.app.generated.resources.no_matching_records
 import reader_collection.app.generated.resources.no_matching_records_description
 import reader_collection.app.generated.resources.no_results_text
+import reader_collection.app.generated.resources.pending
 import reader_collection.app.generated.resources.retry_search
 import reader_collection.app.generated.resources.search
+import reader_collection.app.generated.resources.show_all
+import reader_collection.app.generated.resources.show_more
 import reader_collection.app.generated.resources.star_empty
 import reader_collection.app.generated.resources.star_filled
 import reader_collection.app.generated.resources.star_half_filled
@@ -513,24 +527,13 @@ fun EmptyStateCard(
 
 @Composable
 fun NoResultsStateCard(query: String, modifier: Modifier = Modifier) {
-    val boldText = "\"" + query + "\""
-    val fullText = stringResource(Res.string.no_matching_records_description, query)
-    val annotatedString = buildAnnotatedString {
-        val startIndex = fullText.indexOf(boldText)
-        if (startIndex != -1) {
-            append(fullText.substring(0, startIndex))
-            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                append(boldText)
-            }
-            append(fullText.substring(startIndex + boldText.length))
-        } else {
-            append(fullText)
-        }
-    }
     StateCard(
         data = StateCardData.NoResults(
             title = stringResource(Res.string.no_matching_records),
-            subtitle = annotatedString,
+            subtitle = getBoldTextFor(
+                text = stringResource(Res.string.no_matching_records_description, query),
+                placeholder = "\"" + query + "\"",
+            ),
         ),
         modifier = modifier,
     )
@@ -654,6 +657,156 @@ sealed class StateCardData {
         val onClick: () -> Unit,
         val icon: AccessibilityPainter? = null,
     )
+}
+
+@Composable
+internal fun BooksSection(
+    title: String,
+    books: Books,
+    onShowAll: (() -> Unit)?,
+    onBookClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    isSwitchingEnabled: Boolean = false,
+    showDivider: Boolean = true,
+    onSwitchToLeft: (Int) -> Unit = {},
+    onSwitchToRight: (Int) -> Unit = {},
+    onLongClickBook: (Book) -> Unit = {},
+) {
+    var visibleBooksLimit by rememberSaveable { mutableIntStateOf(Constants.BOOKS_TO_SHOW) }
+    val booksToShow = books.books.take(visibleBooksLimit)
+    val hasMore = books.books.size > visibleBooksLimit
+
+    if (booksToShow.isNotEmpty()) {
+        Column(modifier) {
+            BooksSectionHeader(
+                title = title,
+                booksCount = books.books.size,
+                showAll = onShowAll != null,
+                onShowAll = { onShowAll?.invoke() },
+            )
+            Spacer(Modifier.height(8.dp))
+            LazyRow {
+                itemsIndexed(booksToShow) { index, book ->
+
+                    val isFirst = index == 0 || !isSwitchingEnabled
+                    val isLast = index == visibleBooksLimit - 1 ||
+                        index == booksToShow.count() - 1 ||
+                        !isSwitchingEnabled
+                    VerticalBookItem(
+                        book = book,
+                        isSwitchLeftIconEnabled = !isFirst && book.isPending(),
+                        isSwitchRightIconEnabled = !isLast && book.isPending(),
+                        onClick = { onBookClick(book.id) },
+                        onSwitchToLeft = {
+                            onSwitchToLeft(index)
+                        },
+                        onSwitchToRight = {
+                            onSwitchToRight(index)
+                        },
+                        onLongClick = { onLongClickBook(book) },
+                    )
+                }
+                if (hasMore) {
+                    item {
+                        ShowMoreItems(
+                            onClick = {
+                                visibleBooksLimit += Constants.BOOKS_TO_SHOW
+                            },
+                            modifier = if (isSwitchingEnabled) {
+                                Modifier.height(300.dp)
+                            } else {
+                                Modifier.height(205.dp)
+                            },
+                        )
+                    }
+                }
+            }
+            if (showDivider) {
+                Spacer(Modifier.height(16.dp))
+                HorizontalDivider(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun BooksSectionHeader(
+    title: String,
+    booksCount: Int,
+    showAll: Boolean,
+    onShowAll: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = title,
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.displayMedium,
+            color = MaterialTheme.colorScheme.primary,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1,
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Badge(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.secondary,
+        ) {
+            Text(
+                text = booksCount.toString(),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+        Spacer(Modifier.weight(1f))
+        if (showAll) {
+            TextButton(onClick = onShowAll) {
+                Text(
+                    text = stringResource(Res.string.show_all),
+                    style = MaterialTheme.typography.displaySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShowMoreItems(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val text = stringResource(Res.string.show_more)
+    Column(
+        modifier = modifier
+            .padding(horizontal = 12.dp)
+            .width(150.dp)
+            .clickable(onClick = onClick)
+            .semantics {
+                contentDescription = text
+            },
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            painter = rememberVectorPainter(Icons.Default.AddCircleOutline),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(vertical = 16.dp),
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.displayMedium,
+            color = MaterialTheme.colorScheme.primary,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1,
+        )
+    }
 }
 
 @Composable
@@ -809,6 +962,25 @@ private fun NoResultsStateCardPreview() {
 private fun ErrorStateCardPreview() {
     ReaderCollectionTheme {
         ErrorStateCard(onRetry = {})
+    }
+}
+
+@CustomPreviewLightDarkWithBackground
+@Composable
+private fun BooksSectionPreview() {
+    val books = listOf(
+        Book("1").copy(title = "Book 1"),
+        Book("2").copy(title = "Book 2"),
+    )
+    ReaderCollectionTheme {
+        BooksSection(
+            title = stringResource(Res.string.pending),
+            books = Books(books),
+            isSwitchingEnabled = false,
+            onShowAll = {},
+            onBookClick = {},
+            showDivider = false,
+        )
     }
 }
 

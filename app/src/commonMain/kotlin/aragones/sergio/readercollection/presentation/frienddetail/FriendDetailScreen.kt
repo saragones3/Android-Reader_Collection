@@ -138,11 +138,10 @@ private fun FriendDetailContent(
                 Spacer(Modifier.weight(1f))
                 MainActionButton(
                     text = stringResource(Res.string.delete),
+                    onClick = onDeleteFriend,
                     modifier = Modifier
                         .widthIn(min = 200.dp)
                         .padding(vertical = 24.dp),
-                    enabled = true,
-                    onClick = onDeleteFriend,
                     type = ButtonType.DESTRUCTIVE,
                 )
                 Spacer(Modifier.weight(1f))

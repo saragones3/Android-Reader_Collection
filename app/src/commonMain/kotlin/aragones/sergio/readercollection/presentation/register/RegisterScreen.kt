@@ -160,14 +160,14 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.weight(1f))
         MainActionButton(
             text = stringResource(Res.string.sign_up),
+            onClick = {
+                onRegister(state.username, state.password)
+            },
             modifier = Modifier
                 .widthIn(min = 200.dp)
                 .align(Alignment.CenterHorizontally)
                 .padding(horizontal = 12.dp, vertical = 24.dp),
             enabled = state.formState.isDataValid,
-            onClick = {
-                onRegister(state.username, state.password)
-            },
         )
     }
     if (state.isLoading) {

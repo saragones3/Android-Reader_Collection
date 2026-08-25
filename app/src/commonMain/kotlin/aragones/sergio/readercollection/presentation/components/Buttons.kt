@@ -45,9 +45,9 @@ import reader_collection.app.generated.resources.sign_in
 @Composable
 fun MainActionButton(
     text: String,
-    enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     type: ButtonType = ButtonType.MAIN,
 ) {
     val buttonColors = when (type) {
@@ -296,7 +296,6 @@ private fun MainActionButtonPreview() {
     ReaderCollectionTheme {
         MainActionButton(
             text = stringResource(Res.string.sign_in),
-            enabled = true,
             onClick = {},
         )
     }
@@ -308,7 +307,6 @@ private fun MainDestructiveActionButtonPreview() {
     ReaderCollectionTheme {
         MainActionButton(
             text = stringResource(Res.string.delete),
-            enabled = true,
             onClick = {},
             type = ButtonType.DESTRUCTIVE,
         )

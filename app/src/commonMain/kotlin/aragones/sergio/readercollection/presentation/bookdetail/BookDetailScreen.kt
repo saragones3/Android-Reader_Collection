@@ -394,7 +394,6 @@ private fun BookDetailFooter(
     ) {
         MainActionButton(
             text = text,
-            enabled = true,
             onClick = onClick,
             modifier = Modifier.fillMaxWidth(),
             type = type,
@@ -469,7 +468,7 @@ private fun MainBookInfo(
         Spacer(Modifier.height(24.dp))
     }
     BookCategories(
-        categories = categories ?: emptyList(),
+        categories = categories.orEmpty(),
         isEditable = isEditable,
         onChange = {
             onChangeData(title, authors, it)

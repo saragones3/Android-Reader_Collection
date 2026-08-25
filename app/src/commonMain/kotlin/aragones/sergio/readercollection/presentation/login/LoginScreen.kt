@@ -125,14 +125,14 @@ fun LoginScreen(
         Spacer(modifier = Modifier.weight(1f))
         MainActionButton(
             text = stringResource(Res.string.sign_in),
+            onClick = {
+                onLogin(state.username, state.password)
+            },
             modifier = Modifier
                 .widthIn(min = 200.dp)
                 .align(Alignment.CenterHorizontally)
                 .padding(horizontal = 12.dp, vertical = 24.dp),
             enabled = state.formState.isDataValid,
-            onClick = {
-                onLogin(state.username, state.password)
-            },
         )
         Row(
             modifier = Modifier.align(Alignment.CenterHorizontally),

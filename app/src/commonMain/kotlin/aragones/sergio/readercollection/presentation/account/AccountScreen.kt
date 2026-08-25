@@ -102,17 +102,16 @@ fun AccountScreen(
             )
             MainActionButton(
                 text = stringResource(Res.string.save),
+                onClick = onSave,
                 modifier = Modifier
                     .widthIn(min = 200.dp)
                     .align(Alignment.CenterHorizontally)
                     .padding(vertical = 24.dp),
                 enabled = state.emailError == null && state.passwordError == null,
-                onClick = onSave,
             )
             Spacer(Modifier.weight(1f))
             MainActionButton(
                 text = stringResource(Res.string.delete_account_action),
-                enabled = true,
                 onClick = onDeleteAccount,
                 modifier = Modifier
                     .widthIn(min = 200.dp)

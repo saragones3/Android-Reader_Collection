@@ -66,10 +66,10 @@ class FriendsViewModelTest {
 
     @Test
     fun `GIVEN friends WHEN fetchFriends THEN returns Success state with friends list`() = runTest {
-        val friend1 = User("1", "", RequestStatus.APPROVED)
-        val friend2 = User("2", "", RequestStatus.PENDING_MINE)
-        val friend3 = User("3", "", RequestStatus.PENDING_FRIEND)
-        val friend4 = User("4", "", RequestStatus.REJECTED)
+        val friend1 = User(id = "1", username = "", status = RequestStatus.APPROVED)
+        val friend2 = User(id = "2", username = "", status = RequestStatus.PENDING_MINE)
+        val friend3 = User(id = "3", username = "", status = RequestStatus.PENDING_FRIEND)
+        val friend4 = User(id = "4", username = "", status = RequestStatus.REJECTED)
         coEvery {
             userRemoteDataSource.getFriends(any())
         } returns Result.success(
@@ -90,14 +90,14 @@ class FriendsViewModelTest {
                 FriendsUiState.Success(
                     friends = UsersUi(
                         listOf(
-                            UserUi("1", "", false),
-                            UserUi("2", "", true),
+                            UserUi(id = "1", username = "", isPending = false),
+                            UserUi(id = "2", username = "", isPending = true),
                         ),
                     ),
                     requests = UsersUi(
                         listOf(
-                            UserUi("3", "", true),
-                            UserUi("4", "", false),
+                            UserUi(id = "3", username = "", isPending = true),
+                            UserUi(id = "4", username = "", isPending = false),
                         ),
                     ),
                 ),
@@ -181,9 +181,9 @@ class FriendsViewModelTest {
     fun `GIVEN query and success response WHEN searchFriends THEN search results are shown`() =
         runTest {
             val query = "query"
-            val user = User("1", "", RequestStatus.PENDING_FRIEND)
+            val user = User(id = "1", username = "", status = RequestStatus.PENDING_FRIEND)
             val users = listOf(user)
-            val userUi = UserUi("1", "", true)
+            val userUi = UserUi(id = "1", username = "", isPending = true)
             coEvery {
                 userRemoteDataSource.getFriends(testUserId)
             } returns Result.success(emptyList())
@@ -232,7 +232,7 @@ class FriendsViewModelTest {
     fun `GIVEN query and success response with non pending friend WHEN searchFriends THEN no search results are shown`() =
         runTest {
             val query = "query"
-            val user = User("1", "", RequestStatus.APPROVED)
+            val user = User(id = "1", username = "", status = RequestStatus.APPROVED)
             val users = listOf(user)
             coEvery {
                 userRemoteDataSource.getFriends(testUserId)
@@ -336,9 +336,9 @@ class FriendsViewModelTest {
     fun `GIVEN empty query WHEN searchFriends THEN state is updated but no search is performed`() =
         runTest {
             val query = "query"
-            val user = User("1", "", RequestStatus.PENDING_FRIEND)
+            val user = User(id = "1", username = "", status = RequestStatus.PENDING_FRIEND)
             val users = listOf(user)
-            val userUi = UserUi("1", "", true)
+            val userUi = UserUi(id = "1", username = "", isPending = true)
             coEvery {
                 userRemoteDataSource.getFriends(testUserId)
             } returns Result.success(emptyList())
@@ -397,9 +397,9 @@ class FriendsViewModelTest {
     @Test
     fun `GIVEN friend and success response WHEN requestFriendship THEN friend is added to requests`() =
         runTest {
-            val user = User("1", "user1", RequestStatus.PENDING_FRIEND)
+            val user = User(id = "1", username = "user1", status = RequestStatus.PENDING_FRIEND)
             val users = listOf(user)
-            val userUi = UserUi("1", "user1", true)
+            val userUi = UserUi(id = "1", username = "user1", isPending = true)
             coEvery {
                 userRemoteDataSource.getFriends(testUserId)
             } returns Result.success(emptyList())
@@ -481,9 +481,9 @@ class FriendsViewModelTest {
 
     @Test
     fun `GIVEN friend and failure response WHEN requestFriendship THEN error is shown`() = runTest {
-        val user = User("1", "user1", RequestStatus.PENDING_FRIEND)
+        val user = User(id = "1", username = "user1", status = RequestStatus.PENDING_FRIEND)
         val users = listOf(user)
-        val userUi = UserUi("1", "user1", true)
+        val userUi = UserUi(id = "1", username = "user1", isPending = true)
         coEvery {
             userRemoteDataSource.getFriends(testUserId)
         } returns Result.success(emptyList())

@@ -10,7 +10,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -24,13 +23,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
-import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -42,7 +38,6 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,31 +46,21 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.Books
+import aragones.sergio.readercollection.presentation.components.BooksSection
 import aragones.sergio.readercollection.presentation.components.CustomCard
 import aragones.sergio.readercollection.presentation.components.CustomCircularProgressIndicator
 import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDarkLong
@@ -84,7 +69,7 @@ import aragones.sergio.readercollection.presentation.components.MainIconButton
 import aragones.sergio.readercollection.presentation.components.SearchBar
 import aragones.sergio.readercollection.presentation.components.SecondaryButton
 import aragones.sergio.readercollection.presentation.components.SecondaryIconButton
-import aragones.sergio.readercollection.presentation.components.VerticalBookItem
+import aragones.sergio.readercollection.presentation.components.getBoldTextFor
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import com.aragones.sergio.util.BookState
@@ -112,8 +97,6 @@ import reader_collection.app.generated.resources.rejected_status
 import reader_collection.app.generated.resources.requests_tab_title
 import reader_collection.app.generated.resources.results_for
 import reader_collection.app.generated.resources.send_request
-import reader_collection.app.generated.resources.show_all
-import reader_collection.app.generated.resources.show_more
 import reader_collection.app.generated.resources.view_library_action
 
 @Composable
@@ -431,22 +414,11 @@ private fun LazyListScope.SearchResultsContent(
 ) {
     if (results.users.isEmpty()) {
         item {
-            val boldText = "\"" + query + "\""
-            val fullText = stringResource(Res.string.no_friends_found, query)
-            val annotatedString = buildAnnotatedString {
-                val startIndex = fullText.indexOf(boldText)
-                if (startIndex != -1) {
-                    append(fullText.substring(0, startIndex))
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append(boldText)
-                    }
-                    append(fullText.substring(startIndex + boldText.length))
-                } else {
-                    append(fullText)
-                }
-            }
             Text(
-                text = annotatedString,
+                text = getBoldTextFor(
+                    text = stringResource(Res.string.no_friends_found, query),
+                    placeholder = "\"" + query + "\"",
+                ),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -707,159 +679,6 @@ private fun MainUserInfo(
         }
         Spacer(modifier = Modifier.width(4.dp))
         endContent?.invoke()
-    }
-}
-
-@Composable
-internal fun BooksSection(
-    title: String,
-    books: Books,
-    onShowAll: (() -> Unit)?,
-    onBookClick: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    isSwitchingEnabled: Boolean = false,
-    showDivider: Boolean = true,
-    onSwitchToLeft: (Int) -> Unit = {},
-    onSwitchToRight: (Int) -> Unit = {},
-    onLongClickBook: (Book) -> Unit = {},
-) {
-    var visibleBooksLimit by rememberSaveable { mutableIntStateOf(Constants.BOOKS_TO_SHOW) }
-    val booksToShow = books.books.take(visibleBooksLimit)
-    val hasMore = books.books.size > visibleBooksLimit
-
-    if (booksToShow.isNotEmpty()) {
-        Column(modifier) {
-            BooksSectionHeader(
-                title = title,
-                booksCount = books.books.size,
-                showAll = onShowAll != null,
-                onShowAll = { onShowAll?.invoke() },
-                modifier = Modifier.padding(horizontal = 24.dp),
-            )
-            Spacer(Modifier.height(8.dp))
-            LazyRow {
-                itemsIndexed(booksToShow) { index, book ->
-
-                    val isFirst = index == 0 || !isSwitchingEnabled
-                    val isLast = index == visibleBooksLimit - 1 ||
-                        index == booksToShow.count() - 1 ||
-                        !isSwitchingEnabled
-                    VerticalBookItem(
-                        book = book,
-                        isSwitchLeftIconEnabled = !isFirst && book.isPending(),
-                        isSwitchRightIconEnabled = !isLast && book.isPending(),
-                        onClick = { onBookClick(book.id) },
-                        onSwitchToLeft = {
-                            onSwitchToLeft(index)
-                        },
-                        onSwitchToRight = {
-                            onSwitchToRight(index)
-                        },
-                        onLongClick = { onLongClickBook(book) },
-                    )
-                }
-                if (hasMore) {
-                    item {
-                        ShowMoreItems(
-                            onClick = {
-                                visibleBooksLimit += Constants.BOOKS_TO_SHOW
-                            },
-                            modifier = if (isSwitchingEnabled) {
-                                Modifier.height(300.dp)
-                            } else {
-                                Modifier.height(205.dp)
-                            },
-                        )
-                    }
-                }
-            }
-            if (showDivider) {
-                Spacer(Modifier.height(16.dp))
-                HorizontalDivider(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    color = MaterialTheme.colorScheme.tertiary,
-                )
-            }
-            Spacer(Modifier.height(16.dp))
-        }
-    }
-}
-
-@Composable
-private fun BooksSectionHeader(
-    title: String,
-    booksCount: Int,
-    showAll: Boolean,
-    onShowAll: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = title,
-            modifier = Modifier.semantics { heading() },
-            style = MaterialTheme.typography.displayMedium,
-            color = MaterialTheme.colorScheme.primary,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-        )
-        Spacer(modifier = Modifier.width(6.dp))
-        Badge(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.secondary,
-        ) {
-            Text(
-                text = booksCount.toString(),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        Spacer(Modifier.weight(1f))
-        if (showAll) {
-            TextButton(onClick = onShowAll) {
-                Text(
-                    text = stringResource(Res.string.show_all),
-                    style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ShowMoreItems(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val text = stringResource(Res.string.show_more)
-    Column(
-        modifier = modifier
-            .padding(horizontal = 12.dp)
-            .width(150.dp)
-            .clickable(onClick = onClick)
-            .semantics {
-                contentDescription = text
-            },
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Icon(
-            painter = rememberVectorPainter(Icons.Default.AddCircleOutline),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(vertical = 16.dp),
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.displayMedium,
-            color = MaterialTheme.colorScheme.primary,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-        )
     }
 }
 

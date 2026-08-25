@@ -222,12 +222,9 @@ class BookListViewModel(
     private fun showError(
         error: ErrorModel = ErrorModel(Constants.EMPTY_VALUE, Res.string.error_database),
     ) {
-        state.value = BookListUiState(
-            isLoading = false,
-            books = Books(),
-            subtitle = subtitle,
-            isDraggingEnabled = false,
-        )
+        state.update {
+            it.copy(isLoading = false)
+        }
         booksError.value = error
     }
     //endregion

@@ -9,7 +9,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,41 +23,31 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.Badge
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -67,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.data.remote.model.STATES
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.Books
+import aragones.sergio.readercollection.presentation.components.BooksSection
 import aragones.sergio.readercollection.presentation.components.CustomCircularProgressIndicator
 import aragones.sergio.readercollection.presentation.components.CustomFilterChip
 import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDark
@@ -79,7 +69,6 @@ import aragones.sergio.readercollection.presentation.components.ReadingBookItem
 import aragones.sergio.readercollection.presentation.components.SearchBar
 import aragones.sergio.readercollection.presentation.components.StateCardData
 import aragones.sergio.readercollection.presentation.components.TopAppBarIcon
-import aragones.sergio.readercollection.presentation.components.VerticalBookItem
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.AppUiProvider.getScreenWidth
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
@@ -100,8 +89,6 @@ import reader_collection.app.generated.resources.not_reading_anything_yet
 import reader_collection.app.generated.resources.pending
 import reader_collection.app.generated.resources.read
 import reader_collection.app.generated.resources.search_in_library
-import reader_collection.app.generated.resources.show_all
-import reader_collection.app.generated.resources.show_more
 import reader_collection.app.generated.resources.sort_books
 import reader_collection.app.generated.resources.title_books
 import reader_collection.app.generated.resources.title_books_count
@@ -329,12 +316,11 @@ private fun BooksComponent(
         BooksSection(
             title = stringResource(Res.string.pending),
             books = Books(pendingBooks),
-            isSwitchingEnabled = query.isBlank(),
-            showAll = pendingBooks.size > Constants.BOOKS_TO_SHOW,
             onShowAll = {
                 onShowAll(BookState.PENDING)
-            },
+            }.takeIf { pendingBooks.size > Constants.BOOKS_TO_SHOW },
             onBookClick = onBookClick,
+            isSwitchingEnabled = query.isBlank(),
             onSwitchToLeft = onSwitchToLeft,
             onSwitchToRight = onSwitchToRight,
             onLongClickBook = onLongClickBook,
@@ -342,15 +328,11 @@ private fun BooksComponent(
         BooksSection(
             title = stringResource(Res.string.read),
             books = Books(readBooks),
-            isSwitchingEnabled = false,
-            showAll = readBooks.size > Constants.BOOKS_TO_SHOW,
             onShowAll = {
                 onShowAll(BookState.READ)
-            },
+            }.takeIf { readBooks.size > Constants.BOOKS_TO_SHOW },
             onBookClick = onBookClick,
             showDivider = false,
-            onSwitchToLeft = {},
-            onSwitchToRight = {},
             onLongClickBook = onLongClickBook,
         )
     }
@@ -417,156 +399,6 @@ private fun ReadingBooksContentSection(
 }
 
 @Composable
-private fun BooksSection(
-    title: String,
-    books: Books,
-    isSwitchingEnabled: Boolean,
-    showAll: Boolean,
-    onShowAll: () -> Unit,
-    onBookClick: (String) -> Unit,
-    onSwitchToLeft: (Int) -> Unit,
-    onSwitchToRight: (Int) -> Unit,
-    onLongClickBook: (Book) -> Unit,
-    modifier: Modifier = Modifier,
-    showDivider: Boolean = true,
-) {
-    var visibleBooksLimit by rememberSaveable { mutableIntStateOf(Constants.BOOKS_TO_SHOW) }
-    val booksToShow = books.books.take(visibleBooksLimit)
-    val hasMore = books.books.size > visibleBooksLimit
-
-    if (booksToShow.isNotEmpty()) {
-        Column(modifier) {
-            BooksSectionHeader(
-                title = title,
-                booksCount = books.books.size,
-                showAll = showAll,
-                onShowAll = onShowAll,
-            )
-            Spacer(Modifier.height(8.dp))
-            LazyRow {
-                itemsIndexed(booksToShow) { index, book ->
-
-                    val isFirst = index == 0 || !isSwitchingEnabled
-                    val isLast = index == visibleBooksLimit - 1 ||
-                        index == booksToShow.count() - 1 ||
-                        !isSwitchingEnabled
-                    VerticalBookItem(
-                        book = book,
-                        isSwitchLeftIconEnabled = !isFirst && book.isPending(),
-                        isSwitchRightIconEnabled = !isLast && book.isPending(),
-                        onClick = { onBookClick(book.id) },
-                        onSwitchToLeft = {
-                            onSwitchToLeft(index)
-                        },
-                        onSwitchToRight = {
-                            onSwitchToRight(index)
-                        },
-                        onLongClick = { onLongClickBook(book) },
-                    )
-                }
-                if (hasMore) {
-                    item {
-                        ShowMoreItems(
-                            onClick = {
-                                visibleBooksLimit += Constants.BOOKS_TO_SHOW
-                            },
-                            modifier = if (isSwitchingEnabled) {
-                                Modifier.height(300.dp)
-                            } else {
-                                Modifier.height(205.dp)
-                            },
-                        )
-                    }
-                }
-            }
-            if (showDivider) {
-                Spacer(Modifier.height(16.dp))
-                HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.tertiary,
-                )
-            }
-            Spacer(Modifier.height(16.dp))
-        }
-    }
-}
-
-@Composable
-private fun BooksSectionHeader(
-    title: String,
-    booksCount: Int,
-    showAll: Boolean,
-    onShowAll: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = title,
-            modifier = Modifier.semantics { heading() },
-            style = MaterialTheme.typography.displayMedium,
-            color = MaterialTheme.colorScheme.primary,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-        )
-        Spacer(modifier = Modifier.width(6.dp))
-        Badge(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.secondary,
-        ) {
-            Text(
-                text = booksCount.toString(),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        Spacer(Modifier.weight(1f))
-        if (showAll) {
-            TextButton(onClick = onShowAll) {
-                Text(
-                    text = stringResource(Res.string.show_all),
-                    style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ShowMoreItems(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val text = stringResource(Res.string.show_more)
-    Column(
-        modifier = modifier
-            .padding(horizontal = 12.dp)
-            .width(150.dp)
-            .clickable(onClick = onClick)
-            .semantics {
-                contentDescription = text
-            },
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Icon(
-            painter = rememberVectorPainter(Icons.Default.AddCircleOutline),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(vertical = 16.dp),
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.displayMedium,
-            color = MaterialTheme.colorScheme.primary,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-        )
-    }
-}
-
-@Composable
 private fun BottomSheetContent(
     title: String,
     bookState: String?,
@@ -615,9 +447,8 @@ private fun BottomSheetContent(
         }
         MainActionButton(
             text = stringResource(Res.string.accept),
-            modifier = Modifier.fillMaxWidth(),
-            enabled = true,
             onClick = onDone,
+            modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(24.dp))
     }
