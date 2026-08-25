@@ -192,7 +192,6 @@ fun ReadingBookItem(
     Column(
         modifier = modifier
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 24.dp)
             .fillMaxWidth()
             .combinedClickable(
                 onClick = {

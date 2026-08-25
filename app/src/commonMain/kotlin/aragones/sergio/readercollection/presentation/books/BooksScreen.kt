@@ -7,6 +7,7 @@ package aragones.sergio.readercollection.presentation.books
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,14 +22,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.ArrowCircleRight
+import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.Badge
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -38,19 +41,24 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -93,6 +101,7 @@ import reader_collection.app.generated.resources.pending
 import reader_collection.app.generated.resources.read
 import reader_collection.app.generated.resources.search_in_library
 import reader_collection.app.generated.resources.show_all
+import reader_collection.app.generated.resources.show_more
 import reader_collection.app.generated.resources.sort_books
 import reader_collection.app.generated.resources.title_books
 import reader_collection.app.generated.resources.title_books_count
@@ -115,25 +124,29 @@ fun BooksScreen(
     val coroutineScope = rememberCoroutineScope()
     var selectedBook by remember { mutableStateOf<Book?>(null) }
     var selectedState by remember { mutableStateOf<String?>(null) }
+    val scrollState = rememberScrollState()
 
     Box(modifier = modifier.fillMaxSize()) {
-        BooksScreenContent(
-            state = state,
-            onSortClick = onSortClick,
-            onSearch = onSearch,
-            onBookClick = onBookClick,
-            onLongClickBook = { book ->
-                selectedBook = book
-                selectedState = book.state
-                coroutineScope.launch {
-                    sheetState.show()
-                }
-            },
-            onShowAll = onShowAll,
-            onSwitchToLeft = onSwitchToLeft,
-            onSwitchToRight = onSwitchToRight,
-            onAddBook = onAddBook,
-        )
+        Column {
+            BooksToolbar(state, scrollState, onSortClick)
+            BooksScreenContent(
+                state = state,
+                scrollState = scrollState,
+                onSearch = onSearch,
+                onBookClick = onBookClick,
+                onLongClickBook = { book ->
+                    selectedBook = book
+                    selectedState = book.state
+                    coroutineScope.launch {
+                        sheetState.show()
+                    }
+                },
+                onShowAll = onShowAll,
+                onSwitchToLeft = onSwitchToLeft,
+                onSwitchToRight = onSwitchToRight,
+                onAddBook = onAddBook,
+            )
+        }
         ListButton(
             painter = painterResource(Res.drawable.ic_save_book)
                 .withDescription(stringResource(Res.string.go_to_add_new_book)),
@@ -178,7 +191,7 @@ fun BooksScreen(
 @Composable
 private fun BooksScreenContent(
     state: BooksUiState,
-    onSortClick: () -> Unit,
+    scrollState: ScrollState,
     onSearch: (String) -> Unit,
     onBookClick: (String) -> Unit,
     onLongClickBook: (Book) -> Unit,
@@ -188,41 +201,19 @@ private fun BooksScreenContent(
     onAddBook: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val subtitle = when (state) {
-        is BooksUiState.Empty -> pluralStringResource(
-            Res.plurals.title_books_count,
-            0,
-            0,
-        )
-        is BooksUiState.Success -> pluralStringResource(
-            Res.plurals.title_books_count,
-            state.books.books.size,
-            state.books.books.size,
-        )
-    }
-
-    Column(modifier = modifier) {
-        CustomToolbar(
-            title = stringResource(Res.string.title_books),
-            subtitle = subtitle,
-            backgroundColor = MaterialTheme.colorScheme.background,
-            actions = {
-                TopAppBarIcon(
-                    accessibilityPainter = rememberVectorPainter(Icons.AutoMirrored.Filled.Sort)
-                        .withDescription(stringResource(Res.string.sort_books)),
-                    onClick = onSortClick,
-                )
-            },
-        )
-        Spacer(Modifier.height(16.dp))
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .verticalScroll(scrollState),
+    ) {
         SearchBar(
             text = state.query,
             onSearch = onSearch,
             modifier = Modifier
                 .widthIn(max = 500.dp)
                 .align(Alignment.CenterHorizontally)
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
+                .fillMaxWidth(),
             showLeadingIcon = true,
             inputHintText = stringResource(Res.string.search_in_library),
             requestFocusByDefault = false,
@@ -236,7 +227,7 @@ private fun BooksScreenContent(
                     modifier = Modifier
                         .semantics {
                             liveRegion = LiveRegionMode.Polite
-                        }.padding(24.dp),
+                        }.padding(vertical = 24.dp),
                     action = StateCardData.Action(
                         title = stringResource(Res.string.explore_catalog_action),
                         onClick = onAddBook,
@@ -248,7 +239,7 @@ private fun BooksScreenContent(
                     modifier = Modifier
                         .semantics {
                             liveRegion = LiveRegionMode.Polite
-                        }.padding(24.dp),
+                        }.padding(vertical = 24.dp),
                 )
             }
             is BooksUiState.Success -> BooksComponent(
@@ -264,8 +255,50 @@ private fun BooksScreenContent(
                 },
             )
         }
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(8.dp))
     }
+}
+
+@Composable
+private fun BooksToolbar(
+    state: BooksUiState,
+    scrollState: ScrollState,
+    onSortClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val elevation by remember {
+        derivedStateOf {
+            when (scrollState.value) {
+                0 -> 0.dp
+                else -> 4.dp
+            }
+        }
+    }
+    val subtitle = when (state) {
+        is BooksUiState.Empty -> pluralStringResource(
+            Res.plurals.title_books_count,
+            0,
+            0,
+        )
+        is BooksUiState.Success -> pluralStringResource(
+            Res.plurals.title_books_count,
+            state.books.books.size,
+            state.books.books.size,
+        )
+    }
+    CustomToolbar(
+        title = stringResource(Res.string.title_books),
+        modifier = modifier.shadow(elevation),
+        subtitle = subtitle,
+        backgroundColor = MaterialTheme.colorScheme.background,
+        actions = {
+            TopAppBarIcon(
+                accessibilityPainter = rememberVectorPainter(Icons.AutoMirrored.Filled.Sort)
+                    .withDescription(stringResource(Res.string.sort_books)),
+                onClick = onSortClick,
+            )
+        },
+    )
 }
 
 @Composable
@@ -283,49 +316,43 @@ private fun BooksComponent(
     val pendingBooks = books.books.filter { it.isPending() }.sortedBy { it.priority }
     val readBooks = books.books.filter { !it.isReading() && !it.isPending() }
 
-    LazyColumn(modifier) {
-        item {
-            ReadingBooksSection(
-                books = Books(readingBooks),
-                isSearching = query.isNotBlank(),
-                onBookClick = onBookClick,
-                onLongClick = onLongClickBook,
-                modifier = Modifier
-                    .height(300.dp)
-                    .fillMaxWidth(),
-            )
-        }
-        item {
-            BooksSection(
-                title = stringResource(Res.string.pending),
-                books = Books(pendingBooks.take(Constants.BOOKS_TO_SHOW)),
-                isSwitchingEnabled = query.isBlank(),
-                showAll = pendingBooks.size > Constants.BOOKS_TO_SHOW,
-                onShowAll = {
-                    onShowAll(BookState.PENDING)
-                },
-                onBookClick = onBookClick,
-                onSwitchToLeft = onSwitchToLeft,
-                onSwitchToRight = onSwitchToRight,
-                onLongClickBook = onLongClickBook,
-            )
-        }
-        item {
-            BooksSection(
-                title = stringResource(Res.string.read),
-                books = Books(readBooks.take(Constants.BOOKS_TO_SHOW)),
-                isSwitchingEnabled = query.isBlank(),
-                showAll = readBooks.size > Constants.BOOKS_TO_SHOW,
-                onShowAll = {
-                    onShowAll(BookState.READ)
-                },
-                onBookClick = onBookClick,
-                showDivider = false,
-                onSwitchToLeft = {},
-                onSwitchToRight = {},
-                onLongClickBook = onLongClickBook,
-            )
-        }
+    Column(modifier) {
+        ReadingBooksSection(
+            books = Books(readingBooks),
+            isSearching = query.isNotBlank(),
+            onBookClick = onBookClick,
+            onLongClick = onLongClickBook,
+            modifier = Modifier
+                .height(300.dp)
+                .fillMaxWidth(),
+        )
+        BooksSection(
+            title = stringResource(Res.string.pending),
+            books = Books(pendingBooks),
+            isSwitchingEnabled = query.isBlank(),
+            showAll = pendingBooks.size > Constants.BOOKS_TO_SHOW,
+            onShowAll = {
+                onShowAll(BookState.PENDING)
+            },
+            onBookClick = onBookClick,
+            onSwitchToLeft = onSwitchToLeft,
+            onSwitchToRight = onSwitchToRight,
+            onLongClickBook = onLongClickBook,
+        )
+        BooksSection(
+            title = stringResource(Res.string.read),
+            books = Books(readBooks),
+            isSwitchingEnabled = false,
+            showAll = readBooks.size > Constants.BOOKS_TO_SHOW,
+            onShowAll = {
+                onShowAll(BookState.READ)
+            },
+            onBookClick = onBookClick,
+            showDivider = false,
+            onSwitchToLeft = {},
+            onSwitchToRight = {},
+            onLongClickBook = onLongClickBook,
+        )
     }
 }
 
@@ -361,9 +388,7 @@ private fun ReadingBooksSection(
             }
             Spacer(Modifier.height(16.dp))
             HorizontalDivider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
+                modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.tertiary,
             )
             Spacer(Modifier.height(16.dp))
@@ -405,20 +430,25 @@ private fun BooksSection(
     modifier: Modifier = Modifier,
     showDivider: Boolean = true,
 ) {
-    if (books.books.isNotEmpty()) {
+    var visibleBooksLimit by rememberSaveable { mutableIntStateOf(Constants.BOOKS_TO_SHOW) }
+    val booksToShow = books.books.take(visibleBooksLimit)
+    val hasMore = books.books.size > visibleBooksLimit
+
+    if (booksToShow.isNotEmpty()) {
         Column(modifier) {
             BooksSectionHeader(
                 title = title,
+                booksCount = books.books.size,
                 showAll = showAll,
                 onShowAll = onShowAll,
             )
             Spacer(Modifier.height(8.dp))
             LazyRow {
-                itemsIndexed(books.books) { index, book ->
+                itemsIndexed(booksToShow) { index, book ->
 
                     val isFirst = index == 0 || !isSwitchingEnabled
-                    val isLast = index == Constants.BOOKS_TO_SHOW - 1 ||
-                        index == books.books.count() - 1 ||
+                    val isLast = index == visibleBooksLimit - 1 ||
+                        index == booksToShow.count() - 1 ||
                         !isSwitchingEnabled
                     VerticalBookItem(
                         book = book,
@@ -434,18 +464,25 @@ private fun BooksSection(
                         onLongClick = { onLongClickBook(book) },
                     )
                 }
-                if (showAll) {
+                if (hasMore) {
                     item {
-                        ShowAllItems(onClick = onShowAll)
+                        ShowMoreItems(
+                            onClick = {
+                                visibleBooksLimit += Constants.BOOKS_TO_SHOW
+                            },
+                            modifier = if (isSwitchingEnabled) {
+                                Modifier.height(300.dp)
+                            } else {
+                                Modifier.height(205.dp)
+                            },
+                        )
                     }
                 }
             }
             if (showDivider) {
                 Spacer(Modifier.height(16.dp))
                 HorizontalDivider(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.tertiary,
                 )
             }
@@ -455,21 +492,36 @@ private fun BooksSection(
 }
 
 @Composable
-private fun BooksSectionHeader(title: String, showAll: Boolean, onShowAll: () -> Unit) {
+private fun BooksSectionHeader(
+    title: String,
+    booksCount: Int,
+    showAll: Boolean,
+    onShowAll: () -> Unit,
+) {
     Row(
-        modifier = Modifier
-            .padding(horizontal = 24.dp)
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = title,
-            modifier = Modifier.weight(1f).semantics { heading() },
+            modifier = Modifier.semantics { heading() },
             style = MaterialTheme.typography.displayMedium,
             color = MaterialTheme.colorScheme.primary,
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
         )
+        Spacer(modifier = Modifier.width(6.dp))
+        Badge(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.secondary,
+        ) {
+            Text(
+                text = booksCount.toString(),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+        Spacer(Modifier.weight(1f))
         if (showAll) {
             TextButton(onClick = onShowAll) {
                 Text(
@@ -485,13 +537,12 @@ private fun BooksSectionHeader(title: String, showAll: Boolean, onShowAll: () ->
 }
 
 @Composable
-private fun ShowAllItems(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val text = stringResource(Res.string.show_all)
+private fun ShowMoreItems(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val text = stringResource(Res.string.show_more)
     Column(
         modifier = modifier
             .padding(horizontal = 12.dp)
             .width(150.dp)
-            .height(200.dp)
             .clickable(onClick = onClick)
             .semantics {
                 contentDescription = text
@@ -500,7 +551,7 @@ private fun ShowAllItems(onClick: () -> Unit, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
-            painter = rememberVectorPainter(Icons.Default.ArrowCircleRight),
+            painter = rememberVectorPainter(Icons.Default.AddCircleOutline),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(vertical = 16.dp),

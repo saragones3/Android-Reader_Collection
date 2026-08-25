@@ -40,7 +40,7 @@
     <string name="new_book">Nuevo</string>
     <string name="format_title">Formato</string>
     <string name="state">Estado</string>
-    <string name="load_more">Cargar más</string>
+    <string name="show_more">Ver más</string>
     <string name="reading">Leyendo</string>
     <string name="pending">Pendientes</string>
     <string name="read">Leídos</string>
@@ -57,6 +57,7 @@
         <item quantity="one">Unos %1$d resultado</item>
         <item quantity="other">Unos %1$d resultados</item>
     </plurals>
+    <string name="load_more">Load more</string>
 
     //STATISTICS
     <string name="title_stats">Estadísticas</string>
