@@ -20,7 +20,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material3.MaterialTheme
@@ -109,7 +109,7 @@ fun BookListScreen(
                     painterResource(Res.drawable.ic_disable_drag)
                         .withDescription(stringResource(Res.string.disable_dragging))
                 } else {
-                    rememberVectorPainter(Icons.Default.DragHandle)
+                    rememberVectorPainter(Icons.Default.DragIndicator)
                         .withDescription(stringResource(Res.string.enable_dragging))
                 },
                 onClick = onDragClick,
@@ -246,7 +246,6 @@ private fun BookListContent(
                                 translationY = offset
                             }
                         }.zIndex(1f.takeIf { draggingIndex == index } ?: 0f),
-                    showDivider = index < books.size - 1,
                     isDraggingEnabled = isDraggingEnabled,
                     isDragging = index == draggingIndex,
                 )
