@@ -65,8 +65,9 @@ fun MainActionButton(
     }
     Button(
         onClick = onClick,
-        modifier = modifier.widthIn(max = 320.dp),
+        modifier = modifier,
         enabled = enabled,
+        shape = MaterialTheme.shapes.medium,
         colors = buttonColors,
     ) {
         Text(
@@ -220,6 +221,7 @@ fun ListButton(painter: AccessibilityPainter, onClick: () -> Unit, modifier: Mod
     FloatingActionButton(
         onClick = onClick,
         modifier = modifier.padding(12.dp),
+        shape = MaterialTheme.shapes.medium,
         contentColor = MaterialTheme.colorScheme.secondary,
         containerColor = MaterialTheme.colorScheme.primary,
     ) {
