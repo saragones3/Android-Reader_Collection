@@ -6,6 +6,7 @@
 package aragones.sergio.readercollection.presentation.friends
 
 import androidx.compose.runtime.Immutable
+import aragones.sergio.readercollection.domain.model.Book
 
 sealed class FriendsUiState {
 
@@ -31,6 +32,11 @@ data class UserUi(
     val username: String,
     val isPending: Boolean,
     val isLoading: Boolean = false,
+    val isExpanded: Boolean = false,
+    val hasBooks: Boolean? = null,
+    val readingBooks: List<Book> = emptyList(),
+    val pendingBooks: List<Book> = emptyList(),
+    val readBooks: List<Book> = emptyList(),
 )
 
 @Immutable

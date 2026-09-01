@@ -110,9 +110,9 @@ fun NavGraphBuilder.booksGraph(navController: NavHostController) {
             popExitTransition = { slideOutOfContainer() },
         ) {
             BookListView(
-                onBookClick = { bookId ->
+                onBookClick = { bookId, friendId ->
                     navController.navigate(
-                        Route.BookDetail(bookId),
+                        Route.BookDetail(bookId, friendId),
                     )
                 },
                 onBack = {
@@ -168,9 +168,9 @@ fun NavGraphBuilder.statisticsGraph(navController: NavHostController) {
             popExitTransition = { slideOutOfContainer() },
         ) {
             BookListView(
-                onBookClick = { bookId ->
+                onBookClick = { bookId, friendId ->
                     navController.navigate(
-                        Route.BookDetail(bookId),
+                        Route.BookDetail(bookId, friendId),
                     )
                 },
                 onBack = {
@@ -205,6 +205,11 @@ fun NavGraphBuilder.friendsGraph(navController: NavHostController) {
                 onAddFriend = {
                     navController.navigate(Route.AddFriends)
                 },
+                onBookClick = { bookId, friendId ->
+                    navController.navigate(
+                        Route.BookDetail(bookId, friendId),
+                    )
+                },
             )
         }
         composable<Route.FriendDetail>(
@@ -220,6 +225,33 @@ fun NavGraphBuilder.friendsGraph(navController: NavHostController) {
                     navController.navigate(
                         Route.BookDetail(bookId, friendId),
                     )
+                },
+                onShowAll = { state, sortParam, isSortDescending, friendId ->
+                    navController.navigate(
+                        Route.BookList(
+                            state = state,
+                            sortParam = sortParam,
+                            isSortDescending = isSortDescending,
+                            query = "",
+                            friendId = friendId,
+                        ),
+                    )
+                },
+            )
+        }
+        composable<Route.BookList>(
+            enterTransition = { slideIntoContainer() },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { slideOutOfContainer() },
+        ) {
+            BookListView(
+                onBookClick = { bookId, friendId ->
+                    navController.navigate(
+                        Route.BookDetail(bookId, friendId),
+                    )
+                },
+                onBack = {
+                    navController.navigateUp()
                 },
             )
         }

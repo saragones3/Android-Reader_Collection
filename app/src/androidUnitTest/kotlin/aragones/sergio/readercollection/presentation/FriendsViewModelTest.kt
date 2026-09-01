@@ -14,6 +14,8 @@ import aragones.sergio.readercollection.data.local.UserLocalDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.data.remote.model.RequestStatus
 import aragones.sergio.readercollection.data.remote.model.UserResponse
+import aragones.sergio.readercollection.domain.BooksRepository
+import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.ErrorModel
 import aragones.sergio.readercollection.domain.model.User
 import aragones.sergio.readercollection.domain.toRemoteData
@@ -23,6 +25,7 @@ import aragones.sergio.readercollection.presentation.friends.FriendsViewModel
 import aragones.sergio.readercollection.presentation.friends.UserUi
 import aragones.sergio.readercollection.presentation.friends.UsersUi
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
+import com.aragones.sergio.util.BookState
 import com.aragones.sergio.util.Constants
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -51,11 +54,13 @@ class FriendsViewModelTest {
         every { username } returns testUsername
     }
     private val userRemoteDataSource: UserRemoteDataSource = mockk()
+    private val booksRepository: BooksRepository = mockk()
     private val viewModel = FriendsViewModel(
-        UserRepositoryImpl(
-            userLocalDataSource,
-            userRemoteDataSource,
-            mainDispatcherRule.testDispatcher,
+        booksRepository = booksRepository,
+        userRepository = UserRepositoryImpl(
+            userLocalDataSource = userLocalDataSource,
+            userRemoteDataSource = userRemoteDataSource,
+            ioDispatcher = mainDispatcherRule.testDispatcher,
         ),
     )
 
@@ -882,4 +887,201 @@ class FriendsViewModelTest {
             }
         }
     }
+
+    @Test
+    fun `GIVEN friend id and success response with books WHEN toggleLibrary THEN friend is expanded and books are shown`() =
+        runTest {
+            val friendId = "friendId"
+            val friend = User(id = friendId, username = "", status = RequestStatus.APPROVED)
+            val friendUi = UserUi(id = friendId, username = "", isPending = false)
+            val book = Book("1").apply { this.state = BookState.READING }
+            coEvery {
+                userRemoteDataSource.getFriends(any())
+            } returns Result.success(listOf(friend.toRemoteData()))
+            coEvery {
+                booksRepository.getBooksFrom(friendId)
+            } returns Result.success(listOf(book))
+
+            viewModel.state.test {
+                assertEquals(FriendsUiState.Loading, awaitItem())
+                viewModel.fetchFriends()
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(listOf(friendUi)),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+
+                viewModel.toggleLibrary(friendId)
+
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(
+                            listOf(
+                                friendUi.copy(
+                                    isExpanded = true,
+                                    hasBooks = true,
+                                    readingBooks = listOf(book),
+                                ),
+                            ),
+                        ),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+            }
+            coVerify { userRemoteDataSource.getFriends(testUserId) }
+            coVerify { booksRepository.getBooksFrom(friendId) }
+            confirmVerified(userRemoteDataSource, booksRepository)
+        }
+
+    @Test
+    fun `GIVEN friend id and success response with no books WHEN toggleLibrary THEN friend is expanded and no books are shown`() =
+        runTest {
+            val friendId = "friendId"
+            val friend = User(id = friendId, username = "", status = RequestStatus.APPROVED)
+            val friendUi = UserUi(id = friendId, username = "", isPending = false)
+            coEvery {
+                userRemoteDataSource.getFriends(any())
+            } returns Result.success(listOf(friend.toRemoteData()))
+            coEvery {
+                booksRepository.getBooksFrom(friendId)
+            } returns Result.success(emptyList())
+
+            viewModel.state.test {
+                assertEquals(FriendsUiState.Loading, awaitItem())
+                viewModel.fetchFriends()
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(listOf(friendUi)),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+
+                viewModel.toggleLibrary(friendId)
+
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(
+                            listOf(
+                                friendUi.copy(
+                                    isExpanded = true,
+                                    hasBooks = false,
+                                ),
+                            ),
+                        ),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+            }
+            coVerify { userRemoteDataSource.getFriends(testUserId) }
+            coVerify { booksRepository.getBooksFrom(friendId) }
+            confirmVerified(userRemoteDataSource, booksRepository)
+        }
+
+    @Test
+    fun `GIVEN friend id and failure response WHEN toggleLibrary THEN error is shown`() = runTest {
+        val friendId = "friendId"
+        val friend = User(id = friendId, username = "", status = RequestStatus.APPROVED)
+        val friendUi = UserUi(id = friendId, username = "", isPending = false)
+        coEvery {
+            userRemoteDataSource.getFriends(any())
+        } returns Result.success(listOf(friend.toRemoteData()))
+        coEvery {
+            booksRepository.getBooksFrom(friendId)
+        } returns Result.failure(RuntimeException())
+
+        viewModel.error.test {
+            val error = this
+            assertEquals(null, awaitItem())
+
+            viewModel.state.test {
+                assertEquals(FriendsUiState.Loading, awaitItem())
+                viewModel.fetchFriends()
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(listOf(friendUi)),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+
+                viewModel.toggleLibrary(friendId)
+
+                assertEquals(
+                    ErrorModel(Constants.EMPTY_VALUE, Res.string.friend_action_failure),
+                    error.awaitItem(),
+                )
+            }
+        }
+        coVerify { userRemoteDataSource.getFriends(testUserId) }
+        coVerify { booksRepository.getBooksFrom(friendId) }
+        confirmVerified(userRemoteDataSource, booksRepository)
+    }
+
+    @Test
+    fun `GIVEN friend id and books already loaded WHEN toggleLibrary THEN friend expansion is toggled without fetching books`() =
+        runTest {
+            val friendId = "friendId"
+            val friend = User(id = friendId, username = "", status = RequestStatus.APPROVED)
+            val friendUi = UserUi(id = friendId, username = "", isPending = false)
+            val book = Book("1").apply { this.state = BookState.READING }
+            coEvery {
+                userRemoteDataSource.getFriends(any())
+            } returns Result.success(listOf(friend.toRemoteData()))
+            coEvery {
+                booksRepository.getBooksFrom(friendId)
+            } returns Result.success(listOf(book))
+
+            viewModel.state.test {
+                assertEquals(FriendsUiState.Loading, awaitItem())
+                viewModel.fetchFriends()
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(listOf(friendUi)),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+                viewModel.toggleLibrary(friendId)
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(
+                            listOf(
+                                friendUi.copy(
+                                    isExpanded = true,
+                                    hasBooks = true,
+                                    readingBooks = listOf(book),
+                                ),
+                            ),
+                        ),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+
+                viewModel.toggleLibrary(friendId)
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(
+                            listOf(
+                                friendUi.copy(
+                                    isExpanded = false,
+                                    hasBooks = true,
+                                    readingBooks = listOf(book),
+                                ),
+                            ),
+                        ),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+            }
+            coVerify(exactly = 1) { userRemoteDataSource.getFriends(testUserId) }
+            coVerify(exactly = 1) { booksRepository.getBooksFrom(friendId) }
+            confirmVerified(userRemoteDataSource, booksRepository)
+        }
 }

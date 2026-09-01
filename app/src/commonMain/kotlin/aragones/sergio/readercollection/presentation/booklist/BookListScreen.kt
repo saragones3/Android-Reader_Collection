@@ -103,7 +103,7 @@ fun BookListScreen(
         ""
     }
     val actions: @Composable RowScope.() -> Unit = {
-        if (state.books.books.any { it.isPending() }) {
+        if (state.canDrag) {
             TopAppBarIcon(
                 accessibilityPainter = if (state.isDraggingEnabled) {
                     painterResource(Res.drawable.ic_disable_drag)
@@ -335,6 +335,7 @@ private class BookListScreenPreviewParameterProvider :
                     ),
                 ),
                 subtitle = "",
+                canDrag = true,
                 isDraggingEnabled = false,
             ),
             BookListUiState(
@@ -354,6 +355,7 @@ private class BookListScreenPreviewParameterProvider :
                     ),
                 ),
                 subtitle = "2025",
+                canDrag = false,
                 isDraggingEnabled = true,
             ),
         )

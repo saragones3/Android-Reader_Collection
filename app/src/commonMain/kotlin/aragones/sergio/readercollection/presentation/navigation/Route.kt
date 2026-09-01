@@ -50,7 +50,7 @@ sealed class Route {
     data object Search : Route()
 
     @Serializable
-    data class BookDetail(val bookId: String, val friendId: String = "") : Route()
+    data class BookDetail(val bookId: String, val friendId: String? = null) : Route()
 
     @Serializable
     data class BookList(
@@ -63,6 +63,7 @@ sealed class Route {
         val author: String? = null,
         val format: String? = null,
         val genre: String? = null,
+        val friendId: String? = null,
     ) : Route()
 
     @Serializable

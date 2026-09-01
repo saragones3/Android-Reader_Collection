@@ -140,6 +140,7 @@ fun SecondaryButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     startPainter: AccessibilityPainter? = null,
+    endPainter: AccessibilityPainter? = null,
 ) {
     Button(
         onClick = onClick,
@@ -165,6 +166,13 @@ fun SecondaryButton(
             style = MaterialTheme.typography.labelMedium,
             maxLines = 2,
         )
+        endPainter?.let {
+            Spacer(Modifier.weight(1f))
+            Icon(
+                painter = it.painter,
+                contentDescription = it.contentDescription,
+            )
+        }
     }
 }
 

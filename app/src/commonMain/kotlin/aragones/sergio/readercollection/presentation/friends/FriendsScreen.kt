@@ -5,8 +5,12 @@
 
 package aragones.sergio.readercollection.presentation.friends
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -20,19 +24,25 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
+import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,11 +51,19 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -56,16 +74,21 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import aragones.sergio.readercollection.domain.model.Book
+import aragones.sergio.readercollection.domain.model.Books
 import aragones.sergio.readercollection.presentation.components.CustomCard
 import aragones.sergio.readercollection.presentation.components.CustomCircularProgressIndicator
-import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDark
+import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDarkLong
 import aragones.sergio.readercollection.presentation.components.CustomToolbar
 import aragones.sergio.readercollection.presentation.components.MainIconButton
 import aragones.sergio.readercollection.presentation.components.SearchBar
 import aragones.sergio.readercollection.presentation.components.SecondaryButton
 import aragones.sergio.readercollection.presentation.components.SecondaryIconButton
+import aragones.sergio.readercollection.presentation.components.VerticalBookItem
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
+import com.aragones.sergio.util.BookState
+import com.aragones.sergio.util.Constants
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
@@ -75,17 +98,22 @@ import reader_collection.app.generated.resources.community_description
 import reader_collection.app.generated.resources.delete
 import reader_collection.app.generated.resources.friends_tab_title
 import reader_collection.app.generated.resources.friends_title
+import reader_collection.app.generated.resources.hide_library_action
 import reader_collection.app.generated.resources.image_no_friends
 import reader_collection.app.generated.resources.no_friends_found
 import reader_collection.app.generated.resources.no_friends_yet_subtitle
 import reader_collection.app.generated.resources.no_friends_yet_title
 import reader_collection.app.generated.resources.pending
 import reader_collection.app.generated.resources.pending_status
+import reader_collection.app.generated.resources.read
+import reader_collection.app.generated.resources.reading
 import reader_collection.app.generated.resources.reject_friend_action
 import reader_collection.app.generated.resources.rejected_status
 import reader_collection.app.generated.resources.requests_tab_title
 import reader_collection.app.generated.resources.results_for
 import reader_collection.app.generated.resources.send_request
+import reader_collection.app.generated.resources.show_all
+import reader_collection.app.generated.resources.show_more
 import reader_collection.app.generated.resources.view_library_action
 
 @Composable
@@ -95,6 +123,9 @@ fun FriendsScreen(
     onSearch: (String) -> Unit,
     onSelectTab: (FriendsTab) -> Unit,
     onSelectFriend: (String) -> Unit,
+    onViewFriendLibrary: (String) -> Unit,
+    onBookClick: (String, String) -> Unit,
+    onShowAll: (String, String?, Boolean, String) -> Unit,
     onAcceptFriend: (String) -> Unit,
     onRejectFriend: (String) -> Unit,
     onDeleteFriend: (String) -> Unit,
@@ -145,7 +176,9 @@ fun FriendsScreen(
                             friends = state.friends,
                             requests = state.requests,
                             onSelectTab = onSelectTab,
-                            onSelectFriend = onSelectFriend,
+                            onViewFriendLibrary = onViewFriendLibrary,
+                            onBookClick = onBookClick,
+                            onShowAll = onShowAll,
                             onAcceptFriend = onAcceptFriend,
                             onRejectFriend = onRejectFriend,
                             onDeleteFriend = onDeleteFriend,
@@ -232,7 +265,9 @@ private fun LazyListScope.FriendsScreenContent(
     friends: UsersUi,
     requests: UsersUi,
     onSelectTab: (FriendsTab) -> Unit,
-    onSelectFriend: (String) -> Unit,
+    onViewFriendLibrary: (String) -> Unit,
+    onBookClick: (String, String) -> Unit,
+    onShowAll: (String, String?, Boolean, String) -> Unit,
     onAcceptFriend: (String) -> Unit,
     onRejectFriend: (String) -> Unit,
     onDeleteFriend: (String) -> Unit,
@@ -249,7 +284,9 @@ private fun LazyListScope.FriendsScreenContent(
     when (selectedTab) {
         FriendsTab.FRIENDS -> FriendsTabContent(
             friends = friends,
-            onSelectFriend = onSelectFriend,
+            onViewFriendLibrary = onViewFriendLibrary,
+            onBookClick = onBookClick,
+            onShowAll = onShowAll,
             onAcceptFriend = onAcceptFriend,
             onRejectFriend = onRejectFriend,
             onDeleteFriend = onDeleteFriend,
@@ -326,7 +363,9 @@ private fun FriendsTabRow(
 
 private fun LazyListScope.FriendsTabContent(
     friends: UsersUi,
-    onSelectFriend: (String) -> Unit,
+    onViewFriendLibrary: (String) -> Unit,
+    onBookClick: (String, String) -> Unit,
+    onShowAll: (String, String?, Boolean, String) -> Unit,
     onAcceptFriend: (String) -> Unit,
     onRejectFriend: (String) -> Unit,
     onDeleteFriend: (String) -> Unit,
@@ -346,7 +385,9 @@ private fun LazyListScope.FriendsTabContent(
             FriendContainer {
                 FriendItem(
                     friend = friend,
-                    onSelectFriend = {},
+                    onViewLibrary = {},
+                    onBookClick = { _, _ -> },
+                    onShowAll = { _, _, _, _ -> },
                     onAcceptFriend = { onAcceptFriend(friend.id) },
                     onRejectFriend = { onRejectFriend(friend.id) },
                     onDeleteFriend = {},
@@ -361,7 +402,9 @@ private fun LazyListScope.FriendsTabContent(
         FriendContainer {
             FriendItem(
                 friend = friend,
-                onSelectFriend = { onSelectFriend(friend.id) },
+                onViewLibrary = { onViewFriendLibrary(friend.id) },
+                onBookClick = onBookClick,
+                onShowAll = onShowAll,
                 onAcceptFriend = {},
                 onRejectFriend = {},
                 onDeleteFriend = { onDeleteFriend(friend.id) },
@@ -445,7 +488,9 @@ private fun FriendContainer(
 @Composable
 private fun FriendItem(
     friend: UserUi,
-    onSelectFriend: () -> Unit,
+    onViewLibrary: () -> Unit,
+    onBookClick: (String, String) -> Unit,
+    onShowAll: (String, String?, Boolean, String) -> Unit,
     onAcceptFriend: () -> Unit,
     onRejectFriend: () -> Unit,
     onDeleteFriend: () -> Unit,
@@ -477,16 +522,70 @@ private fun FriendItem(
             }
         },
     )
-    if (!friend.isPending) {
+    val showLibraryButton = friend.hasBooks != false
+    if (!friend.isPending && friend.hasBooks != false) {
         Spacer(modifier = Modifier.height(8.dp))
         SecondaryButton(
-            text = stringResource(Res.string.view_library_action),
-            onClick = onSelectFriend,
+            text = stringResource(
+                if (friend.isExpanded) {
+                    Res.string.hide_library_action
+                } else {
+                    Res.string.view_library_action
+                },
+            ),
+            onClick = onViewLibrary.takeIf { showLibraryButton } ?: {},
             modifier = Modifier.fillMaxWidth(),
             startPainter = rememberVectorPainter(
                 Icons.AutoMirrored.Filled.LibraryBooks,
             ).withDescription(null),
+            endPainter = rememberVectorPainter(
+                if (friend.isExpanded) {
+                    Icons.Default.KeyboardArrowUp
+                } else {
+                    Icons.Default.KeyboardArrowDown
+                },
+            ).withDescription(null).takeIf { showLibraryButton },
         )
+        AnimatedVisibility(
+            visible = friend.isExpanded && showLibraryButton,
+            enter = expandVertically(),
+            exit = shrinkVertically(),
+        ) {
+            Column {
+                Spacer(Modifier.height(16.dp))
+                BooksSection(
+                    title = stringResource(Res.string.reading),
+                    books = Books(friend.readingBooks),
+                    onShowAll = {
+                        onShowAll(BookState.READING, null, false, friend.id)
+                    }.takeIf { friend.readingBooks.size > Constants.BOOKS_TO_SHOW },
+                    onBookClick = {
+                        onBookClick(it, friend.id)
+                    },
+                )
+                BooksSection(
+                    title = stringResource(Res.string.pending),
+                    books = Books(friend.pendingBooks),
+                    onShowAll = {
+                        onShowAll(BookState.PENDING, null, false, friend.id)
+                    }.takeIf { friend.pendingBooks.size > Constants.BOOKS_TO_SHOW },
+                    onBookClick = {
+                        onBookClick(it, friend.id)
+                    },
+                )
+                BooksSection(
+                    title = stringResource(Res.string.read),
+                    books = Books(friend.readBooks),
+                    onShowAll = {
+                        onShowAll(BookState.READ, "readingDate", true, friend.id)
+                    }.takeIf { friend.readBooks.size > Constants.BOOKS_TO_SHOW },
+                    onBookClick = {
+                        onBookClick(it, friend.id)
+                    },
+                    showDivider = false,
+                )
+            }
+        }
     }
 }
 
@@ -611,7 +710,160 @@ private fun MainUserInfo(
     }
 }
 
-@CustomPreviewLightDark
+@Composable
+internal fun BooksSection(
+    title: String,
+    books: Books,
+    onShowAll: (() -> Unit)?,
+    onBookClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    isSwitchingEnabled: Boolean = false,
+    showDivider: Boolean = true,
+    onSwitchToLeft: (Int) -> Unit = {},
+    onSwitchToRight: (Int) -> Unit = {},
+    onLongClickBook: (Book) -> Unit = {},
+) {
+    var visibleBooksLimit by rememberSaveable { mutableIntStateOf(Constants.BOOKS_TO_SHOW) }
+    val booksToShow = books.books.take(visibleBooksLimit)
+    val hasMore = books.books.size > visibleBooksLimit
+
+    if (booksToShow.isNotEmpty()) {
+        Column(modifier) {
+            BooksSectionHeader(
+                title = title,
+                booksCount = books.books.size,
+                showAll = onShowAll != null,
+                onShowAll = { onShowAll?.invoke() },
+                modifier = Modifier.padding(horizontal = 24.dp),
+            )
+            Spacer(Modifier.height(8.dp))
+            LazyRow {
+                itemsIndexed(booksToShow) { index, book ->
+
+                    val isFirst = index == 0 || !isSwitchingEnabled
+                    val isLast = index == visibleBooksLimit - 1 ||
+                        index == booksToShow.count() - 1 ||
+                        !isSwitchingEnabled
+                    VerticalBookItem(
+                        book = book,
+                        isSwitchLeftIconEnabled = !isFirst && book.isPending(),
+                        isSwitchRightIconEnabled = !isLast && book.isPending(),
+                        onClick = { onBookClick(book.id) },
+                        onSwitchToLeft = {
+                            onSwitchToLeft(index)
+                        },
+                        onSwitchToRight = {
+                            onSwitchToRight(index)
+                        },
+                        onLongClick = { onLongClickBook(book) },
+                    )
+                }
+                if (hasMore) {
+                    item {
+                        ShowMoreItems(
+                            onClick = {
+                                visibleBooksLimit += Constants.BOOKS_TO_SHOW
+                            },
+                            modifier = if (isSwitchingEnabled) {
+                                Modifier.height(300.dp)
+                            } else {
+                                Modifier.height(205.dp)
+                            },
+                        )
+                    }
+                }
+            }
+            if (showDivider) {
+                Spacer(Modifier.height(16.dp))
+                HorizontalDivider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun BooksSectionHeader(
+    title: String,
+    booksCount: Int,
+    showAll: Boolean,
+    onShowAll: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = title,
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.displayMedium,
+            color = MaterialTheme.colorScheme.primary,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1,
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Badge(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.secondary,
+        ) {
+            Text(
+                text = booksCount.toString(),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+        Spacer(Modifier.weight(1f))
+        if (showAll) {
+            TextButton(onClick = onShowAll) {
+                Text(
+                    text = stringResource(Res.string.show_all),
+                    style = MaterialTheme.typography.displaySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShowMoreItems(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val text = stringResource(Res.string.show_more)
+    Column(
+        modifier = modifier
+            .padding(horizontal = 12.dp)
+            .width(150.dp)
+            .clickable(onClick = onClick)
+            .semantics {
+                contentDescription = text
+            },
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            painter = rememberVectorPainter(Icons.Default.AddCircleOutline),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(vertical = 16.dp),
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.displayMedium,
+            color = MaterialTheme.colorScheme.primary,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1,
+        )
+    }
+}
+
+@CustomPreviewLightDarkLong
 @Composable
 private fun FriendsScreenPreview(
     @PreviewParameter(FriendsScreenPreviewParameterProvider::class) state: FriendsUiState,
@@ -623,6 +875,9 @@ private fun FriendsScreenPreview(
             onSearch = {},
             onSelectTab = {},
             onSelectFriend = {},
+            onViewFriendLibrary = {},
+            onBookClick = { _, _ -> },
+            onShowAll = { _, _, _, _ -> },
             onAcceptFriend = {},
             onRejectFriend = {},
             onDeleteFriend = {},
@@ -649,16 +904,38 @@ private class FriendsScreenPreviewParameterProvider : PreviewParameterProvider<F
                         ),
                         UserUi(
                             id = "2",
-                            username = "user with a long name",
+                            username = "user with books",
                             isPending = false,
+                            isExpanded = true,
+                            hasBooks = true,
+                            readingBooks = listOf(
+                                Book("1").copy(
+                                    title = "Reading book",
+                                    state = BookState.READING,
+                                ),
+                            ),
+                            pendingBooks = listOf(
+                                Book("2").copy(
+                                    title = "Pending book",
+                                    state = BookState.PENDING,
+                                ),
+                            ),
+                            readBooks = listOf(
+                                Book("3").copy(
+                                    title = "Read book",
+                                    state = BookState.READ,
+                                ),
+                            ),
                         ),
                         UserUi(
                             id = "3",
-                            username =
-                                """
-                                User with a very long name
-                                that will have to be fitted in two lines
-                                """.trimIndent(),
+                            username = "user without books",
+                            isPending = false,
+                            hasBooks = false,
+                        ),
+                        UserUi(
+                            id = "4",
+                            username = "User with a very long name",
                             isPending = true,
                         ),
                     ),

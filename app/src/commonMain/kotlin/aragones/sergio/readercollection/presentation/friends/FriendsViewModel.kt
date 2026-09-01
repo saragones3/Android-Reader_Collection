@@ -8,9 +8,11 @@ package aragones.sergio.readercollection.presentation.friends
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import aragones.sergio.readercollection.data.remote.model.RequestStatus
+import aragones.sergio.readercollection.domain.BooksRepository
 import aragones.sergio.readercollection.domain.UserRepository
 import aragones.sergio.readercollection.domain.model.ErrorModel
 import aragones.sergio.readercollection.domain.model.User
+import com.aragones.sergio.util.BookState
 import com.aragones.sergio.util.Constants
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +24,7 @@ import reader_collection.app.generated.resources.friend_action_failure
 import reader_collection.app.generated.resources.friend_action_successfully_done
 
 class FriendsViewModel(
+    private val booksRepository: BooksRepository,
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
@@ -54,6 +57,29 @@ class FriendsViewModel(
             friends = UsersUi(friends),
             requests = UsersUi(requests),
         )
+    }
+
+    fun toggleLibrary(friendId: String) = viewModelScope.launch {
+        val currentState = state.value as? FriendsUiState.Success ?: return@launch
+        val friend = currentState.friends.users.find { it.id == friendId } ?: return@launch
+
+        if (friend.hasBooks == null) {
+            fetchFriendBooks(friendId)
+        } else {
+            state.update {
+                currentState.copy(
+                    friends = UsersUi(
+                        currentState.friends.users.map { user ->
+                            if (user.id == friendId) {
+                                user.copy(isExpanded = !user.isExpanded)
+                            } else {
+                                user
+                            }
+                        },
+                    ),
+                )
+            }
+        }
     }
 
     fun selectTab(tab: FriendsTab) {
@@ -301,6 +327,49 @@ class FriendsViewModel(
         } else {
             FriendsTab.FRIENDS
         }
+
+    private fun fetchFriendBooks(friendId: String) = viewModelScope.launch {
+        booksRepository.getBooksFrom(friendId).fold(
+            onSuccess = { books ->
+                state.update {
+                    val successState = it as? FriendsUiState.Success ?: return@update it
+                    successState.copy(
+                        friends = UsersUi(
+                            successState.friends.users.map { friend ->
+                                if (friend.id == friendId) {
+                                    friend.copy(
+                                        isExpanded = true,
+                                        hasBooks = books.isNotEmpty(),
+                                        readingBooks = books
+                                            .filter { book ->
+                                                book.state == BookState.READING
+                                            }.sortedBy { book -> book.priority },
+                                        pendingBooks = books
+                                            .filter { book ->
+                                                book.state == BookState.PENDING
+                                            }.sortedBy { book -> book.priority },
+                                        readBooks = books
+                                            .filter { book ->
+                                                book.state == BookState.READ
+                                            }.sortedBy { book -> book.readingDate }
+                                            .reversed(),
+                                    )
+                                } else {
+                                    friend
+                                }
+                            },
+                        ),
+                    )
+                }
+            },
+            onFailure = {
+                error.value = ErrorModel(
+                    Constants.EMPTY_VALUE,
+                    Res.string.friend_action_failure,
+                )
+            },
+        )
+    }
 
     private fun User.toFriend(): UserUi = UserUi(
         id = id,

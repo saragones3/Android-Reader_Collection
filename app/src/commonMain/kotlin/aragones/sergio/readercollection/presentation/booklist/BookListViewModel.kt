@@ -23,9 +23,11 @@ import com.aragones.sergio.util.BookState
 import com.aragones.sergio.util.Constants
 import com.aragones.sergio.util.extensions.getMonthNumber
 import com.aragones.sergio.util.extensions.getYear
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -74,6 +76,8 @@ class BookListViewModel(
         )
     val booksError: StateFlow<ErrorModel?>
         field = MutableStateFlow<ErrorModel?>(null)
+    val friendId: String?
+        get() = params.friendId
     //endregion
 
     //region Public methods
@@ -82,11 +86,12 @@ class BookListViewModel(
             it.copy(
                 isLoading = true,
                 subtitle = subtitle,
+                canDrag = arePendingBooks && params.friendId == null,
             )
         }
 
         combine(
-            booksRepository.getBooks(),
+            getBooks(),
             sortingPickerState,
         ) { books, _ ->
             if (books.isEmpty()) {
@@ -96,7 +101,6 @@ class BookListViewModel(
                     it.copy(
                         isLoading = false,
                         books = Books(getFilteredBooksFor(books)),
-                        subtitle = subtitle,
                     )
                 }
             }
@@ -139,6 +143,23 @@ class BookListViewModel(
     //endregion
 
     //region Private methods
+    private fun getBooks(): Flow<List<Book>> {
+        if (params.friendId == null) {
+            return booksRepository.getBooks()
+        } else {
+            return flow {
+                booksRepository.getBooksFrom(params.friendId).fold(
+                    onSuccess = {
+                        emit(it)
+                    },
+                    onFailure = {
+                        emit(emptyList())
+                    },
+                )
+            }
+        }
+    }
+
     private fun getFilteredBooksFor(books: List<Book>): List<Book> {
         var filteredBooks = books
             .filter { book ->

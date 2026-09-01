@@ -22,6 +22,8 @@ fun FriendsView(
     onBack: () -> Unit,
     onSelectFriend: (String) -> Unit,
     onAddFriend: () -> Unit,
+    onBookClick: (String, String) -> Unit,
+    onShowAll: (String, String?, Boolean, String) -> Unit,
     viewModel: FriendsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -36,6 +38,11 @@ fun FriendsView(
             onSearch = viewModel::searchFriends,
             onSelectTab = viewModel::selectTab,
             onSelectFriend = onSelectFriend,
+            onViewFriendLibrary = {
+                viewModel.toggleLibrary(it)
+            },
+            onBookClick = onBookClick,
+            onShowAll = onShowAll,
             onAcceptFriend = viewModel::acceptFriendRequest,
             onRejectFriend = viewModel::rejectFriendRequest,
             onDeleteFriend = {
