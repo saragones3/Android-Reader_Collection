@@ -85,9 +85,7 @@ class AccountViewModelTest {
     @Test
     fun `WHEN onResume THEN updates state with repository data`() = runTest {
         val userData = UserData("username", "email", "password")
-        val isPublicProfile = true
         every { userLocalDataSource.userData } returns userData
-        every { userLocalDataSource.isProfilePublic } returns isPublicProfile
 
         viewModel.state.test {
             assertEquals(initialState, awaitItem())
@@ -100,13 +98,11 @@ class AccountViewModelTest {
                     emailError = null,
                     password = userData.password,
                     passwordError = null,
-                    isProfilePublic = isPublicProfile,
                 ),
                 awaitItem(),
             )
         }
         verify { userLocalDataSource.userData }
-        verify { userLocalDataSource.isProfilePublic }
     }
 
     @Test
@@ -234,78 +230,6 @@ class AccountViewModelTest {
 
         coVerify(exactly = 0) { userRemoteDataSource.updateEmail(any()) }
         coVerify(exactly = 0) { userRemoteDataSource.updatePassword(any()) }
-    }
-
-    @Test
-    fun `GIVEN true and success response WHEN setPublicProfile THEN register public profile`() =
-        runTest {
-            val value = true
-            coEvery {
-                userRemoteDataSource.registerPublicProfile(
-                    any(),
-                    any(),
-                )
-            } returns Result.success(Unit)
-            every { userLocalDataSource.storePublicProfile(any()) } just Runs
-
-            viewModel.state.test {
-                assertEquals(initialState, awaitItem())
-
-                viewModel.setPublicProfile(value)
-
-                assertEquals(initialState.copy(isLoading = true), awaitItem())
-                assertEquals(
-                    initialState.copy(isProfilePublic = value, isLoading = false),
-                    awaitItem(),
-                )
-            }
-            coVerify { userRemoteDataSource.registerPublicProfile(testUsername, testUserId) }
-            verify { userLocalDataSource.storePublicProfile(value) }
-        }
-
-    @Test
-    fun `GIVEN false and success response WHEN setPublicProfile THEN delete public profile`() =
-        runTest {
-            val value = false
-            coEvery { userRemoteDataSource.deletePublicProfile(any()) } returns Result.success(Unit)
-            every { userLocalDataSource.storePublicProfile(any()) } just Runs
-
-            viewModel.state.test {
-                assertEquals(initialState, awaitItem())
-
-                viewModel.setPublicProfile(value)
-
-                assertEquals(
-                    initialState.copy(isLoading = true),
-                    awaitItem(),
-                )
-                assertEquals(
-                    initialState.copy(isProfilePublic = value, isLoading = false),
-                    awaitItem(),
-                )
-            }
-            coVerify { userRemoteDataSource.deletePublicProfile(testUserId) }
-            verify { userLocalDataSource.storePublicProfile(value) }
-        }
-
-    @Test
-    fun `GIVEN value and failure response WHEN setPublicProfile THEN show error`() = runTest {
-        val value = true
-        coEvery {
-            userRemoteDataSource.registerPublicProfile(any(), any())
-        } returns Result.failure(Exception())
-
-        viewModel.profileError.test {
-            assertEquals(null, awaitItem())
-
-            viewModel.setPublicProfile(value)
-
-            assertEquals(
-                ErrorModel(Constants.EMPTY_VALUE, Res.string.error_server),
-                awaitItem(),
-            )
-        }
-        coVerify { userRemoteDataSource.registerPublicProfile(testUsername, testUserId) }
     }
 
     @Test

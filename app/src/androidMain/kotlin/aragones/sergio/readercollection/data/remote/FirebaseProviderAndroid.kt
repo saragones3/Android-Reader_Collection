@@ -105,19 +105,21 @@ class FirebaseProviderAndroid(
             .await()
     }
 
-    override suspend fun getUserFromDatabase(username: String, userId: String): UserResponse? {
+    override suspend fun getPublicUsers(username: String, userId: String): List<UserResponse> {
         val result = firestore
             .collection(PUBLIC_PROFILES_PATH)
-            .whereEqualTo(EMAIL_KEY, username)
             .get()
             .await()
             .documents
-            .firstOrNull()
 
-        return result?.let {
+        return result.mapNotNull {
             val uuid = it.getString(UUID_KEY)
             val email = it.getString(EMAIL_KEY)
-            if (uuid != null && email != null && uuid != userId) {
+            if (uuid != null &&
+                email != null &&
+                uuid != userId &&
+                email.contains(username, true)
+            ) {
                 UserResponse(
                     id = uuid,
                     username = email.split("@").first(),
@@ -328,6 +330,14 @@ class FirebaseProviderAndroid(
         batch.set(userRef, mapOf("lastUpdated" to FieldValue.serverTimestamp()), SetOptions.merge())
         batch.commit().await()
     }
+
+    override suspend fun getLastUpdated(userId: String): Any? = firestore
+        .collection(USERS_PATH)
+        .document(userId)
+        .get()
+        .await()
+        .getTimestamp("lastUpdated")
+        .toInstant()
 
     override fun fetchRemoteConfigString(key: String, onCompletion: (String) -> Unit) {
         onCompletion(remoteConfig.getString(key))

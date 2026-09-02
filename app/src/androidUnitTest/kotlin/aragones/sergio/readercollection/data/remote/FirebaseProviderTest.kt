@@ -45,6 +45,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
@@ -367,7 +368,7 @@ class FirebaseProviderTest {
     }
 
     @Test
-    fun `GIVEN success response and existent user WHEN get user from database THEN return user`() =
+    fun `GIVEN success response and existent user WHEN get user from database THEN return user list`() =
         runTest {
             val user = UserResponse(
                 id = "testFriendId",
@@ -378,25 +379,25 @@ class FirebaseProviderTest {
             val documentSnapshot = mockk<DocumentSnapshot>()
             every { documentSnapshot.getString("email") } returns user.username
             every { documentSnapshot.getString("uuid") } returns user.id
-            givenGetPublicProfileSuccess(user.username, listOf(documentSnapshot))
+            givenGetAllPublicProfilesSuccess(listOf(documentSnapshot))
 
-            val result = firebaseProvider.getUserFromDatabase(user.username, userId)
+            val result = firebaseProvider.getPublicUsers(user.username, userId)
 
-            assertEquals(user, result)
+            assertEquals(listOf(user), result)
             verify(exactly = 1) { firestore.collection("public_profiles") }
             confirmVerified(firestore)
         }
 
     @Test
-    fun `GIVEN success response and non existent user WHEN get user from database THEN return null`() =
+    fun `GIVEN success response and non existent user WHEN get user from database THEN return empty list`() =
         runTest {
             val username = "testuser"
             val userId = "testUserId"
-            givenGetPublicProfileSuccess(username, emptyList())
+            givenGetAllPublicProfilesSuccess(emptyList())
 
-            val result = firebaseProvider.getUserFromDatabase(username, userId)
+            val result = firebaseProvider.getPublicUsers(username, userId)
 
-            assertEquals(null, result)
+            assertEquals(emptyList(), result)
             verify(exactly = 1) { firestore.collection("public_profiles") }
             confirmVerified(firestore)
         }
@@ -406,10 +407,10 @@ class FirebaseProviderTest {
         val username = "testuser"
         val userId = "testUserId"
         val exception = RuntimeException("Firestore error")
-        givenGetPublicProfileFailure(username, exception)
+        givenGetAllPublicProfilesFailure(exception)
 
         try {
-            firebaseProvider.getUserFromDatabase(username, userId)
+            firebaseProvider.getPublicUsers(username, userId)
         } catch (e: Exception) {
             assertEquals(exception, e)
         }
@@ -900,6 +901,50 @@ class FirebaseProviderTest {
     }
 
     @Test
+    fun `GIVEN success response WHEN get last updated THEN return timestamp`() = runTest {
+        val userId = "testUserId"
+        val lastUpdated = Timestamp(1786344084, 0) // August 10, 2026, 08:41:24 UTC
+        givenGetLastUpdatedSuccess(userId, lastUpdated)
+
+        val result = firebaseProvider.getLastUpdated(userId)
+
+        assertEquals(
+            Instant.fromEpochSeconds(lastUpdated.seconds, lastUpdated.nanoseconds),
+            result,
+        )
+        verify(exactly = 1) { firestore.collection("users") }
+        confirmVerified(firestore)
+    }
+
+    @Test
+    fun `GIVEN success response and no timestamp WHEN get last updated THEN return null`() =
+        runTest {
+            val userId = "testUserId"
+            givenGetLastUpdatedSuccess(userId, null)
+
+            val result = firebaseProvider.getLastUpdated(userId)
+
+            assertEquals(null, result)
+            verify(exactly = 1) { firestore.collection("users") }
+            confirmVerified(firestore)
+        }
+
+    @Test
+    fun `GIVEN failure response WHEN get last updated THEN throw exception`() = runTest {
+        val userId = "testUserId"
+        val exception = RuntimeException("Firestore error")
+        givenGetLastUpdatedFailure(userId, exception)
+
+        try {
+            firebaseProvider.getLastUpdated(userId)
+        } catch (e: Exception) {
+            assertEquals(exception, e)
+        }
+        verify(exactly = 1) { firestore.collection("users") }
+        confirmVerified(firestore)
+    }
+
+    @Test
     fun `GIVEN success response and values for language WHEN fetch remote config values is called THEN formats and states are updated with new values`() {
         val key = "key"
         val value = "data"
@@ -1021,6 +1066,29 @@ class FirebaseProviderTest {
         coEvery { task.exception } returns exception
         every { collectionReference.document(userId) } returns documentReference
         every { documentReference.delete() } returns task
+    }
+
+    private fun givenGetAllPublicProfilesSuccess(documents: List<DocumentSnapshot>) {
+        val collectionReference = getPublicProfile()
+        val task = mockk<Task<QuerySnapshot>>()
+        val querySnapshot = mockk<QuerySnapshot>()
+        every { firestore.collection("public_profiles") } returns collectionReference
+        every { collectionReference.get() } returns task
+        every { task.isComplete } returns true
+        every { task.isCanceled } returns false
+        every { task.exception } returns null
+        every { task.result } returns querySnapshot
+        every { querySnapshot.documents } returns documents
+    }
+
+    private fun givenGetAllPublicProfilesFailure(exception: Exception) {
+        val collectionReference = getPublicProfile()
+        val task = mockk<Task<QuerySnapshot>>()
+        every { firestore.collection("public_profiles") } returns collectionReference
+        every { collectionReference.get() } returns task
+        every { task.isComplete } returns true
+        every { task.isCanceled } returns false
+        every { task.exception } returns exception
     }
 
     private fun givenGetPublicProfileSuccess(username: String, documents: List<DocumentSnapshot>) {
@@ -1547,6 +1615,27 @@ class FirebaseProviderTest {
         every { task2.isComplete } returns true
         every { task2.isCanceled } returns false
         every { task2.exception } returns exception
+    }
+
+    private fun givenGetLastUpdatedSuccess(userId: String, timestamp: Timestamp?) {
+        val documentReference = getUser(userId)
+        val task = mockk<Task<DocumentSnapshot>>()
+        val documentSnapshot = mockk<DocumentSnapshot>()
+        every { documentReference.get() } returns task
+        every { task.isComplete } returns true
+        every { task.isCanceled } returns false
+        every { task.exception } returns null
+        every { task.result } returns documentSnapshot
+        every { documentSnapshot.getTimestamp("lastUpdated") } returns timestamp
+    }
+
+    private fun givenGetLastUpdatedFailure(userId: String, exception: Exception) {
+        val documentReference = getUser(userId)
+        val task = mockk<Task<DocumentSnapshot>>()
+        every { documentReference.get() } returns task
+        every { task.isComplete } returns true
+        every { task.isCanceled } returns false
+        every { task.exception } returns exception
     }
 
     private fun givenRemoteConfigFetchSuccess(key: String, value: String) {

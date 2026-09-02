@@ -11,6 +11,7 @@ data class BookListUiState(
     val isLoading: Boolean,
     val books: Books,
     val subtitle: String,
+    val canDrag: Boolean,
     val isDraggingEnabled: Boolean,
 ) {
     companion object {
@@ -18,6 +19,7 @@ data class BookListUiState(
             isLoading = true,
             books = Books(),
             subtitle = "",
+            canDrag = false,
             isDraggingEnabled = false,
         )
     }

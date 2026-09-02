@@ -21,6 +21,9 @@ sealed class Route {
     data object Statistics : Route()
 
     @Serializable
+    data object Friends : Route()
+
+    @Serializable
     data object Settings : Route()
 
     // Screen routes
@@ -38,13 +41,16 @@ sealed class Route {
     data object StatisticsHome : Route()
 
     @Serializable
+    data object FriendsHome : Route()
+
+    @Serializable
     data object SettingsHome : Route()
 
     @Serializable
     data object Search : Route()
 
     @Serializable
-    data class BookDetail(val bookId: String, val friendId: String = "") : Route()
+    data class BookDetail(val bookId: String, val friendId: String? = null) : Route()
 
     @Serializable
     data class BookList(
@@ -57,23 +63,9 @@ sealed class Route {
         val author: String? = null,
         val format: String? = null,
         val genre: String? = null,
+        val friendId: String? = null,
     ) : Route()
 
     @Serializable
     data object Account : Route()
-
-    @Serializable
-    data object Friends : Route()
-
-    @Serializable
-    data class FriendDetail(val userId: String) : Route()
-
-    @Serializable
-    data object AddFriends : Route()
-
-    @Serializable
-    data object DataSync : Route()
-
-    @Serializable
-    data object DisplaySettings : Route()
 }

@@ -216,6 +216,14 @@
                 batch.delete(doc.ref);
             });
             return await batch.commit();
+        },
+        getLastUpdated: async (db, userId) => {
+            const docRef = firestore.doc(db, `users/${userId}`);
+            const docSnap = await firestore.getDoc(docRef);
+            if (docSnap.exists() && docSnap.data().lastUpdated) {
+                return JSON.stringify(docSnap.data().lastUpdated);
+            }
+            return null;
         }
     };
 

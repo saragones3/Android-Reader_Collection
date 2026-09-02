@@ -13,13 +13,19 @@ import aragones.sergio.readercollection.data.UserRepositoryImpl
 import aragones.sergio.readercollection.data.local.UserLocalDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.data.remote.model.RequestStatus
+import aragones.sergio.readercollection.data.remote.model.UserResponse
+import aragones.sergio.readercollection.domain.BooksRepository
+import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.ErrorModel
 import aragones.sergio.readercollection.domain.model.User
-import aragones.sergio.readercollection.domain.model.Users
 import aragones.sergio.readercollection.domain.toRemoteData
+import aragones.sergio.readercollection.presentation.friends.FriendsTab
 import aragones.sergio.readercollection.presentation.friends.FriendsUiState
 import aragones.sergio.readercollection.presentation.friends.FriendsViewModel
+import aragones.sergio.readercollection.presentation.friends.UserUi
+import aragones.sergio.readercollection.presentation.friends.UsersUi
 import aragones.sergio.readercollection.presentation.utils.MainDispatcherRule
+import com.aragones.sergio.util.BookState
 import com.aragones.sergio.util.Constants
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -34,6 +40,7 @@ import org.junit.Rule
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.friend_action_failure
 import reader_collection.app.generated.resources.friend_action_successfully_done
+import reader_collection.app.generated.resources.user_remove_confirmation
 
 class FriendsViewModelTest {
 
@@ -41,24 +48,38 @@ class FriendsViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val testUserId = "userId"
+    private val testUsername = "username"
     private val userLocalDataSource: UserLocalDataSource = mockk {
         every { userId } returns testUserId
+        every { username } returns testUsername
     }
     private val userRemoteDataSource: UserRemoteDataSource = mockk()
+    private val booksRepository: BooksRepository = mockk()
     private val viewModel = FriendsViewModel(
-        UserRepositoryImpl(
-            userLocalDataSource,
-            userRemoteDataSource,
-            mainDispatcherRule.testDispatcher,
+        booksRepository = booksRepository,
+        userRepository = UserRepositoryImpl(
+            userLocalDataSource = userLocalDataSource,
+            userRemoteDataSource = userRemoteDataSource,
+            ioDispatcher = mainDispatcherRule.testDispatcher,
         ),
     )
 
     @Test
     fun `GIVEN friends WHEN fetchFriends THEN returns Success state with friends list`() = runTest {
-        val friend = User("friendId", "", RequestStatus.APPROVED)
+        val friend1 = User(id = "1", username = "", status = RequestStatus.APPROVED)
+        val friend2 = User(id = "2", username = "", status = RequestStatus.PENDING_MINE)
+        val friend3 = User(id = "3", username = "", status = RequestStatus.PENDING_FRIEND)
+        val friend4 = User(id = "4", username = "", status = RequestStatus.REJECTED)
         coEvery {
             userRemoteDataSource.getFriends(any())
-        } returns Result.success(listOf(friend.toRemoteData()))
+        } returns Result.success(
+            listOf(
+                friend1.toRemoteData(),
+                friend2.toRemoteData(),
+                friend3.toRemoteData(),
+                friend4.toRemoteData(),
+            ),
+        )
 
         viewModel.state.test {
             assertEquals(FriendsUiState.Loading, awaitItem())
@@ -66,7 +87,20 @@ class FriendsViewModelTest {
             viewModel.fetchFriends()
 
             assertEquals(
-                FriendsUiState.Success(Users(listOf(friend))),
+                FriendsUiState.Success(
+                    friends = UsersUi(
+                        listOf(
+                            UserUi(id = "1", username = "", isPending = false),
+                            UserUi(id = "2", username = "", isPending = true),
+                        ),
+                    ),
+                    requests = UsersUi(
+                        listOf(
+                            UserUi(id = "3", username = "", isPending = true),
+                            UserUi(id = "4", username = "", isPending = false),
+                        ),
+                    ),
+                ),
                 awaitItem(),
             )
         }
@@ -87,7 +121,7 @@ class FriendsViewModelTest {
                 viewModel.fetchFriends()
 
                 assertEquals(
-                    FriendsUiState.Success(Users()),
+                    FriendsUiState.Success(friends = UsersUi(), requests = UsersUi()),
                     awaitItem(),
                 )
             }
@@ -108,7 +142,7 @@ class FriendsViewModelTest {
                 viewModel.fetchFriends()
 
                 assertEquals(
-                    FriendsUiState.Success(Users()),
+                    FriendsUiState.Success(friends = UsersUi(), requests = UsersUi()),
                     awaitItem(),
                 )
             }
@@ -117,10 +151,437 @@ class FriendsViewModelTest {
         }
 
     @Test
+    fun `WHEN selectTab THEN state is updated with the new tab`() = runTest {
+        coEvery {
+            userRemoteDataSource.getFriends(any())
+        } returns Result.success(emptyList())
+
+        viewModel.state.test {
+            assertEquals(FriendsUiState.Loading, awaitItem())
+            viewModel.fetchFriends()
+            assertEquals(
+                FriendsUiState.Success(friends = UsersUi(), requests = UsersUi()),
+                awaitItem(),
+            )
+
+            viewModel.selectTab(FriendsTab.REQUESTS)
+
+            assertEquals(
+                FriendsUiState.Success(
+                    tab = FriendsTab.REQUESTS,
+                    friends = UsersUi(),
+                    requests = UsersUi(),
+                ),
+                awaitItem(),
+            )
+        }
+    }
+
+    @Test
+    fun `GIVEN query and success response WHEN searchFriends THEN search results are shown`() =
+        runTest {
+            val query = "query"
+            val user = User(id = "1", username = "", status = RequestStatus.PENDING_FRIEND)
+            val users = listOf(user)
+            val userUi = UserUi(id = "1", username = "", isPending = true)
+            coEvery {
+                userRemoteDataSource.getFriends(testUserId)
+            } returns Result.success(emptyList())
+            coEvery {
+                userRemoteDataSource.getUsers(query, testUserId)
+            } returns Result.success(users.map { it.toRemoteData() })
+
+            viewModel.state.test {
+                assertEquals(FriendsUiState.Loading, awaitItem())
+
+                viewModel.fetchFriends()
+                assertEquals(
+                    FriendsUiState.Success(friends = UsersUi(), requests = UsersUi()),
+                    awaitItem(),
+                )
+
+                viewModel.searchFriends(query)
+
+                assertEquals(
+                    FriendsUiState.Success(
+                        searchQuery = query,
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = true,
+                        searchResults = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+                assertEquals(
+                    FriendsUiState.Success(
+                        searchQuery = query,
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = false,
+                        searchResults = UsersUi(listOf(userUi)),
+                    ),
+                    awaitItem(),
+                )
+            }
+            coVerify(exactly = 2) { userRemoteDataSource.getFriends(testUserId) }
+            coVerify { userRemoteDataSource.getUsers(query, testUserId) }
+            confirmVerified(userRemoteDataSource)
+        }
+
+    @Test
+    fun `GIVEN query and success response with non pending friend WHEN searchFriends THEN no search results are shown`() =
+        runTest {
+            val query = "query"
+            val user = User(id = "1", username = "", status = RequestStatus.APPROVED)
+            val users = listOf(user)
+            coEvery {
+                userRemoteDataSource.getFriends(testUserId)
+            } returns Result.success(emptyList())
+            coEvery {
+                userRemoteDataSource.getUsers(query, testUserId)
+            } returns Result.success(users.map { it.toRemoteData() })
+
+            viewModel.state.test {
+                assertEquals(FriendsUiState.Loading, awaitItem())
+
+                viewModel.fetchFriends()
+                assertEquals(
+                    FriendsUiState.Success(friends = UsersUi(), requests = UsersUi()),
+                    awaitItem(),
+                )
+
+                viewModel.searchFriends(query)
+
+                assertEquals(
+                    FriendsUiState.Success(
+                        searchQuery = query,
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = true,
+                        searchResults = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+                assertEquals(
+                    FriendsUiState.Success(
+                        searchQuery = query,
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = false,
+                        searchResults = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+            }
+            coVerify(exactly = 2) { userRemoteDataSource.getFriends(testUserId) }
+            coVerify { userRemoteDataSource.getUsers(query, testUserId) }
+            confirmVerified(userRemoteDataSource)
+        }
+
+    @Test
+    fun `GIVEN query and failure response WHEN searchFriends THEN error is shown`() = runTest {
+        val query = "query"
+        coEvery { userRemoteDataSource.getFriends(testUserId) } returns Result.success(emptyList())
+        coEvery {
+            userRemoteDataSource.getUsers(query, testUserId)
+        } returns Result.failure(RuntimeException())
+
+        viewModel.error.test {
+            val error = this
+            assertEquals(null, awaitItem())
+
+            viewModel.state.test {
+                assertEquals(FriendsUiState.Loading, awaitItem())
+
+                viewModel.fetchFriends()
+                assertEquals(
+                    FriendsUiState.Success(friends = UsersUi(), requests = UsersUi()),
+                    awaitItem(),
+                )
+
+                viewModel.searchFriends(query)
+
+                assertEquals(
+                    FriendsUiState.Success(
+                        searchQuery = query,
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = true,
+                        searchResults = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+                assertEquals(
+                    ErrorModel(Constants.EMPTY_VALUE, Res.string.friend_action_failure),
+                    error.awaitItem(),
+                )
+                assertEquals(
+                    FriendsUiState.Success(
+                        searchQuery = query,
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = false,
+                        searchResults = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+            }
+        }
+        coVerify { userRemoteDataSource.getFriends(testUserId) }
+        coVerify { userRemoteDataSource.getUsers(query, testUserId) }
+        confirmVerified(userRemoteDataSource)
+    }
+
+    @Test
+    fun `GIVEN empty query WHEN searchFriends THEN state is updated but no search is performed`() =
+        runTest {
+            val query = "query"
+            val user = User(id = "1", username = "", status = RequestStatus.PENDING_FRIEND)
+            val users = listOf(user)
+            val userUi = UserUi(id = "1", username = "", isPending = true)
+            coEvery {
+                userRemoteDataSource.getFriends(testUserId)
+            } returns Result.success(emptyList())
+            coEvery {
+                userRemoteDataSource.getUsers(query, testUserId)
+            } returns Result.success(users.map { it.toRemoteData() })
+
+            viewModel.state.test {
+                assertEquals(FriendsUiState.Loading, awaitItem())
+
+                viewModel.fetchFriends()
+                assertEquals(
+                    FriendsUiState.Success(friends = UsersUi(), requests = UsersUi()),
+                    awaitItem(),
+                )
+                viewModel.searchFriends(query)
+                assertEquals(
+                    FriendsUiState.Success(
+                        searchQuery = query,
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = true,
+                        searchResults = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+                assertEquals(
+                    FriendsUiState.Success(
+                        searchQuery = query,
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = false,
+                        searchResults = UsersUi(listOf(userUi)),
+                    ),
+                    awaitItem(),
+                )
+
+                viewModel.searchFriends("")
+
+                assertEquals(
+                    FriendsUiState.Success(
+                        searchQuery = "",
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = false,
+                        searchResults = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+            }
+            coVerify(exactly = 2) { userRemoteDataSource.getFriends(testUserId) }
+            coVerify { userRemoteDataSource.getUsers(query, testUserId) }
+            confirmVerified(userRemoteDataSource)
+        }
+
+    @Test
+    fun `GIVEN friend and success response WHEN requestFriendship THEN friend is added to requests`() =
+        runTest {
+            val user = User(id = "1", username = "user1", status = RequestStatus.PENDING_FRIEND)
+            val users = listOf(user)
+            val userUi = UserUi(id = "1", username = "user1", isPending = true)
+            coEvery {
+                userRemoteDataSource.getFriends(testUserId)
+            } returns Result.success(emptyList())
+            coEvery {
+                userRemoteDataSource.getUsers(any(), any())
+            } returns Result.success(users.map { it.toRemoteData() })
+            coEvery {
+                userRemoteDataSource.requestFriendship(any(), any())
+            } returns Result.success(Unit)
+
+            viewModel.state.test {
+                assertEquals(FriendsUiState.Loading, awaitItem())
+
+                viewModel.fetchFriends()
+                assertEquals(
+                    FriendsUiState.Success(friends = UsersUi(), requests = UsersUi()),
+                    awaitItem(),
+                )
+                viewModel.searchFriends("user1")
+                assertEquals(
+                    FriendsUiState.Success(
+                        searchQuery = "user1",
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = true,
+                        searchResults = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+                assertEquals(
+                    FriendsUiState.Success(
+                        searchQuery = "user1",
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = false,
+                        searchResults = UsersUi(listOf(userUi)),
+                    ),
+                    awaitItem(),
+                )
+
+                viewModel.requestFriendship(userUi)
+
+                assertEquals(
+                    FriendsUiState.Success(
+                        searchQuery = "user1",
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = false,
+                        searchResults = UsersUi(listOf(userUi.copy(isLoading = true))),
+                    ),
+                    awaitItem(),
+                )
+                assertEquals(
+                    FriendsUiState.Success(
+                        tab = FriendsTab.REQUESTS,
+                        searchQuery = "",
+                        friends = UsersUi(),
+                        requests = UsersUi(listOf(userUi)),
+                        isSearching = false,
+                        searchResults = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+            }
+            coVerify(exactly = 2) { userRemoteDataSource.getFriends(testUserId) }
+            coVerify { userRemoteDataSource.getUsers("user1", testUserId) }
+            coVerify {
+                userRemoteDataSource.requestFriendship(
+                    UserResponse(
+                        id = testUserId,
+                        username = testUsername,
+                        status = RequestStatus.PENDING_MINE,
+                    ),
+                    user.toRemoteData(),
+                )
+            }
+            confirmVerified(userRemoteDataSource)
+        }
+
+    @Test
+    fun `GIVEN friend and failure response WHEN requestFriendship THEN error is shown`() = runTest {
+        val user = User(id = "1", username = "user1", status = RequestStatus.PENDING_FRIEND)
+        val users = listOf(user)
+        val userUi = UserUi(id = "1", username = "user1", isPending = true)
+        coEvery {
+            userRemoteDataSource.getFriends(testUserId)
+        } returns Result.success(emptyList())
+        coEvery {
+            userRemoteDataSource.getUsers(any(), any())
+        } returns Result.success(users.map { it.toRemoteData() })
+        coEvery {
+            userRemoteDataSource.requestFriendship(any(), any())
+        } returns Result.failure(RuntimeException())
+
+        viewModel.error.test {
+            val error = this
+            assertEquals(null, awaitItem())
+
+            viewModel.state.test {
+                assertEquals(FriendsUiState.Loading, awaitItem())
+
+                viewModel.fetchFriends()
+                assertEquals(
+                    FriendsUiState.Success(friends = UsersUi(), requests = UsersUi()),
+                    awaitItem(),
+                )
+                viewModel.searchFriends("user1")
+                assertEquals(
+                    FriendsUiState.Success(
+                        tab = FriendsTab.FRIENDS,
+                        searchQuery = "user1",
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = true,
+                        searchResults = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+                assertEquals(
+                    FriendsUiState.Success(
+                        tab = FriendsTab.FRIENDS,
+                        searchQuery = "user1",
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = false,
+                        searchResults = UsersUi(listOf(userUi)),
+                    ),
+                    awaitItem(),
+                )
+
+                viewModel.requestFriendship(userUi)
+
+                assertEquals(
+                    FriendsUiState.Success(
+                        tab = FriendsTab.FRIENDS,
+                        searchQuery = "user1",
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = false,
+                        searchResults = UsersUi(listOf(userUi.copy(isLoading = true))),
+                    ),
+                    awaitItem(),
+                )
+                assertEquals(
+                    FriendsUiState.Success(
+                        tab = FriendsTab.FRIENDS,
+                        searchQuery = "user1",
+                        friends = UsersUi(),
+                        requests = UsersUi(),
+                        isSearching = false,
+                        searchResults = UsersUi(listOf(userUi)),
+                    ),
+                    awaitItem(),
+                )
+                assertEquals(
+                    ErrorModel(Constants.EMPTY_VALUE, Res.string.friend_action_failure),
+                    error.awaitItem(),
+                )
+            }
+        }
+
+        coVerify(exactly = 2) { userRemoteDataSource.getFriends(testUserId) }
+        coVerify { userRemoteDataSource.getUsers("user1", testUserId) }
+        coVerify {
+            userRemoteDataSource.requestFriendship(
+                UserResponse(
+                    id = testUserId,
+                    username = testUsername,
+                    status = RequestStatus.PENDING_MINE,
+                ),
+                user.toRemoteData(),
+            )
+        }
+        confirmVerified(userRemoteDataSource)
+    }
+
+    @Test
     fun `GIVEN friend id and success response WHEN acceptFriendRequest THEN success message is shown and friend status is updated to Approved`() =
         runTest {
             val friendId = "friendId"
             val friend = User(friendId, "", RequestStatus.PENDING_MINE)
+            val friendUi = UserUi(friendId, "", true)
             coEvery {
                 userRemoteDataSource.getFriends(any())
             } returns Result.success(listOf(friend.toRemoteData()))
@@ -137,7 +598,10 @@ class FriendsViewModelTest {
                     assertEquals(FriendsUiState.Loading, awaitItem())
                     viewModel.fetchFriends()
                     assertEquals(
-                        FriendsUiState.Success(Users(listOf(friend))),
+                        FriendsUiState.Success(
+                            friends = UsersUi(listOf(friendUi)),
+                            requests = UsersUi(),
+                        ),
                         awaitItem(),
                     )
 
@@ -149,7 +613,8 @@ class FriendsViewModelTest {
                     )
                     assertEquals(
                         FriendsUiState.Success(
-                            Users(listOf(friend.copy(status = RequestStatus.APPROVED))),
+                            friends = UsersUi(listOf(friendUi.copy(isPending = false))),
+                            requests = UsersUi(),
                         ),
                         state.awaitItem(),
                     )
@@ -189,7 +654,8 @@ class FriendsViewModelTest {
     fun `GIVEN friend id and success response WHEN rejectFriendRequest THEN success message is shown and friend is removed from list`() =
         runTest {
             val friendId = "friendId"
-            val friend = User(friendId, "", RequestStatus.APPROVED)
+            val friend = User(friendId, "", RequestStatus.PENDING_MINE)
+            val friendUi = UserUi(friendId, "", true)
             coEvery {
                 userRemoteDataSource.getFriends(any())
             } returns Result.success(listOf(friend.toRemoteData()))
@@ -206,7 +672,10 @@ class FriendsViewModelTest {
                     assertEquals(FriendsUiState.Loading, awaitItem())
                     viewModel.fetchFriends()
                     assertEquals(
-                        FriendsUiState.Success(Users(listOf(friend))),
+                        FriendsUiState.Success(
+                            friends = UsersUi(listOf(friendUi)),
+                            requests = UsersUi(),
+                        ),
                         awaitItem(),
                     )
 
@@ -217,7 +686,7 @@ class FriendsViewModelTest {
                         infoDialogMessage.awaitItem(),
                     )
                     assertEquals(
-                        FriendsUiState.Success(Users()),
+                        FriendsUiState.Success(friends = UsersUi(), requests = UsersUi()),
                         state.awaitItem(),
                     )
                 }
@@ -253,10 +722,11 @@ class FriendsViewModelTest {
     }
 
     @Test
-    fun `GIVEN success response WHEN deleteFriend THEN success message is shown and friend is removed from list`() =
+    fun `GIVEN success response and friend request rejected WHEN deleteFriend THEN success message is shown and friend is removed from list`() =
         runTest {
             val friendId = "friendId"
-            val friend = User(friendId, "", RequestStatus.APPROVED)
+            val friend = User(friendId, "", RequestStatus.REJECTED)
+            val friendUi = UserUi(friendId, "", false)
             coEvery {
                 userRemoteDataSource.getFriends(any())
             } returns Result.success(listOf(friend.toRemoteData()))
@@ -273,7 +743,11 @@ class FriendsViewModelTest {
                     assertEquals(FriendsUiState.Loading, awaitItem())
                     viewModel.fetchFriends()
                     assertEquals(
-                        FriendsUiState.Success(Users(listOf(friend))),
+                        FriendsUiState.Success(
+                            tab = FriendsTab.REQUESTS,
+                            friends = UsersUi(),
+                            requests = UsersUi(listOf(friendUi)),
+                        ),
                         awaitItem(),
                     )
 
@@ -284,7 +758,11 @@ class FriendsViewModelTest {
                         infoDialogMessage.awaitItem(),
                     )
                     assertEquals(
-                        FriendsUiState.Success(Users()),
+                        FriendsUiState.Success(
+                            tab = FriendsTab.FRIENDS,
+                            friends = UsersUi(),
+                            requests = UsersUi(),
+                        ),
                         state.awaitItem(),
                     )
                 }
@@ -320,56 +798,290 @@ class FriendsViewModelTest {
     }
 
     @Test
-    fun `GIVEN dialog shown WHEN closeDialogs THEN dialog is reset`() = runTest {
-        viewModel.infoDialogMessageId.test {
-            val infoDialogMessage = this
+    fun `GIVEN no dialog shown WHEN showConfirmationDialog THEN dialog is shown`() = runTest {
+        viewModel.userDeletionMessage.test {
             assertEquals(null, awaitItem())
 
-            coEvery {
-                userRemoteDataSource.acceptFriendRequest(any(), any())
-            } returns Result.success(Unit)
-            viewModel.acceptFriendRequest("")
-            assertEquals(
-                Res.string.friend_action_successfully_done,
-                awaitItem(),
-            )
+            viewModel.showConfirmationDialog(Res.string.user_remove_confirmation, "userId")
 
-            viewModel.error.test {
-                val error = this
+            assertEquals(Res.string.user_remove_confirmation to "userId", awaitItem())
+        }
+    }
+
+    @Test
+    fun `GIVEN same dialog message shown WHEN showConfirmationDialog THEN do nothing`() = runTest {
+        viewModel.userDeletionMessage.test {
+            assertEquals(null, awaitItem())
+            viewModel.showConfirmationDialog(Res.string.user_remove_confirmation, "userId")
+            assertEquals(Res.string.user_remove_confirmation to "userId", awaitItem())
+
+            viewModel.showConfirmationDialog(Res.string.user_remove_confirmation, "userId")
+
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun `GIVEN dialog shown WHEN closeDialogs THEN dialog is reset`() = runTest {
+        viewModel.userDeletionMessage.test {
+            val userDeletionMessage = this
+            assertEquals(null, awaitItem())
+
+            viewModel.showConfirmationDialog(Res.string.user_remove_confirmation, "userId")
+            assertEquals(Res.string.user_remove_confirmation to "userId", awaitItem())
+
+            viewModel.infoDialogMessageId.test {
+                val infoDialogMessage = this
                 assertEquals(null, awaitItem())
 
                 coEvery {
-                    userRemoteDataSource.rejectFriendRequest(any(), any())
-                } returns Result.failure(RuntimeException("Firestore error"))
-                viewModel.rejectFriendRequest("")
+                    userRemoteDataSource.acceptFriendRequest(any(), any())
+                } returns Result.success(Unit)
+                viewModel.acceptFriendRequest("")
                 assertEquals(
-                    ErrorModel(
-                        Constants.EMPTY_VALUE,
-                        Res.string.friend_action_failure,
-                    ),
+                    Res.string.friend_action_successfully_done,
                     awaitItem(),
                 )
 
-                viewModel.closeDialogs()
+                viewModel.error.test {
+                    val error = this
+                    assertEquals(null, awaitItem())
 
-                assertEquals(null, infoDialogMessage.awaitItem())
-                assertEquals(null, error.awaitItem())
+                    coEvery {
+                        userRemoteDataSource.rejectFriendRequest(any(), any())
+                    } returns Result.failure(RuntimeException("Firestore error"))
+                    viewModel.rejectFriendRequest("")
+                    assertEquals(
+                        ErrorModel(
+                            Constants.EMPTY_VALUE,
+                            Res.string.friend_action_failure,
+                        ),
+                        awaitItem(),
+                    )
+
+                    viewModel.closeDialogs()
+
+                    assertEquals(null, infoDialogMessage.awaitItem())
+                    assertEquals(null, userDeletionMessage.awaitItem())
+                    assertEquals(null, error.awaitItem())
+                }
             }
         }
     }
 
     @Test
     fun `GIVEN no dialog shown WHEN closeDialogs THEN do nothing`() = runTest {
-        viewModel.infoDialogMessageId.test {
+        viewModel.userDeletionMessage.test {
             assertEquals(null, awaitItem())
 
-            viewModel.error.test {
+            viewModel.infoDialogMessageId.test {
                 assertEquals(null, awaitItem())
 
-                viewModel.closeDialogs()
+                viewModel.error.test {
+                    assertEquals(null, awaitItem())
 
-                expectNoEvents()
+                    viewModel.closeDialogs()
+
+                    expectNoEvents()
+                }
             }
         }
     }
+
+    @Test
+    fun `GIVEN friend id and success response with books WHEN toggleLibrary THEN friend is expanded and books are shown`() =
+        runTest {
+            val friendId = "friendId"
+            val friend = User(id = friendId, username = "", status = RequestStatus.APPROVED)
+            val friendUi = UserUi(id = friendId, username = "", isPending = false)
+            val book = Book("1").apply { this.state = BookState.READING }
+            coEvery {
+                userRemoteDataSource.getFriends(any())
+            } returns Result.success(listOf(friend.toRemoteData()))
+            coEvery {
+                booksRepository.getBooksFrom(friendId)
+            } returns Result.success(listOf(book))
+
+            viewModel.state.test {
+                assertEquals(FriendsUiState.Loading, awaitItem())
+                viewModel.fetchFriends()
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(listOf(friendUi)),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+
+                viewModel.toggleLibrary(friendId)
+
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(
+                            listOf(
+                                friendUi.copy(
+                                    isExpanded = true,
+                                    hasBooks = true,
+                                    readingBooks = listOf(book),
+                                ),
+                            ),
+                        ),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+            }
+            coVerify { userRemoteDataSource.getFriends(testUserId) }
+            coVerify { booksRepository.getBooksFrom(friendId) }
+            confirmVerified(userRemoteDataSource, booksRepository)
+        }
+
+    @Test
+    fun `GIVEN friend id and success response with no books WHEN toggleLibrary THEN friend is expanded and no books are shown`() =
+        runTest {
+            val friendId = "friendId"
+            val friend = User(id = friendId, username = "", status = RequestStatus.APPROVED)
+            val friendUi = UserUi(id = friendId, username = "", isPending = false)
+            coEvery {
+                userRemoteDataSource.getFriends(any())
+            } returns Result.success(listOf(friend.toRemoteData()))
+            coEvery {
+                booksRepository.getBooksFrom(friendId)
+            } returns Result.success(emptyList())
+
+            viewModel.state.test {
+                assertEquals(FriendsUiState.Loading, awaitItem())
+                viewModel.fetchFriends()
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(listOf(friendUi)),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+
+                viewModel.toggleLibrary(friendId)
+
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(
+                            listOf(
+                                friendUi.copy(
+                                    isExpanded = true,
+                                    hasBooks = false,
+                                ),
+                            ),
+                        ),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+            }
+            coVerify { userRemoteDataSource.getFriends(testUserId) }
+            coVerify { booksRepository.getBooksFrom(friendId) }
+            confirmVerified(userRemoteDataSource, booksRepository)
+        }
+
+    @Test
+    fun `GIVEN friend id and failure response WHEN toggleLibrary THEN error is shown`() = runTest {
+        val friendId = "friendId"
+        val friend = User(id = friendId, username = "", status = RequestStatus.APPROVED)
+        val friendUi = UserUi(id = friendId, username = "", isPending = false)
+        coEvery {
+            userRemoteDataSource.getFriends(any())
+        } returns Result.success(listOf(friend.toRemoteData()))
+        coEvery {
+            booksRepository.getBooksFrom(friendId)
+        } returns Result.failure(RuntimeException())
+
+        viewModel.error.test {
+            val error = this
+            assertEquals(null, awaitItem())
+
+            viewModel.state.test {
+                assertEquals(FriendsUiState.Loading, awaitItem())
+                viewModel.fetchFriends()
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(listOf(friendUi)),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+
+                viewModel.toggleLibrary(friendId)
+
+                assertEquals(
+                    ErrorModel(Constants.EMPTY_VALUE, Res.string.friend_action_failure),
+                    error.awaitItem(),
+                )
+            }
+        }
+        coVerify { userRemoteDataSource.getFriends(testUserId) }
+        coVerify { booksRepository.getBooksFrom(friendId) }
+        confirmVerified(userRemoteDataSource, booksRepository)
+    }
+
+    @Test
+    fun `GIVEN friend id and books already loaded WHEN toggleLibrary THEN friend expansion is toggled without fetching books`() =
+        runTest {
+            val friendId = "friendId"
+            val friend = User(id = friendId, username = "", status = RequestStatus.APPROVED)
+            val friendUi = UserUi(id = friendId, username = "", isPending = false)
+            val book = Book("1").apply { this.state = BookState.READING }
+            coEvery {
+                userRemoteDataSource.getFriends(any())
+            } returns Result.success(listOf(friend.toRemoteData()))
+            coEvery {
+                booksRepository.getBooksFrom(friendId)
+            } returns Result.success(listOf(book))
+
+            viewModel.state.test {
+                assertEquals(FriendsUiState.Loading, awaitItem())
+                viewModel.fetchFriends()
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(listOf(friendUi)),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+                viewModel.toggleLibrary(friendId)
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(
+                            listOf(
+                                friendUi.copy(
+                                    isExpanded = true,
+                                    hasBooks = true,
+                                    readingBooks = listOf(book),
+                                ),
+                            ),
+                        ),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+
+                viewModel.toggleLibrary(friendId)
+                assertEquals(
+                    FriendsUiState.Success(
+                        friends = UsersUi(
+                            listOf(
+                                friendUi.copy(
+                                    isExpanded = false,
+                                    hasBooks = true,
+                                    readingBooks = listOf(book),
+                                ),
+                            ),
+                        ),
+                        requests = UsersUi(),
+                    ),
+                    awaitItem(),
+                )
+            }
+            coVerify(exactly = 1) { userRemoteDataSource.getFriends(testUserId) }
+            coVerify(exactly = 1) { booksRepository.getBooksFrom(friendId) }
+            confirmVerified(userRemoteDataSource, booksRepository)
+        }
 }

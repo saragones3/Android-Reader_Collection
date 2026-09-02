@@ -55,7 +55,7 @@ class BooksRepositoryImpl(
             onSuccess = { it },
             onFailure = { emptyList() },
         )
-        val localBooks = booksLocalDataSource.getAllBooks().firstOrNull() ?: emptyList()
+        val localBooks = booksLocalDataSource.getAllBooks().firstOrNull().orEmpty()
 
         val disabledContent = arrayListOf<BookResponse>()
         for (remoteBook in remoteBooks) {
@@ -100,7 +100,7 @@ class BooksRepositoryImpl(
             .getAllBooks()
             .firstOrNull()
             ?.map { it.toRemoteData() }
-            ?: emptyList()
+            .orEmpty()
         val jsonString = Json.encodeToString(books)
         return Result.success(jsonString)
     }
@@ -151,7 +151,7 @@ class BooksRepositoryImpl(
     }
 
     override suspend fun resetTable(): Result<Unit> = runCatching {
-        val books = booksLocalDataSource.getAllBooks().firstOrNull() ?: emptyList()
+        val books = booksLocalDataSource.getAllBooks().firstOrNull().orEmpty()
         booksLocalDataSource.deleteBooks(books)
         Result.success(Unit)
     }

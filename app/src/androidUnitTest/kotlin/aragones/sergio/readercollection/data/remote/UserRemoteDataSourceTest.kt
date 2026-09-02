@@ -21,7 +21,9 @@ import io.mockk.verify
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.time.Instant
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.LocalDate
 
 class UserRemoteDataSourceTest {
 
@@ -357,16 +359,17 @@ class UserRemoteDataSourceTest {
             username = "testuser",
             status = RequestStatus.PENDING_FRIEND,
         )
+        val users = listOf(user)
         val userId = "testUserId"
-        coEvery { firebaseProvider.getUserFromDatabase(any(), any()) } returns user
+        coEvery { firebaseProvider.getPublicUsers(any(), any()) } returns users
 
-        val result = dataSource.getUser(user.username, userId)
+        val result = dataSource.getUsers(user.username, userId)
 
         assertEquals(true, result.isSuccess)
-        assertEquals(user, result.getOrNull())
+        assertEquals(users, result.getOrNull())
         coVerify(exactly = 1) {
-            firebaseProvider.getUserFromDatabase(
-                "${user.username}@readercollection.app",
+            firebaseProvider.getPublicUsers(
+                user.username,
                 userId,
             )
         }
@@ -380,15 +383,16 @@ class UserRemoteDataSourceTest {
             username = "user@test.com",
             status = RequestStatus.PENDING_FRIEND,
         )
+        val users = listOf(user)
         val userId = "testUserId"
-        coEvery { firebaseProvider.getUserFromDatabase(any(), any()) } returns user
+        coEvery { firebaseProvider.getPublicUsers(any(), any()) } returns users
 
-        val result = dataSource.getUser(user.username, userId)
+        val result = dataSource.getUsers(user.username, userId)
 
         assertEquals(true, result.isSuccess)
-        assertEquals(user, result.getOrNull())
+        assertEquals(users, result.getOrNull())
         coVerify(exactly = 1) {
-            firebaseProvider.getUserFromDatabase(
+            firebaseProvider.getPublicUsers(
                 "user@test.com",
                 userId,
             )
@@ -397,18 +401,18 @@ class UserRemoteDataSourceTest {
     }
 
     @Test
-    fun `GIVEN success response and non existent user WHEN get user THEN return failure`() =
+    fun `GIVEN success response and non existent user WHEN get user THEN return empty list`() =
         runTest {
             val username = "testuser"
             val userId = "testUserId"
-            coEvery { firebaseProvider.getUserFromDatabase(any(), any()) } returns null
+            coEvery { firebaseProvider.getPublicUsers(any(), any()) } returns emptyList()
 
-            val result = dataSource.getUser(username, userId)
+            val result = dataSource.getUsers(username, userId)
 
-            assertEquals(true, result.isFailure)
-            assertIs<NoSuchElementException>(result.exceptionOrNull())
+            assertEquals(true, result.isSuccess)
+            assertEquals(emptyList(), result.getOrNull())
             coVerify(exactly = 1) {
-                firebaseProvider.getUserFromDatabase("$username@readercollection.app", userId)
+                firebaseProvider.getPublicUsers(username, userId)
             }
             confirmVerified(firebaseProvider)
         }
@@ -418,14 +422,14 @@ class UserRemoteDataSourceTest {
         val username = "testuser"
         val userId = "testUserId"
         val exception = RuntimeException("Firestore error")
-        coEvery { firebaseProvider.getUserFromDatabase(any(), any()) } throws exception
+        coEvery { firebaseProvider.getPublicUsers(any(), any()) } throws exception
 
-        val result = dataSource.getUser(username, userId)
+        val result = dataSource.getUsers(username, userId)
 
         assertEquals(true, result.isFailure)
         assertEquals(exception, result.exceptionOrNull())
         coVerify(exactly = 1) {
-            firebaseProvider.getUserFromDatabase("$username@readercollection.app", userId)
+            firebaseProvider.getPublicUsers(username, userId)
         }
         confirmVerified(firebaseProvider)
     }
@@ -663,6 +667,37 @@ class UserRemoteDataSourceTest {
         coVerify(exactly = 1) { firebaseProvider.deleteUserFromDatabase(userId) }
         coVerify(exactly = 0) { firebaseProvider.deletePublicProfile(userId) }
         coVerify(exactly = 0) { firebaseProvider.deleteUser() }
+        confirmVerified(firebaseProvider)
+    }
+
+    @Test
+    fun `GIVEN success response WHEN get last updated THEN return timestamp`() = runTest {
+        val userId = "testUserId"
+        val lastUpdated = 1786344084000L // August 10, 2026, 08:41:24 UTC
+        coEvery {
+            firebaseProvider.getLastUpdated(any())
+        } returns Instant.fromEpochMilliseconds(lastUpdated)
+
+        val result = dataSource.getLastUpdated(userId)
+
+        assertEquals(
+            Result.success(LocalDate.orNull(2026, 8, 10)),
+            result,
+        )
+        coVerify(exactly = 1) { firebaseProvider.getLastUpdated(userId) }
+        confirmVerified(firebaseProvider)
+    }
+
+    @Test
+    fun `GIVEN failure response WHEN get last updated THEN return failure`() = runTest {
+        val userId = "testUserId"
+        val exception = RuntimeException("Firestore error")
+        coEvery { firebaseProvider.getLastUpdated(any()) } throws exception
+
+        val result = dataSource.getLastUpdated(userId)
+
+        assertEquals(Result.failure(exception), result)
+        coVerify(exactly = 1) { firebaseProvider.getLastUpdated(userId) }
         confirmVerified(firebaseProvider)
     }
 

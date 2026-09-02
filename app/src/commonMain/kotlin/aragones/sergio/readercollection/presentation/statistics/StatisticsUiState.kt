@@ -15,6 +15,7 @@ sealed class StatisticsUiState {
     data class Success(
         val totalBooksRead: Int,
         val booksByYearEntries: Entries,
+        val pagesByYearEntries: Entries,
         val booksByMonthEntries: Entries,
         val booksByAuthorStats: Entries,
         val shorterBook: Book?,
@@ -27,6 +28,7 @@ sealed class StatisticsUiState {
             fun empty(): Success = Success(
                 totalBooksRead = 0,
                 booksByYearEntries = Entries(),
+                pagesByYearEntries = Entries(),
                 booksByMonthEntries = Entries(),
                 booksByAuthorStats = Entries(),
                 shorterBook = null,

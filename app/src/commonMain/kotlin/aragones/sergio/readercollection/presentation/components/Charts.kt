@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,9 +33,12 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -59,6 +64,18 @@ fun BarChart(entries: Entries, onEntrySelected: (Int?) -> Unit) {
     val textMeasurer = rememberTextMeasurer()
     val valueTextStyle = MaterialTheme.typography.labelSmall.copy(color = colorPrimary)
     val axisTextStyle = MaterialTheme.typography.labelMedium.copy(color = colorPrimary)
+
+    val top3Sizes = remember(entries) {
+        entries.entries
+            .map { it.size }
+            .distinct()
+            .sortedDescending()
+            .take(3)
+    }
+    val goldColor = Color(0xFFFFD700)
+    val silverColor = Color(0xFFC0C0C0)
+    val bronzeColor = Color(0xFFCD7F32)
+    val premiumIconPainter = rememberVectorPainter(Icons.Default.WorkspacePremium)
 
     // Animate bar height from 0→1
     val animProgress = remember { Animatable(0f) }
@@ -97,7 +114,7 @@ fun BarChart(entries: Entries, onEntrySelected: (Int?) -> Unit) {
                     val paddingLeft = 16.dp.toPx()
                     val paddingRight = 16.dp.toPx()
                     val paddingBottom = 28.dp.toPx()
-                    val paddingTop = 24.dp.toPx()
+                    val paddingTop = 48.dp.toPx()
                     val chartWidth = size.width - paddingLeft - paddingRight
                     val chartHeight = size.height - paddingBottom - paddingTop
                     val maxVal = barEntries.maxOfOrNull { it.size }?.toFloat() ?: 1f
@@ -114,6 +131,13 @@ fun BarChart(entries: Entries, onEntrySelected: (Int?) -> Unit) {
                     )
 
                     barEntries.forEachIndexed { index, entry ->
+                        val iconColor = when (entry.size) {
+                            top3Sizes.getOrNull(0) -> goldColor
+                            top3Sizes.getOrNull(1) -> silverColor
+                            top3Sizes.getOrNull(2) -> bronzeColor
+                            else -> null
+                        }
+
                         val fullBarHeight = (entry.size / maxVal) * chartHeight
                         val animatedBarHeight = fullBarHeight * animProgress.value
                         val x = paddingLeft + index * itemWidth + barSpacing / 2
@@ -137,6 +161,23 @@ fun BarChart(entries: Entries, onEntrySelected: (Int?) -> Unit) {
                                     y - valueMeasured.size.height - 4.dp.toPx(),
                                 ),
                             )
+
+                            // Icon above value label
+                            if (iconColor != null) {
+                                val iconSize = 24.dp.toPx()
+                                val iconX = x + (actualBarWidth - iconSize) / 2
+                                val iconY = y - valueMeasured.size.height - iconSize - 8.dp.toPx()
+                                withTransform({
+                                    translate(iconX, iconY)
+                                }) {
+                                    with(premiumIconPainter) {
+                                        draw(
+                                            size = Size(iconSize, iconSize),
+                                            colorFilter = ColorFilter.tint(iconColor),
+                                        )
+                                    }
+                                }
+                            }
                         }
 
                         // X-axis label (year)

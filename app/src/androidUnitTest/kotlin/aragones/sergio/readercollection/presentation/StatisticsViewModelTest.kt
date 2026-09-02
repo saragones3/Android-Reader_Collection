@@ -110,6 +110,7 @@ class StatisticsViewModelTest {
                 val expected = StatisticsUiState.Success(
                     totalBooksRead = books.size,
                     booksByYearEntries = Entries(listOf(Entry("2025", 2))),
+                    pagesByYearEntries = Entries(listOf(Entry("2025", 110))),
                     booksByMonthEntries = Entries(
                         listOf(
                             Entry("Sep", 1),
@@ -138,6 +139,10 @@ class StatisticsViewModelTest {
                 assertEquals(
                     expected.booksByYearEntries.entries.map { it.key to it.size },
                     result.booksByYearEntries.entries.map { it.key to it.size },
+                )
+                assertEquals(
+                    expected.pagesByYearEntries.entries.map { it.key to it.size },
+                    result.pagesByYearEntries.entries.map { it.key to it.size },
                 )
                 assertEquals(
                     expected.booksByMonthEntries.entries.map { it.key to it.size },

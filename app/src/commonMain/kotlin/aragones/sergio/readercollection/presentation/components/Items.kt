@@ -8,6 +8,7 @@ package aragones.sergio.readercollection.presentation.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,10 +20,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.SwitchLeft
 import androidx.compose.material.icons.filled.SwitchRight
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,8 +30,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import aragones.sergio.readercollection.presentation.theme.RoseBud
-import aragones.sergio.readercollection.presentation.theme.isLight
 import aragones.sergio.readercollection.presentation.theme.selector
 import com.aragones.sergio.util.extensions.isNotBlank
 import org.jetbrains.compose.resources.stringResource
@@ -48,7 +47,6 @@ import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.decrease_priority_description
 import reader_collection.app.generated.resources.dragging_enabled_description
 import reader_collection.app.generated.resources.ic_default_book_cover_blue
-import reader_collection.app.generated.resources.ic_default_book_cover_white
 import reader_collection.app.generated.resources.increase_priority_description
 import reader_collection.app.generated.resources.new_book
 import reader_collection.app.generated.resources.no_rated_description
@@ -58,34 +56,31 @@ fun BookItem(
     book: Book,
     onBookClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    showDivider: Boolean = true,
     isDraggingEnabled: Boolean = false,
     isDragging: Boolean = false,
 ) {
-    Column(
-        modifier = modifier
+    CustomCard(
+        modifier = modifier.padding(horizontal = 24.dp),
+        contentModifier = Modifier
             .background(
                 if (isDragging) {
                     MaterialTheme.colorScheme.selector
                 } else {
-                    MaterialTheme.colorScheme.background
+                    Color.Transparent
                 },
             ).fillMaxWidth()
-            .height(220.dp)
+            .height(200.dp)
             .clickable {
                 onBookClick(book.id)
             },
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 24.dp)
-                .weight(1f),
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             if (isDraggingEnabled) {
-                Spacer(Modifier.width(24.dp))
                 Icon(
-                    painter = rememberVectorPainter(Icons.Default.DragHandle),
+                    painter = rememberVectorPainter(Icons.Default.DragIndicator),
                     contentDescription = stringResource(Res.string.dragging_enabled_description),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.align(Alignment.CenterVertically),
@@ -93,33 +88,18 @@ fun BookItem(
             }
             ImageWithLoading(
                 imageUrl = book.thumbnail,
-                placeholder = if (MaterialTheme.colorScheme.isLight()) {
-                    Res.drawable.ic_default_book_cover_blue
-                } else {
-                    Res.drawable.ic_default_book_cover_white
-                },
+                placeholder = Res.drawable.ic_default_book_cover_blue,
                 modifier = Modifier
-                    .padding(horizontal = 24.dp)
                     .widthIn(max = 115.dp)
                     .fillMaxHeight(),
                 contentDescription = book.title,
                 shape = MaterialTheme.shapes.medium,
-                contentScale = ContentScale.FillWidth,
             )
             BookInfo(
                 book = book,
                 modifier = Modifier
                     .fillMaxSize()
                     .weight(1f),
-            )
-            Spacer(Modifier.width(24.dp))
-        }
-        if (showDivider) {
-            HorizontalDivider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                color = MaterialTheme.colorScheme.tertiary,
             )
         }
     }
@@ -170,12 +150,13 @@ private fun BookInfo(book: Book, modifier: Modifier = Modifier) {
 @Composable
 private fun RatingStars(rating: Double, modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier,
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         StarRatingBar(
             rating = rating.toFloat() / 2,
             onRatingChanged = {},
+            modifier = Modifier.weight(1f, fill = false),
         )
         Spacer(Modifier.width(12.dp))
         Text(
@@ -199,7 +180,6 @@ fun ReadingBookItem(
     Column(
         modifier = modifier
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 24.dp)
             .fillMaxWidth()
             .combinedClickable(
                 onClick = {
@@ -214,14 +194,10 @@ fun ReadingBookItem(
         Spacer(Modifier.height(8.dp))
         ImageWithLoading(
             imageUrl = book.thumbnail,
-            placeholder = if (MaterialTheme.colorScheme.isLight()) {
-                Res.drawable.ic_default_book_cover_blue
-            } else {
-                Res.drawable.ic_default_book_cover_white
-            },
+            placeholder = Res.drawable.ic_default_book_cover_blue,
             contentDescription = book.title,
-            contentScale = ContentScale.FillWidth,
             shape = MaterialTheme.shapes.small,
+            imagePadding = 28.dp,
         )
     }
 }
@@ -299,17 +275,12 @@ fun VerticalBookItem(
         ) {
             ImageWithLoading(
                 imageUrl = book.thumbnail,
-                placeholder = if (MaterialTheme.colorScheme.isLight()) {
-                    Res.drawable.ic_default_book_cover_blue
-                } else {
-                    Res.drawable.ic_default_book_cover_white
-                },
+                placeholder = Res.drawable.ic_default_book_cover_blue,
                 modifier = Modifier
                     .height(200.dp)
                     .fillMaxWidth(),
                 contentDescription = book.title,
                 shape = MaterialTheme.shapes.medium,
-                contentScale = ContentScale.Crop,
             )
             Spacer(Modifier.height(8.dp))
             BookBasicInfo(title = book.title ?: "", subtitle = book.authorsToString())
