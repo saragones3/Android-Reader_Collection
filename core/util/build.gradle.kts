@@ -22,6 +22,8 @@ kotlin {
         browser()
     }
 
+    jvmToolchain(libs.versions.jdk.get().toInt())
+
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.datetime)
