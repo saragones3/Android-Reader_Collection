@@ -5,6 +5,7 @@
 
 package aragones.sergio.readercollection.presentation.statistics
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -19,7 +20,7 @@ actual fun StatisticsView(
 ) {
     val state by viewModel.state.collectAsState()
 
-    ReaderCollectionApp(navigationBarSameAsBackground = false) {
+    ReaderCollectionApp(navigationBarColor = MaterialTheme.colorScheme.primary) {
         StatisticsScreen(
             state = state,
             onImportClick = {},

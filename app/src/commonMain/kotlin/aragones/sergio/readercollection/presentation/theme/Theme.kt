@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import aragones.sergio.readercollection.presentation.theme.AppUiProvider.applyBarsStyle
 import aragones.sergio.readercollection.presentation.theme.AppUiProvider.isDarkThemeApplied
 
@@ -35,18 +36,15 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun ReaderCollectionApp(
-    statusBarSameAsBackground: Boolean = true,
-    navigationBarSameAsBackground: Boolean = true,
+    statusBarColor: Color = MaterialTheme.colorScheme.background,
+    navigationBarColor: Color = MaterialTheme.colorScheme.background,
     content: @Composable () -> Unit,
 ) {
     val isDarkTheme = isDarkThemeApplied()
-    val colors = if (isDarkTheme) DarkColorScheme else LightColorScheme
 
     applyBarsStyle(
-        isDarkTheme = isDarkTheme,
-        colors = colors,
-        statusBarSameAsBackground = statusBarSameAsBackground,
-        navigationBarSameAsBackground = navigationBarSameAsBackground,
+        statusBarColor = statusBarColor,
+        navigationBarColor = navigationBarColor,
     )
 
     ReaderCollectionTheme(

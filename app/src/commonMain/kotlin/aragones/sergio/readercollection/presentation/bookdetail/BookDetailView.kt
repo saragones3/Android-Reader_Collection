@@ -14,6 +14,7 @@ import aragones.sergio.readercollection.presentation.components.InformationAlert
 import aragones.sergio.readercollection.presentation.components.LaunchedEffectOnce
 import aragones.sergio.readercollection.presentation.components.TextFieldAlertDialog
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionApp
+import aragones.sergio.readercollection.presentation.theme.Tide
 import com.aragones.sergio.util.extensions.isNotBlank
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -29,7 +30,7 @@ fun BookDetailView(onBack: () -> Unit, viewModel: BookDetailViewModel = koinView
     val imageDialogMessageId by viewModel.imageDialogMessageId.collectAsState()
     val error by viewModel.bookDetailError.collectAsState()
 
-    ReaderCollectionApp {
+    ReaderCollectionApp(statusBarColor = Tide) {
         BookDetailScreen(
             state = state,
             onBack = onBack,
