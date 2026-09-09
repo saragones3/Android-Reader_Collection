@@ -54,12 +54,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import aragones.sergio.readercollection.isAndroid
 import aragones.sergio.readercollection.isiOS
 import aragones.sergio.readercollection.presentation.components.ButtonType
@@ -75,6 +73,8 @@ import aragones.sergio.readercollection.presentation.components.OptionsSelector
 import aragones.sergio.readercollection.presentation.components.SecondaryButton
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
+import aragones.sergio.readercollection.presentation.theme.titleLargeEmphasized
+import aragones.sergio.readercollection.presentation.theme.titleMediumEmphasized
 import com.aragones.sergio.util.Preferences
 import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
@@ -199,12 +199,12 @@ private fun Header(modifier: Modifier = Modifier) {
     ) {
         Text(
             text = stringResource(Res.string.settings_header_title),
-            style = MaterialTheme.typography.displayMedium,
+            style = MaterialTheme.typography.titleLargeEmphasized,
             color = MaterialTheme.colorScheme.primary,
         )
         Text(
             text = stringResource(Res.string.settings_header_description),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.primary,
         )
     }
@@ -347,7 +347,6 @@ private fun ColumnScope.Footer(state: SettingsUiState, onClickOption: (SettingsO
         text = stringResource(Res.string.version, state.version),
         modifier = Modifier.fillMaxWidth(),
         style = MaterialTheme.typography.bodySmall,
-        fontSize = 12.sp,
         color = MaterialTheme.colorScheme.tertiary,
         textAlign = TextAlign.Center,
     )
@@ -370,14 +369,12 @@ private fun PublicProfileItem(
             Text(
                 text = stringResource(Res.string.public_profile_title),
                 style = MaterialTheme.typography.bodyLarge,
-                fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.primary,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(Res.string.public_profile_description),
                 style = MaterialTheme.typography.bodyMedium,
-                fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.tertiary,
             )
         }
@@ -424,14 +421,12 @@ private fun SyncAutomaticallyItem(
             Text(
                 text = stringResource(Res.string.automatic_sync_title),
                 style = MaterialTheme.typography.bodyLarge,
-                fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.primary,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(Res.string.automatic_sync_description),
                 style = MaterialTheme.typography.bodyMedium,
-                fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.tertiary,
             )
         }
@@ -480,7 +475,7 @@ private fun SyncManuallyItem(
         ) {
             Text(
                 text = stringResource(Res.string.last_synced, lastSynced),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.tertiary,
             )
             SecondaryButton(
@@ -515,8 +510,7 @@ private fun SectionContainer(
                 Text(
                     text = title,
                     modifier = Modifier.semantics { heading() },
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMediumEmphasized,
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
@@ -531,7 +525,7 @@ private fun Title(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
         modifier = modifier,
-        style = MaterialTheme.typography.bodyLarge.copy(),
+        style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.primary,
     )
     Spacer(modifier = Modifier.height(12.dp))
@@ -653,14 +647,12 @@ fun SettingItem(title: String, subtitle: String, onClick: () -> Unit) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.primary,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.tertiary,
             )
         }

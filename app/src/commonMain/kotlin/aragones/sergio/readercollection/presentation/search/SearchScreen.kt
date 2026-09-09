@@ -52,7 +52,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.IntOffset
@@ -71,6 +70,7 @@ import aragones.sergio.readercollection.presentation.components.VerticalBookItem
 import aragones.sergio.readercollection.presentation.components.getBoldTextFor
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
+import aragones.sergio.readercollection.presentation.theme.titleMediumEmphasized
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
@@ -236,8 +236,7 @@ private fun Filters(
     ) {
         Text(
             text = stringResource(Res.string.filters),
-            style = MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.Normal,
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
             maxLines = 1,
         )
@@ -385,8 +384,7 @@ private fun ResultsTitle(query: String, resultsCount: Int, modifier: Modifier = 
                     text = stringResource(Res.string.results_for, query),
                     placeholder = "\"" + query + "\"",
                 ),
-                style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.Normal,
+                style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f),
             )
@@ -399,7 +397,7 @@ private fun ResultsTitle(query: String, resultsCount: Int, modifier: Modifier = 
                     ),
                     placeholder = resultsCount.toString(),
                 ),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary,
                 maxLines = 1,
             )
@@ -431,7 +429,7 @@ private fun LoadMoreButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
             Text(
                 text = stringResource(Res.string.load_more),
                 modifier = Modifier.padding(12.dp),
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.titleMediumEmphasized,
                 color = MaterialTheme.colorScheme.secondary,
                 maxLines = 1,
             )

@@ -35,9 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
+import aragones.sergio.readercollection.presentation.theme.labelMediumEmphasized
 import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
@@ -116,8 +116,12 @@ private fun Option(data: OptionData, modifier: Modifier = Modifier) {
             }
             Text(
                 text = data.text,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = if (data.isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                style =
+                    if (data.isSelected) {
+                        MaterialTheme.typography.labelMediumEmphasized
+                    } else {
+                        MaterialTheme.typography.labelMedium
+                    },
                 color = contentColor,
                 maxLines = 1,
             )

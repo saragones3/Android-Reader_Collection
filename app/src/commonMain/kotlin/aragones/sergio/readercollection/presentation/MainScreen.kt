@@ -42,6 +42,7 @@ import aragones.sergio.readercollection.presentation.navigation.settingsGraph
 import aragones.sergio.readercollection.presentation.navigation.statisticsGraph
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import aragones.sergio.readercollection.presentation.theme.RoseBud
+import aragones.sergio.readercollection.presentation.theme.bodySmallEmphasized
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
@@ -114,7 +115,7 @@ private fun BottomNavigationBar(
                     Text(
                         text = title,
                         style = if (selected) {
-                            MaterialTheme.typography.bodyMedium
+                            MaterialTheme.typography.bodySmallEmphasized
                         } else {
                             MaterialTheme.typography.bodySmall
                         },

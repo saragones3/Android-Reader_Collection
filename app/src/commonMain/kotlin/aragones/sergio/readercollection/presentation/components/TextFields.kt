@@ -50,13 +50,14 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
+import aragones.sergio.readercollection.presentation.theme.bodySmallEmphasized
+import aragones.sergio.readercollection.presentation.theme.titleSmallEmphasized
 import aragones.sergio.readercollection.utils.UiDateMapper.toLong
 import com.aragones.sergio.util.CustomInputType
 import com.aragones.sergio.util.extensions.isNotBlank
@@ -103,9 +104,11 @@ fun CustomOutlinedTextField(
         {
             Text(
                 text = labelText,
-                style = MaterialTheme.typography.displaySmall.takeIf { placeholderText != null }
-                    ?: MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error.takeIf { errorText != null }
+                style = MaterialTheme.typography.titleSmallEmphasized
+                    .takeIf { placeholderText != null }
+                    ?: MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+                    .takeIf { errorText != null }
                     ?: inputHintTextColor,
             )
         }
@@ -113,7 +116,7 @@ fun CustomOutlinedTextField(
         {
             Text(
                 text = it,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error.takeIf { errorText != null }
                     ?: inputHintTextColor,
             )
@@ -151,14 +154,14 @@ fun CustomOutlinedTextField(
                 if (errorText != null) {
                     Text(
                         text = errorText,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.weight(1f),
                     )
                 } else if (isRequired) {
                     Text(
                         text = stringResource(Res.string.field_required),
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = textColor,
                         modifier = Modifier.weight(1f),
                     )
@@ -169,9 +172,7 @@ fun CustomOutlinedTextField(
                 if (enabled && maxLength != Int.MAX_VALUE) {
                     Text(
                         text = "${text.length} / $maxLength",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                        ),
+                        style = MaterialTheme.typography.bodySmallEmphasized,
                         color = MaterialTheme.colorScheme.error.takeIf { errorText != null }
                             ?: textColor,
                     )
@@ -380,7 +381,7 @@ fun DropdownOutlinedTextField(
         {
             Text(
                 text = labelText,
-                style = MaterialTheme.typography.displaySmall,
+                style = MaterialTheme.typography.titleSmallEmphasized,
                 color = MaterialTheme.colorScheme.tertiary,
             )
         }
@@ -388,7 +389,7 @@ fun DropdownOutlinedTextField(
         {
             Text(
                 text = it,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = inputHintTextColor,
             )
         }

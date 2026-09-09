@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
+import aragones.sergio.readercollection.presentation.theme.titleMediumEmphasized
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.delete
@@ -73,7 +74,7 @@ fun MainActionButton(
         Text(
             text = text,
             modifier = Modifier.padding(8.dp),
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.titleMediumEmphasized,
             color = textColor,
             maxLines = 1,
         )
@@ -127,7 +128,7 @@ fun MainOutlinedButton(
         Text(
             text = text,
             modifier = Modifier.padding(8.dp),
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.titleMediumEmphasized,
             color = textColor,
             maxLines = 1,
         )
@@ -164,7 +165,7 @@ fun SecondaryButton(
         }
         Text(
             text = text,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelLarge,
             maxLines = 2,
         )
         endPainter?.let {
@@ -210,7 +211,7 @@ fun SecondaryOutlinedButton(
         }
         Text(
             text = text,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelLarge,
             maxLines = 2,
         )
     }
@@ -238,7 +239,7 @@ fun MainTextButton(text: String, onClick: () -> Unit, modifier: Modifier = Modif
     TextButton(onClick = onClick, modifier = modifier.widthIn(max = 320.dp)) {
         Text(
             text = text,
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.titleMediumEmphasized,
             color = MaterialTheme.colorScheme.primary,
             maxLines = 1,
         )

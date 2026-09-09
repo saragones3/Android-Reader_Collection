@@ -31,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -43,6 +42,7 @@ import aragones.sergio.readercollection.presentation.components.MainActionButton
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.login.model.LoginFormState
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
+import aragones.sergio.readercollection.presentation.theme.bodyLargeEmphasized
 import com.aragones.sergio.util.CustomInputType
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -148,8 +148,7 @@ fun LoginScreen(
             TextButton(onClick = onGoToRegister) {
                 Text(
                     text = stringResource(Res.string.create_account),
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyLargeEmphasized.copy(
                         letterSpacing = 0.sp,
                     ),
                     color = MaterialTheme.colorScheme.primary,

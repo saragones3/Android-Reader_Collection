@@ -47,7 +47,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -79,6 +78,8 @@ import aragones.sergio.readercollection.presentation.components.TopAppBarIcon
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import aragones.sergio.readercollection.presentation.theme.White
+import aragones.sergio.readercollection.presentation.theme.headlineSmallEmphasized
+import aragones.sergio.readercollection.presentation.theme.titleSmallEmphasized
 import aragones.sergio.readercollection.utils.UiDateMapper.getValueToShow
 import aragones.sergio.readercollection.utils.UiDateMapper.toLocalDate
 import com.aragones.sergio.util.BookState
@@ -418,7 +419,7 @@ private fun MainBookInfo(
             },
             modifier = Modifier.fillMaxWidth(),
             placeholderText = stringResource(Res.string.add_title),
-            textStyle = MaterialTheme.typography.displayLarge,
+            textStyle = MaterialTheme.typography.headlineSmallEmphasized,
             endIcon = rememberVectorPainter(Icons.Default.Clear)
                 .withDescription(stringResource(Res.string.clear_text))
                 .takeIf { isEditable && title?.isNotBlank() == true },
@@ -449,7 +450,7 @@ private fun MainBookInfo(
         Spacer(Modifier.height(24.dp))
         Text(
             text = title?.takeIf { it.isNotBlank() }.orElse(isEditable),
-            style = MaterialTheme.typography.displayLarge,
+            style = MaterialTheme.typography.headlineSmallEmphasized,
             color = MaterialTheme.colorScheme.primary,
             lineHeight = 24.sp,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -755,8 +756,7 @@ private fun SectionContainer(
             if (title.isNotBlank()) {
                 Text(
                     text = title.uppercase(),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleSmallEmphasized,
                     color = MaterialTheme.colorScheme.tertiary,
                 )
                 Spacer(Modifier.height(12.dp))

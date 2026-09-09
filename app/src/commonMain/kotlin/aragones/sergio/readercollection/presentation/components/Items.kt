@@ -40,7 +40,10 @@ import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import aragones.sergio.readercollection.presentation.theme.RoseBud
+import aragones.sergio.readercollection.presentation.theme.headlineSmallEmphasized
 import aragones.sergio.readercollection.presentation.theme.selector
+import aragones.sergio.readercollection.presentation.theme.titleLargeEmphasized
+import aragones.sergio.readercollection.presentation.theme.titleSmallEmphasized
 import com.aragones.sergio.util.extensions.isNotBlank
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
@@ -110,7 +113,7 @@ private fun BookInfo(book: Book, modifier: Modifier = Modifier) {
     Column(modifier) {
         Text(
             text = book.title ?: "",
-            style = MaterialTheme.typography.displayLarge,
+            style = MaterialTheme.typography.titleLargeEmphasized,
             color = MaterialTheme.colorScheme.primary,
             overflow = TextOverflow.Ellipsis,
             maxLines = 4,
@@ -135,7 +138,7 @@ private fun BookInfo(book: Book, modifier: Modifier = Modifier) {
             val contentDescription = stringResource(Res.string.no_rated_description)
             Text(
                 text = stringResource(Res.string.new_book),
-                style = MaterialTheme.typography.displayLarge,
+                style = MaterialTheme.typography.headlineSmallEmphasized,
                 color = RoseBud,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
@@ -161,7 +164,7 @@ private fun RatingStars(rating: Double, modifier: Modifier = Modifier) {
         Spacer(Modifier.width(12.dp))
         Text(
             text = rating.toInt().toString(),
-            style = MaterialTheme.typography.displayMedium,
+            style = MaterialTheme.typography.titleLargeEmphasized,
             color = RoseBud,
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
@@ -206,7 +209,7 @@ fun ReadingBookItem(
 private fun BookBasicInfo(title: String, subtitle: String) {
     Text(
         text = title,
-        style = MaterialTheme.typography.displaySmall,
+        style = MaterialTheme.typography.titleSmallEmphasized,
         color = MaterialTheme.colorScheme.primary,
         overflow = TextOverflow.Ellipsis,
         maxLines = 2,
@@ -215,7 +218,7 @@ private fun BookBasicInfo(title: String, subtitle: String) {
         Spacer(Modifier.height(4.dp))
         Text(
             text = subtitle,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.tertiary,
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,

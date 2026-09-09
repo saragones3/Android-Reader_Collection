@@ -98,6 +98,9 @@ import aragones.sergio.readercollection.presentation.theme.LightRoseBud
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import aragones.sergio.readercollection.presentation.theme.RoseBud
 import aragones.sergio.readercollection.presentation.theme.isLight
+import aragones.sergio.readercollection.presentation.theme.labelSmallEmphasized
+import aragones.sergio.readercollection.presentation.theme.titleLargeEmphasized
+import aragones.sergio.readercollection.presentation.theme.titleSmallEmphasized
 import com.aragones.sergio.util.Constants
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
@@ -334,9 +337,12 @@ fun CustomFilterChip(
         label = {
             Text(
                 text = title,
-                style = MaterialTheme.typography.displaySmall.copy(
-                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                ),
+                style =
+                    if (selected) {
+                        MaterialTheme.typography.titleSmallEmphasized
+                    } else {
+                        MaterialTheme.typography.titleSmall
+                    },
                 textAlign = TextAlign.Center,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
@@ -565,7 +571,7 @@ fun StateCard(data: StateCardData, modifier: Modifier = Modifier) {
             )
             Text(
                 text = data.title,
-                style = MaterialTheme.typography.displayMedium,
+                style = MaterialTheme.typography.titleLargeEmphasized,
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center,
             )
@@ -710,7 +716,7 @@ private fun BooksSectionHeader(
         Text(
             text = title,
             modifier = Modifier.semantics { heading() },
-            style = MaterialTheme.typography.displayMedium,
+            style = MaterialTheme.typography.titleLargeEmphasized,
             color = MaterialTheme.colorScheme.primary,
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
@@ -722,8 +728,7 @@ private fun BooksSectionHeader(
         ) {
             Text(
                 text = booksCount.toString(),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelSmallEmphasized,
             )
         }
         Spacer(Modifier.weight(1f))
@@ -731,7 +736,7 @@ private fun BooksSectionHeader(
             TextButton(onClick = onShowAll) {
                 Text(
                     text = stringResource(Res.string.show_all),
-                    style = MaterialTheme.typography.displaySmall,
+                    style = MaterialTheme.typography.titleSmallEmphasized,
                     color = MaterialTheme.colorScheme.primary,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
@@ -763,7 +768,7 @@ private fun ShowMoreItems(onClick: () -> Unit, modifier: Modifier = Modifier) {
         )
         Text(
             text = text,
-            style = MaterialTheme.typography.displayMedium,
+            style = MaterialTheme.typography.titleLargeEmphasized,
             color = MaterialTheme.colorScheme.primary,
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
@@ -866,8 +871,7 @@ private fun CustomCardPreview() {
                 ) {
                     Text(
                         text = "Title",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleSmallEmphasized,
                         color = MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier.weight(1f),
                     )

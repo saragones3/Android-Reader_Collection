@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
+import aragones.sergio.readercollection.presentation.theme.headlineSmallEmphasized
 import com.aragones.sergio.util.extensions.isNotBlank
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
@@ -94,7 +95,7 @@ fun CustomToolbar(
             Column {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.displayLarge,
+                    style = MaterialTheme.typography.headlineSmallEmphasized,
                     color = MaterialTheme.colorScheme.primary,
                 )
                 if (subtitle.isNotBlank()) {
@@ -179,7 +180,7 @@ fun CustomSearchBar(
             } else {
                 Text(
                     text = query.ifBlank { title },
-                    style = MaterialTheme.typography.displayLarge,
+                    style = MaterialTheme.typography.headlineSmallEmphasized,
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
