@@ -116,7 +116,7 @@ private fun BookInfo(book: Book, modifier: Modifier = Modifier) {
             style = MaterialTheme.typography.titleLargeEmphasized,
             color = MaterialTheme.colorScheme.primary,
             overflow = TextOverflow.Ellipsis,
-            maxLines = 4,
+            maxLines = 3,
         )
         if (book.authorsToString().isNotBlank()) {
             Spacer(Modifier.height(8.dp))

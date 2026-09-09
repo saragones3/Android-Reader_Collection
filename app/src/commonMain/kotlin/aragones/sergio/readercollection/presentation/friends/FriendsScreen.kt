@@ -334,6 +334,7 @@ private fun FriendsTabRow(
                             Text(
                                 text = requestsCount.toString(),
                                 style = MaterialTheme.typography.labelSmallEmphasized,
+                                modifier = Modifier.padding(4.dp),
                             )
                         }
                     }

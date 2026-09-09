@@ -729,6 +729,7 @@ private fun BooksSectionHeader(
             Text(
                 text = booksCount.toString(),
                 style = MaterialTheme.typography.labelSmallEmphasized,
+                modifier = Modifier.padding(4.dp),
             )
         }
         Spacer(Modifier.weight(1f))
