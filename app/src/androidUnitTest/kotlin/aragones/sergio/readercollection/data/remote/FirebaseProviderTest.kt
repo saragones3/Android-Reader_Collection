@@ -648,7 +648,7 @@ class FirebaseProviderTest {
 
             verify(exactly = 1) { firestore.batch() }
             verify(exactly = 1) { firestore.collection("users") }
-            verify(exactly = 2) { batch.delete(any()) }
+            verify(exactly = 4) { batch.delete(any()) }
             verify(exactly = 1) { batch.commit() }
             confirmVerified(batch, firestore)
         }
@@ -684,7 +684,7 @@ class FirebaseProviderTest {
         }
         verify(exactly = 1) { firestore.batch() }
         verify(exactly = 1) { firestore.collection("users") }
-        verify(exactly = 2) { batch.delete(any()) }
+        verify(exactly = 4) { batch.delete(any()) }
         verify(exactly = 1) { batch.commit() }
         confirmVerified(batch, firestore)
     }
@@ -1373,17 +1373,41 @@ class FirebaseProviderTest {
         every { firestore.batch() } returns batch
         val task = mockk<Task<QuerySnapshot>>()
         val querySnapshot = mockk<QuerySnapshot>(relaxed = true)
-        val collectionReference = getFriends(userId)
-        every { collectionReference.get() } returns task
+        val documentReference = mockk<DocumentReference>()
+        val friendsCollectionReference = mockk<CollectionReference>()
+        val usersCollectionReference = mockk<CollectionReference>()
+
+        every { firestore.collection("users") } returns usersCollectionReference
+        every { usersCollectionReference.document(userId) } returns documentReference
+        every { documentReference.collection("friends") } returns friendsCollectionReference
+        every { friendsCollectionReference.get() } returns task
+
         every { task.isComplete } returns true
         every { task.isCanceled } returns false
         every { task.exception } returns null
         every { task.result } returns querySnapshot
         every { querySnapshot.documents } returns friends
+
+        every { usersCollectionReference.document(neq(userId)) } answers {
+            val docRef = mockk<DocumentReference>()
+            val friendsColl = mockk<CollectionReference>()
+            every { docRef.collection("friends") } returns friendsColl
+            every { friendsColl.document(userId) } returns mockk()
+            docRef
+        }
+
         friends.forEach { friend ->
+            val friendId = "friendId"
+            every { friend.id } returns friendId
             val friendDocumentReference = mockk<DocumentReference>()
             every { friend.reference } returns friendDocumentReference
             every { batch.delete(friendDocumentReference) } returns mockk()
+
+            val friendRef = mockk<DocumentReference>()
+            every {
+                usersCollectionReference.document(friendId).collection("friends").document(userId)
+            } returns friendRef
+            every { batch.delete(friendRef) } returns mockk()
         }
         every { batch.commit() } returns Tasks.forResult(mockk<Void>())
     }
@@ -1397,23 +1421,47 @@ class FirebaseProviderTest {
         every { firestore.batch() } returns batch
         val task = mockk<Task<QuerySnapshot>>()
         val querySnapshot = mockk<QuerySnapshot>(relaxed = true)
-        val collectionReference = getFriends(userId)
-        every { collectionReference.get() } returns task
+        val documentReference = mockk<DocumentReference>()
+        val friendsCollectionReference = mockk<CollectionReference>()
+        val usersCollectionReference = mockk<CollectionReference>()
+
+        every { firestore.collection("users") } returns usersCollectionReference
+        every { usersCollectionReference.document(userId) } returns documentReference
+        every { documentReference.collection("friends") } returns friendsCollectionReference
+        every { friendsCollectionReference.get() } returns task
+
         every { task.isComplete } returns true
         every { task.isCanceled } returns false
         every { task.exception } returns null
         every { task.result } returns querySnapshot
         every { querySnapshot.documents } returns friends
+
+        every { usersCollectionReference.document(neq(userId)) } answers {
+            val docRef = mockk<DocumentReference>()
+            val friendsColl = mockk<CollectionReference>()
+            every { docRef.collection("friends") } returns friendsColl
+            every { friendsColl.document(userId) } returns mockk()
+            docRef
+        }
+
         friends.forEach { friend ->
+            val friendId = "friendId"
+            every { friend.id } returns friendId
             val friendDocumentReference = mockk<DocumentReference>()
             every { friend.reference } returns friendDocumentReference
             every { batch.delete(friendDocumentReference) } returns mockk()
+
+            val friendRef = mockk<DocumentReference>()
+            every {
+                usersCollectionReference.document(friendId).collection("friends").document(userId)
+            } returns friendRef
+            every { batch.delete(friendRef) } returns mockk()
         }
-        val task2 = mockk<Task<Void>>()
-        every { batch.commit() } returns task2
-        every { task2.isComplete } returns true
-        every { task2.isCanceled } returns false
-        every { task2.exception } returns exception
+        val commitTask = mockk<Task<Void>>()
+        every { batch.commit() } returns commitTask
+        every { commitTask.isComplete } returns true
+        every { commitTask.isCanceled } returns false
+        every { commitTask.exception } returns exception
     }
 
     private fun getBooks(userId: String): CollectionReference {
