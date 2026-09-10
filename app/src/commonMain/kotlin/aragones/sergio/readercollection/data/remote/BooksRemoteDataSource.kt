@@ -28,6 +28,8 @@ class BooksRemoteDataSource(
     private val firebaseProvider: FirebaseProvider,
 ) {
 
+    private var searchRetries = 0
+
     //region Static properties
     companion object {
         private const val VOLUMES_PATH = "/volumes"
@@ -48,32 +50,58 @@ class BooksRemoteDataSource(
         filter: String,
         page: Int,
         order: String?,
-    ): Result<GoogleBookListResponse> = try {
-        val params = mutableMapOf(
-            SEARCH_PARAM to "$query+$filter:$query",
-            PAGE_PARAM to ((page - 1) * RESULTS).toString(),
-            RESULTS_PARAM to RESULTS.toString(),
-        )
-        if (order != null) {
-            params[ORDER_PARAM] = order
-        }
+    ): Result<GoogleBookListResponse> {
+        searchRetries = 0
+        while (true) {
+            val result = try {
+                val params = mutableMapOf(
+                    SEARCH_PARAM to "$query+$filter:$query",
+                    PAGE_PARAM to ((page - 1) * RESULTS).toString(),
+                    RESULTS_PARAM to RESULTS.toString(),
+                )
+                if (order != null) {
+                    params[ORDER_PARAM] = order
+                }
 
-        val response = client.get(VOLUMES_PATH) {
-            url {
-                for (param in params) {
-                    parameters.append(param.key, param.value)
+                val response = client.get(VOLUMES_PATH) {
+                    url {
+                        for (param in params) {
+                            parameters.append(param.key, param.value)
+                        }
+                    }
+                }
+                Result.success(response)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }.mapCatching { response ->
+                when {
+                    response.status == HttpStatusCode.OK -> {
+                        response.body<GoogleBookListResponse>()
+                    }
+                    response.status.value in 500..599 -> {
+                        if (searchRetries < 2) {
+                            searchRetries++
+                            throw Exception("Retry")
+                        } else {
+                            throw IllegalStateException(
+                                "Unexpected status code response ${response.status}",
+                            )
+                        }
+                    }
+                    else -> {
+                        throw IllegalStateException(
+                            "Unexpected status code response ${response.status}",
+                        )
+                    }
                 }
             }
-        }
-        Result.success(response)
-    } catch (e: Exception) {
-        Result.failure(e)
-    }.mapCatching { response ->
-        when (response.status) {
-            HttpStatusCode.OK -> response.body()
-            else -> throw IllegalStateException(
-                "Unexpected status code response ${response.status}",
-            )
+
+            if (result.isSuccess ||
+                (result.isFailure && result.exceptionOrNull()?.message != "Retry")
+            ) {
+                searchRetries = 0
+                return result
+            }
         }
     }
 
