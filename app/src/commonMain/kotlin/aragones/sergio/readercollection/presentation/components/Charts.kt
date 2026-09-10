@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.presentation.statistics.Entries
 import aragones.sergio.readercollection.presentation.statistics.Entry
+import aragones.sergio.readercollection.presentation.theme.labelMediumEmphasized
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -62,8 +63,8 @@ fun BarChart(entries: Entries, onEntrySelected: (Int?) -> Unit) {
     val barEntries = entries.entries.sortedBy { it.key }
     val colorPrimary = MaterialTheme.colorScheme.primary
     val textMeasurer = rememberTextMeasurer()
-    val valueTextStyle = MaterialTheme.typography.labelSmall.copy(color = colorPrimary)
-    val axisTextStyle = MaterialTheme.typography.labelMedium.copy(color = colorPrimary)
+    val valueTextStyle = MaterialTheme.typography.labelMediumEmphasized.copy(color = colorPrimary)
+    val axisTextStyle = MaterialTheme.typography.labelLarge.copy(color = colorPrimary)
 
     val top3Sizes = remember(entries) {
         entries.entries
@@ -201,11 +202,11 @@ fun BarChart(entries: Entries, onEntrySelected: (Int?) -> Unit) {
 fun HorizontalBarChart(entries: Entries, onEntrySelected: (String) -> Unit) {
     val colorPrimary = MaterialTheme.colorScheme.primary
     val textMeasurer = rememberTextMeasurer()
-    val labelTextStyle = MaterialTheme.typography.labelSmall.copy(
+    val labelTextStyle = MaterialTheme.typography.labelLarge.copy(
         color = colorPrimary,
         textAlign = TextAlign.End,
     )
-    val valueTextStyle = MaterialTheme.typography.labelSmall.copy(color = colorPrimary)
+    val valueTextStyle = MaterialTheme.typography.labelMediumEmphasized.copy(color = colorPrimary)
     val chartHeight = (entries.entries.size * 50).dp.coerceAtLeast(200.dp)
 
     // Animate bar width from 0→1
@@ -304,15 +305,15 @@ fun PieChart(
     val colorPrimary = MaterialTheme.colorScheme.primary
     val colorSecondary = MaterialTheme.colorScheme.secondary
     val textMeasurer = rememberTextMeasurer()
-    val centerTextStyle = MaterialTheme.typography.labelLarge.copy(
+    val centerTextStyle = MaterialTheme.typography.labelMedium.copy(
         color = colorPrimary,
         textAlign = TextAlign.Center,
     )
-    val labelTextStyle = MaterialTheme.typography.labelSmall.copy(
+    val labelTextStyle = MaterialTheme.typography.labelLarge.copy(
         color = colorPrimary,
         textAlign = TextAlign.End,
     )
-    val valueTextStyle = MaterialTheme.typography.labelSmall.copy(
+    val valueTextStyle = MaterialTheme.typography.labelMediumEmphasized.copy(
         color = colorSecondary.copy(alpha = 0.85f),
     )
 

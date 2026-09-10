@@ -34,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -58,6 +57,9 @@ import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.EbonyClay
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import aragones.sergio.readercollection.presentation.theme.RoseBud
+import aragones.sergio.readercollection.presentation.theme.headlineLargeEmphasized
+import aragones.sergio.readercollection.presentation.theme.titleLargeEmphasized
+import aragones.sergio.readercollection.presentation.theme.titleSmallEmphasized
 import aragones.sergio.readercollection.utils.UiDateMapper
 import com.aragones.sergio.util.BookState
 import org.jetbrains.compose.resources.stringResource
@@ -171,13 +173,12 @@ private fun ImportExportHeader(
     ) {
         Text(
             text = stringResource(Res.string.reading_dashboard),
-            style = MaterialTheme.typography.displayMedium,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleLargeEmphasized,
             color = MaterialTheme.colorScheme.primary,
         )
         Text(
             text = stringResource(Res.string.reading_dashboard_description),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.primary,
         )
         if (isAndroid()) {
@@ -212,8 +213,7 @@ private fun StatisticsComponent(
     SectionContainer(title = stringResource(Res.string.total_books_read)) {
         Text(
             text = state.totalBooksRead.toString(),
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.headlineLargeEmphasized,
             color = MaterialTheme.colorScheme.primary,
         )
     }
@@ -284,8 +284,7 @@ private fun SectionContainer(
             ) {
                 Text(
                     text = title.uppercase(),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleSmallEmphasized,
                     color = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier.weight(1f),
                 )
@@ -348,8 +347,7 @@ private fun BookByPages(title: String, book: Book?, onBookClick: (String) -> Uni
             Spacer(Modifier.height(8.dp))
             Text(
                 text = stringResource(Res.string.book_pages, book.pageCount),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleSmallEmphasized,
                 color = EbonyClay,
                 modifier = Modifier
                     .background(RoseBud, MaterialTheme.shapes.small)

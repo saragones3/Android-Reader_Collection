@@ -243,13 +243,19 @@ class FirebaseProviderAndroid(
 
     override suspend fun deleteFriends(userId: String) {
         val batch = firestore.batch()
-        val friends = firestore
+        val usersRef = firestore
             .collection(USERS_PATH)
+        val friends = usersRef
             .document(userId)
             .collection(FRIENDS_PATH)
             .get()
             .await()
         friends.documents.forEach {
+            val friendRef = usersRef
+                .document(it.id)
+                .collection(FRIENDS_PATH)
+                .document(userId)
+            batch.delete(friendRef)
             batch.delete(it.reference)
         }
         batch.commit().await()

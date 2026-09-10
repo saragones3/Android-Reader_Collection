@@ -213,6 +213,8 @@
             const querySnapshot = await firestore.getDocs(q);
             const batch = firestore.writeBatch(db);
             querySnapshot.forEach((doc) => {
+                const friendRef = firestore.doc(db, `users/${doc.id}/friends/${userId}`);
+                batch.delete(friendRef);
                 batch.delete(doc.ref);
             });
             return await batch.commit();

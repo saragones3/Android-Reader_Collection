@@ -21,6 +21,7 @@ internal val Boulder = Color(0xFF757575) // should be 0xFF7A7A7A
 internal val Red = Color(0xFFEE0000) // should be 0xFF7A7A7A
 internal val AthensGray = Color(0xFFF7F8F9)
 internal val GunPowder = Color(0xFF3D3D5C)
+internal val Tide = Color(0xFFBDB5AE)
 
 @Composable
 fun ColorScheme.isLight() = this.background.luminance() > 0.5

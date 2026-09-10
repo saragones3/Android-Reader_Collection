@@ -254,15 +254,20 @@ class FirebaseProviderIos: FirebaseProvider {
     
     func deleteFriends(userId: String) async throws {
         let batch = firestore.batch()
-        let friends = try await firestore
+        let usersRef = firestore
             .collection(USERS_PATH)
+        let friends = try await usersRef
             .document(userId)
             .collection(FRIENDS_PATH)
             .getDocuments()
             .documents
-            .map { $0.reference }
         friends.forEach({
-            batch.deleteDocument($0)
+            let friendRef = usersRef
+                .document($0.documentID)
+                .collection(FRIENDS_PATH)
+                .document(userId)
+            batch.deleteDocument(friendRef)
+            batch.deleteDocument($0.reference)
         })
         try await batch.commit()
     }

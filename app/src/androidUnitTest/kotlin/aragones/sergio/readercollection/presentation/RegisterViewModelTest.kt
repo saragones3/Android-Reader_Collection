@@ -82,6 +82,11 @@ class RegisterViewModelTest {
                 )
             } returns Result.success(userResponse)
             every { userLocalDataSource.storeLoginData(userData, authData) } just Runs
+            every { userLocalDataSource.userId } returns userId
+            coEvery {
+                userRemoteDataSource.registerPublicProfile(testUsername, userId)
+            } returns Result.success(Unit)
+            every { userLocalDataSource.storePublicProfile(true) } just Runs
 
             viewModel.registerSuccess.test {
                 assertEquals(false, awaitItem())
@@ -94,6 +99,10 @@ class RegisterViewModelTest {
             coVerify { userRemoteDataSource.register(testUsername, password) }
             coVerify { userRemoteDataSource.login(testUsername, password) }
             verify { userLocalDataSource.storeLoginData(userData, authData) }
+            verify { userLocalDataSource.username }
+            verify { userLocalDataSource.userId }
+            coVerify { userRemoteDataSource.registerPublicProfile(testUsername, userId) }
+            verify { userLocalDataSource.storePublicProfile(true) }
             confirmVerified(userLocalDataSource, userRemoteDataSource)
         }
 

@@ -35,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -237,13 +236,12 @@ private fun BookListContent(
                     book = book,
                     onBookClick = onBookClick,
                     modifier = Modifier
-                        .composed {
-                            val offset =
-                                dragAndDropListState.elementDisplacement.takeIf {
-                                    index == dragAndDropListState.currentIndexOfDraggedItem
-                                } ?: 0f
-                            Modifier.graphicsLayer {
-                                translationY = offset
+                        .graphicsLayer {
+                            val currentIndex = dragAndDropListState.currentIndexOfDraggedItem
+                            translationY = if (index == currentIndex) {
+                                dragAndDropListState.elementDisplacement ?: 0f
+                            } else {
+                                0f
                             }
                         }.zIndex(1f.takeIf { draggingIndex == index } ?: 0f),
                     isDraggingEnabled = isDraggingEnabled,

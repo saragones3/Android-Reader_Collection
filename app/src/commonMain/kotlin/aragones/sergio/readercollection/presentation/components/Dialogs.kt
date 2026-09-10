@@ -45,6 +45,8 @@ import aragones.sergio.readercollection.presentation.theme.AppUiProvider.isPortr
 import aragones.sergio.readercollection.presentation.theme.EbonyClay
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import aragones.sergio.readercollection.presentation.theme.RoseBud
+import aragones.sergio.readercollection.presentation.theme.titleLargeEmphasized
+import aragones.sergio.readercollection.presentation.theme.titleSmallEmphasized
 import com.aragones.sergio.util.extensions.currentTime
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringArrayResource
@@ -332,7 +334,7 @@ fun CustomDatePickerDialog(
                 Text(
                     text = stringResource(Res.string.select_a_date),
                     modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp),
-                    style = MaterialTheme.typography.displayMedium,
+                    style = MaterialTheme.typography.titleLargeEmphasized,
                     color = MaterialTheme.colorScheme.primary,
                 )
             },
@@ -405,7 +407,7 @@ private fun TextTitleAlertDialog(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
         modifier = modifier,
-        style = MaterialTheme.typography.displayMedium,
+        style = MaterialTheme.typography.titleLargeEmphasized,
         color = MaterialTheme.colorScheme.primary,
     )
 }
@@ -433,7 +435,7 @@ private fun TextButtonAlertDialog(
     ) {
         Text(
             text = text.uppercase(),
-            style = MaterialTheme.typography.displaySmall,
+            style = MaterialTheme.typography.titleSmallEmphasized,
             color = MaterialTheme.colorScheme.primary,
         )
     }

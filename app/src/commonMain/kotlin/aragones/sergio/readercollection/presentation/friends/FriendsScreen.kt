@@ -51,7 +51,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -72,6 +71,10 @@ import aragones.sergio.readercollection.presentation.components.SecondaryIconBut
 import aragones.sergio.readercollection.presentation.components.getBoldTextFor
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
+import aragones.sergio.readercollection.presentation.theme.bodyLargeEmphasized
+import aragones.sergio.readercollection.presentation.theme.labelSmallEmphasized
+import aragones.sergio.readercollection.presentation.theme.titleLargeEmphasized
+import aragones.sergio.readercollection.presentation.theme.titleSmallEmphasized
 import com.aragones.sergio.util.BookState
 import com.aragones.sergio.util.Constants
 import org.jetbrains.compose.resources.painterResource
@@ -186,12 +189,12 @@ private fun Header(query: String, onSearch: (String) -> Unit, modifier: Modifier
     ) {
         Text(
             text = stringResource(Res.string.community),
-            style = MaterialTheme.typography.displayMedium,
+            style = MaterialTheme.typography.titleLargeEmphasized,
             color = MaterialTheme.colorScheme.primary,
         )
         Text(
             text = stringResource(Res.string.community_description),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.primary,
         )
         SearchBar(
@@ -221,7 +224,7 @@ private fun LazyListScope.NoFriendsContent() {
         Text(
             text = stringResource(Res.string.no_friends_yet_title),
             modifier = Modifier.fillMaxWidth(),
-            style = MaterialTheme.typography.displayMedium,
+            style = MaterialTheme.typography.titleLargeEmphasized,
             color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
         )
@@ -304,7 +307,7 @@ private fun FriendsTabRow(
                 text = {
                     Text(
                         text = stringResource(Res.string.friends_tab_title),
-                        style = MaterialTheme.typography.displaySmall,
+                        style = MaterialTheme.typography.titleSmallEmphasized,
                     )
                 },
             )
@@ -318,7 +321,7 @@ private fun FriendsTabRow(
                     ) {
                         Text(
                             text = stringResource(Res.string.requests_tab_title),
-                            style = MaterialTheme.typography.displaySmall,
+                            style = MaterialTheme.typography.titleSmallEmphasized,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f, fill = false),
@@ -330,8 +333,8 @@ private fun FriendsTabRow(
                         ) {
                             Text(
                                 text = requestsCount.toString(),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.labelSmallEmphasized,
+                                modifier = Modifier.padding(4.dp),
                             )
                         }
                     }
@@ -354,9 +357,7 @@ private fun LazyListScope.FriendsTabContent(
         item {
             Text(
                 text = stringResource(Res.string.pending).uppercase(),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
+                style = MaterialTheme.typography.bodyLargeEmphasized,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(top = 24.dp, bottom = 8.dp),
             )
@@ -424,7 +425,7 @@ private fun LazyListScope.SearchResultsContent(
         item {
             Text(
                 text = stringResource(Res.string.results_for, query),
-                style = MaterialTheme.typography.displaySmall,
+                style = MaterialTheme.typography.titleSmallEmphasized,
                 color = MaterialTheme.colorScheme.primary,
             )
         }
@@ -576,7 +577,6 @@ private fun RequestItem(
                         stringResource(Res.string.rejected_status)
                     },
                 style = MaterialTheme.typography.bodyMedium,
-                fontSize = 14.sp,
                 color =
                     if (friend.isPending) {
                         MaterialTheme.colorScheme.tertiary
@@ -665,7 +665,6 @@ private fun MainUserInfo(
             Text(
                 text = username,
                 style = MaterialTheme.typography.bodyLarge,
-                fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.primary,
                 lineHeight = 24.sp,
             )

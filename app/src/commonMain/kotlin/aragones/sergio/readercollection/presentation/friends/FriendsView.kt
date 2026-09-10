@@ -5,6 +5,7 @@
 
 package aragones.sergio.readercollection.presentation.friends
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -28,7 +29,7 @@ fun FriendsView(
     val infoDialogMessageId by viewModel.infoDialogMessageId.collectAsState()
     val userDeletionMessage by viewModel.userDeletionMessage.collectAsState()
 
-    ReaderCollectionApp(navigationBarSameAsBackground = false) {
+    ReaderCollectionApp(navigationBarColor = MaterialTheme.colorScheme.primary) {
         FriendsScreen(
             state = state,
             onSearch = viewModel::searchFriends,

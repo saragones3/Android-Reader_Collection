@@ -5,6 +5,7 @@
 
 package aragones.sergio.readercollection.presentation.settings
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,7 +45,7 @@ fun SettingsView(
         return
     }
 
-    ReaderCollectionApp(navigationBarSameAsBackground = false) {
+    ReaderCollectionApp(navigationBarColor = MaterialTheme.colorScheme.primary) {
         SettingsScreen(
             state = state,
             onClickOption = {

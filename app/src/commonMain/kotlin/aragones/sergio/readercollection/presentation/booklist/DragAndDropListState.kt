@@ -35,8 +35,8 @@ class DragAndDropListState(
             ?.let {
                 lazyListState.getVisibleItemInfo(it)
             }?.let { itemInfo ->
-                (initialDraggingElement?.offset ?: 0f).toFloat()
-                +draggingDistance - itemInfo.offset
+                (initialDraggingElement?.offset ?: 0).toFloat() +
+                    draggingDistance - itemInfo.offset
             }
     private val currentElement: LazyListItemInfo?
         get() = currentIndexOfDraggedItem?.let {
@@ -112,7 +112,7 @@ class DragAndDropListState(
     }
 
     private fun LazyListState.getVisibleItemInfo(itemPosition: Int): LazyListItemInfo? =
-        this.layoutInfo.visibleItemsInfo.getOrNull(itemPosition - this.firstVisibleItemIndex)
+        this.layoutInfo.visibleItemsInfo.firstOrNull { it.index == itemPosition }
 
     private val LazyListItemInfo.offsetEnd: Int
         get() = this.offset + this.size

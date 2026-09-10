@@ -9,6 +9,7 @@ import android.app.Activity.RESULT_OK
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -75,7 +76,7 @@ actual fun StatisticsView(
     val confirmationMessageId by viewModel.confirmationDialogMessageId.collectAsState()
     val infoMessageId by viewModel.infoDialogMessageId.collectAsState()
 
-    ReaderCollectionApp(navigationBarSameAsBackground = false) {
+    ReaderCollectionApp(navigationBarColor = MaterialTheme.colorScheme.primary) {
         StatisticsScreen(
             state = state,
             onImportClick = {

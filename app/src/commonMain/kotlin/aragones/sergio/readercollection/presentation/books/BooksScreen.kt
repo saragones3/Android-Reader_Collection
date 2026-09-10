@@ -72,6 +72,7 @@ import aragones.sergio.readercollection.presentation.components.TopAppBarIcon
 import aragones.sergio.readercollection.presentation.components.withDescription
 import aragones.sergio.readercollection.presentation.theme.AppUiProvider.getScreenWidth
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
+import aragones.sergio.readercollection.presentation.theme.headlineSmallEmphasized
 import com.aragones.sergio.util.BookState
 import com.aragones.sergio.util.Constants
 import kotlinx.coroutines.launch
@@ -414,7 +415,7 @@ private fun BottomSheetContent(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.displayLarge,
+            style = MaterialTheme.typography.headlineSmallEmphasized,
             color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
             overflow = TextOverflow.Ellipsis,

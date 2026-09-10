@@ -11,7 +11,6 @@ plugins {
 
 kotlin {
     jvm()
-    iosX64()
     iosArm64()
     iosSimulatorArm64()
     js {
@@ -21,6 +20,8 @@ kotlin {
     wasmJs {
         browser()
     }
+
+    jvmToolchain(libs.versions.jdk.get().toInt())
 
     sourceSets {
         commonMain.dependencies {

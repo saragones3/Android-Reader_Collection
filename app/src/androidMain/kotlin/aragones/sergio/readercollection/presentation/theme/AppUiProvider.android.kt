@@ -12,9 +12,10 @@ import androidx.activity.compose.LocalActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -39,40 +40,24 @@ actual object AppUiProvider {
     }
 
     @Composable
-    actual fun applyBarsStyle(
-        isDarkTheme: Boolean,
-        colors: ColorScheme,
-        statusBarSameAsBackground: Boolean,
-        navigationBarSameAsBackground: Boolean,
-    ) {
-        val systemBarAsBackground = if (isDarkTheme) {
+    actual fun applyBarsStyle(statusBarColor: Color, navigationBarColor: Color) {
+        val statusBarStyle = if (statusBarColor.luminance() > 0.5) {
+            SystemBarStyle.light(
+                statusBarColor.toArgb(),
+                statusBarColor.toArgb(),
+            )
+        } else {
             SystemBarStyle.dark(
-                colors.background.toArgb(),
+                statusBarColor.toArgb(),
             )
-        } else {
+        }
+        val navigationBarStyle = if (navigationBarColor.luminance() > 0.5) {
             SystemBarStyle.light(
-                colors.background.toArgb(),
-                colors.background.toArgb(),
-            )
-        }
-        val systemBarOppositeToBackground = if (isDarkTheme) {
-            SystemBarStyle.light(
-                colors.primary.toArgb(),
-                colors.primary.toArgb(),
+                navigationBarColor.toArgb(),
+                navigationBarColor.toArgb(),
             )
         } else {
-            SystemBarStyle.dark(colors.primary.toArgb())
-        }
-
-        val statusBarStyle = if (statusBarSameAsBackground) {
-            systemBarAsBackground
-        } else {
-            systemBarOppositeToBackground
-        }
-        val navigationBarStyle = if (navigationBarSameAsBackground) {
-            systemBarAsBackground
-        } else {
-            systemBarOppositeToBackground
+            SystemBarStyle.dark(navigationBarColor.toArgb())
         }
 
         val activity = LocalActivity.current as ComponentActivity
