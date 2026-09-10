@@ -5,6 +5,7 @@
 
 package aragones.sergio.readercollection.data.remote.di
 
+import aragones.sergio.readercollection.data.di.dataModule
 import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
 import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import io.ktor.client.HttpClient
@@ -14,7 +15,6 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.ContentType
 import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -24,6 +24,7 @@ private const val API_KEY = "key"
 
 val networkModule = module {
     includes(platformModule)
+    includes(dataModule)
     factory<HttpClient> {
         val httpClientEngine = get<HttpClientEngine>()
         HttpClient(httpClientEngine) {
@@ -33,7 +34,7 @@ val networkModule = module {
         }.config {
             install(ContentNegotiation) {
                 json(
-                    json = Json { ignoreUnknownKeys = true },
+                    json = get(),
                     contentType = ContentType.Application.Json,
                 )
             }

@@ -26,6 +26,7 @@ import kotlinx.serialization.json.jsonObject
 class BooksRemoteDataSource(
     private val client: HttpClient,
     private val firebaseProvider: FirebaseProvider,
+    private val json: Json,
 ) {
 
     private var searchRetries = 0
@@ -161,11 +162,11 @@ class BooksRemoteDataSource(
         values: String,
     ): Map<String, List<T>> = if (values.isNotEmpty()) {
         try {
-            val valuesJson = Json
+            val valuesJson = json
                 .parseToJsonElement(values)
                 .jsonObject
                 .toString()
-            Json
+            json
                 .decodeFromString<Map<String, Array<T>>>(valuesJson)
                 .mapValues { it.value.asList() }
         } catch (e: Exception) {

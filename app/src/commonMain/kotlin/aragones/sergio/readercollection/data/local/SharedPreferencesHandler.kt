@@ -16,6 +16,7 @@ import kotlinx.serialization.json.Json
 class SharedPreferencesHandler(
     private val appInfoProvider: AppInfoProvider,
     private val sharedPreferencesProvider: SharedPreferencesProvider,
+    private val json: Json,
 ) {
 
     //region Public properties
@@ -35,57 +36,57 @@ class SharedPreferencesHandler(
         get() {
             return sharedPreferencesProvider
                 .readString(Preferences.FORMATS_PREFERENCE_NAME)
-                ?.let { Json.decodeFromString<Map<String, List<FormatResponse>>>(it) }
+                ?.let { json.decodeFromString<Map<String, List<FormatResponse>>>(it) }
                 ?: emptyMap()
         }
         set(value) = sharedPreferencesProvider.writeString(
             Preferences.FORMATS_PREFERENCE_NAME,
-            Json.encodeToString(value),
+            json.encodeToString(value),
         )
     var genres: Map<String, List<GenreResponse>>
         get() {
             return sharedPreferencesProvider
                 .readString(Preferences.GENRES_PREFERENCE_NAME)
-                ?.let { Json.decodeFromString<Map<String, List<GenreResponse>>>(it) }
+                ?.let { json.decodeFromString<Map<String, List<GenreResponse>>>(it) }
                 ?: emptyMap()
         }
         set(value) = sharedPreferencesProvider.writeString(
             Preferences.GENRES_PREFERENCE_NAME,
-            Json.encodeToString(value),
+            json.encodeToString(value),
         )
     var states: Map<String, List<StateResponse>>
         get() {
             return sharedPreferencesProvider
                 .readString(Preferences.STATES_PREFERENCE_NAME)
-                ?.let { Json.decodeFromString<Map<String, List<StateResponse>>>(it) }
+                ?.let { json.decodeFromString<Map<String, List<StateResponse>>>(it) }
                 ?: emptyMap()
         }
         set(value) = sharedPreferencesProvider.writeString(
             Preferences.STATES_PREFERENCE_NAME,
-            Json.encodeToString(value),
+            json.encodeToString(value),
         )
     var credentials: AuthData
         get() {
             return sharedPreferencesProvider
                 .readString(Preferences.AUTH_DATA_PREFERENCES_NAME, true)
-                ?.let { Json.decodeFromString<AuthData>(it) }
+                ?.let { json.decodeFromString<AuthData>(it) }
                 ?: run { AuthData("") }
         }
         set(value) = sharedPreferencesProvider.writeString(
             Preferences.AUTH_DATA_PREFERENCES_NAME,
-            Json.encodeToString(value),
+            json.encodeToString(value),
             true,
         )
     var userData: UserData
         get() {
             return sharedPreferencesProvider
                 .readString(Preferences.USER_DATA_PREFERENCES_NAME, true)
-                ?.let { Json.decodeFromString<UserData>(it) }
+                ?.let { json.decodeFromString<UserData>(it) }
                 ?: run { UserData("", "", "") }
         }
         set(value) = sharedPreferencesProvider.writeString(
             Preferences.USER_DATA_PREFERENCES_NAME,
-            Json.encodeToString(value),
+            json.encodeToString(value),
             true,
         )
     val isLoggedIn: Boolean

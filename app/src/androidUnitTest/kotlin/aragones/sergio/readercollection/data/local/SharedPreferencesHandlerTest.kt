@@ -19,7 +19,9 @@ class SharedPreferencesHandlerTest {
 
     private val appInfoProvider: AppInfoProvider = mockk()
     private val sharedPreferencesProvider: SharedPreferencesProvider = mockk()
-    private val preferences = SharedPreferencesHandler(appInfoProvider, sharedPreferencesProvider)
+    private val json = Json { ignoreUnknownKeys = true }
+    private val preferences =
+        SharedPreferencesHandler(appInfoProvider, sharedPreferencesProvider, json)
 
     @Test
     fun `GIVEN language in preferences WHEN get language THEN return value from preferences`() {
@@ -84,7 +86,30 @@ class SharedPreferencesHandlerTest {
     @Test
     fun `GIVEN credentials in preferences WHEN get credentials THEN return value from preferences`() {
         val expectedCredentials = AuthData(uuid = "testUserId")
-        val jsonCredentials = Json.encodeToString(expectedCredentials)
+        val jsonCredentials =
+            """
+            {"token":"testUserId"}
+            """.trimIndent()
+        every {
+            sharedPreferencesProvider.readString(Preferences.AUTH_DATA_PREFERENCES_NAME, true)
+        } returns jsonCredentials
+
+        val result = preferences.credentials
+
+        assertEquals(expectedCredentials, result)
+        verify(exactly = 1) {
+            sharedPreferencesProvider.readString(Preferences.AUTH_DATA_PREFERENCES_NAME, true)
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN malformed credentials in preferences WHEN get credentials THEN return value from preferences with known params`() {
+        val expectedCredentials = AuthData(uuid = "testUserId")
+        val jsonCredentials =
+            """
+            {"token":"testUserId","otherField":true}
+            """.trimIndent()
         every {
             sharedPreferencesProvider.readString(Preferences.AUTH_DATA_PREFERENCES_NAME, true)
         } returns jsonCredentials
@@ -116,7 +141,10 @@ class SharedPreferencesHandlerTest {
     @Test
     fun `GIVEN value WHEN set credentials THEN save value in preferences`() {
         val credentials = AuthData(uuid = "testUserId")
-        val jsonCredentials = Json.encodeToString(credentials)
+        val jsonCredentials =
+            """
+            {"token":"testUserId"}
+            """.trimIndent()
         every {
             sharedPreferencesProvider.writeString(
                 Preferences.AUTH_DATA_PREFERENCES_NAME,
@@ -140,7 +168,30 @@ class SharedPreferencesHandlerTest {
     @Test
     fun `GIVEN userData in preferences WHEN get userData THEN return value from preferences`() {
         val expectedUserData = UserData("testUser", "testPassword", "")
-        val jsonUserData = Json.encodeToString(expectedUserData)
+        val jsonUserData =
+            """
+            {"username":"testUser","email":"testPassword","password":""}
+            """.trimIndent()
+        every {
+            sharedPreferencesProvider.readString(Preferences.USER_DATA_PREFERENCES_NAME, true)
+        } returns jsonUserData
+
+        val result = preferences.userData
+
+        assertEquals(expectedUserData, result)
+        verify(exactly = 1) {
+            sharedPreferencesProvider.readString(Preferences.USER_DATA_PREFERENCES_NAME, true)
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN malformed userData in preferences WHEN get userData THEN return value from preferences with known params`() {
+        val expectedUserData = UserData("testUser", "testPassword", "")
+        val jsonUserData =
+            """
+            {"username":"testUser","email":"testPassword","password":"","isLoggedIn":true}
+            """.trimIndent()
         every {
             sharedPreferencesProvider.readString(Preferences.USER_DATA_PREFERENCES_NAME, true)
         } returns jsonUserData
@@ -172,7 +223,10 @@ class SharedPreferencesHandlerTest {
     @Test
     fun `GIVEN value WHEN set userData THEN save value in preferences`() {
         val userData = UserData("testUser", "testPassword", "")
-        val jsonUserData = Json.encodeToString(userData)
+        val jsonUserData =
+            """
+            {"username":"testUser","email":"testPassword","password":""}
+            """.trimIndent()
         every {
             sharedPreferencesProvider.writeString(
                 Preferences.USER_DATA_PREFERENCES_NAME,
@@ -195,8 +249,10 @@ class SharedPreferencesHandlerTest {
 
     @Test
     fun `GIVEN credentials with uuid WHEN check isLoggedIn THEN return true`() {
-        val credentials = AuthData(uuid = "testUserId")
-        val jsonCredentials = Json.encodeToString(credentials)
+        val jsonCredentials =
+            """
+            {"token":"testUserId"}
+            """.trimIndent()
         every {
             sharedPreferencesProvider.readString(Preferences.AUTH_DATA_PREFERENCES_NAME, true)
         } returns jsonCredentials
@@ -212,8 +268,10 @@ class SharedPreferencesHandlerTest {
 
     @Test
     fun `GIVEN credentials without uuid WHEN check isLoggedIn THEN return false`() {
-        val credentials = AuthData(uuid = "")
-        val jsonCredentials = Json.encodeToString(credentials)
+        val jsonCredentials =
+            """
+            {"token":""}
+            """.trimIndent()
         every {
             sharedPreferencesProvider.readString(Preferences.AUTH_DATA_PREFERENCES_NAME, true)
         } returns jsonCredentials
@@ -404,11 +462,15 @@ class SharedPreferencesHandlerTest {
 
     @Test
     fun `WHEN storePassword is called THEN update userData with new password`() {
-        val oldUserData = UserData("testUser", "email", "oldPassword")
         val newPassword = "newPassword"
-        val expectedUserData = UserData("testUser", "email", "newPassword")
-        val jsonOldUserData = Json.encodeToString(oldUserData)
-        val jsonNewUserData = Json.encodeToString(expectedUserData)
+        val jsonOldUserData =
+            """
+            {"username":"testUser","email":"email","password":"oldPassword"}
+            """.trimIndent()
+        val jsonNewUserData =
+            """
+            {"username":"testUser","email":"email","password":"newPassword"}
+            """.trimIndent()
 
         every {
             sharedPreferencesProvider.readString(Preferences.USER_DATA_PREFERENCES_NAME, true)
@@ -438,10 +500,14 @@ class SharedPreferencesHandlerTest {
 
     @Test
     fun `WHEN removePassword is called THEN update userData with empty password`() {
-        val oldUserData = UserData("testUser", "email", "oldPassword")
-        val expectedUserData = UserData("testUser", "email", "")
-        val jsonOldUserData = Json.encodeToString(oldUserData)
-        val jsonNewUserData = Json.encodeToString(expectedUserData)
+        val jsonOldUserData =
+            """
+            {"username":"testUser","email":"email","password":"oldPassword"}
+            """.trimIndent()
+        val jsonNewUserData =
+            """
+            {"username":"testUser","email":"email","password":""}
+            """.trimIndent()
 
         every {
             sharedPreferencesProvider.readString(Preferences.USER_DATA_PREFERENCES_NAME, true)
