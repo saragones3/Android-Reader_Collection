@@ -4,6 +4,9 @@ package aragones.sergio.readercollection.data.local
 
 import aragones.sergio.readercollection.data.local.model.AuthData
 import aragones.sergio.readercollection.data.local.model.UserData
+import aragones.sergio.readercollection.data.remote.model.FormatResponse
+import aragones.sergio.readercollection.data.remote.model.GenreResponse
+import aragones.sergio.readercollection.data.remote.model.StateResponse
 import com.aragones.sergio.util.Preferences
 import io.mockk.Runs
 import io.mockk.confirmVerified
@@ -19,7 +22,9 @@ class SharedPreferencesHandlerTest {
 
     private val appInfoProvider: AppInfoProvider = mockk()
     private val sharedPreferencesProvider: SharedPreferencesProvider = mockk()
-    private val preferences = SharedPreferencesHandler(appInfoProvider, sharedPreferencesProvider)
+    private val json = Json { ignoreUnknownKeys = true }
+    private val preferences =
+        SharedPreferencesHandler(appInfoProvider, sharedPreferencesProvider, json)
 
     @Test
     fun `GIVEN language in preferences WHEN get language THEN return value from preferences`() {
@@ -82,9 +87,323 @@ class SharedPreferencesHandlerTest {
     }
 
     @Test
+    fun `GIVEN formats in preferences WHEN get formats THEN return value from preferences`() {
+        val expectedFormats = mapOf(
+            "en" to listOf(
+                FormatResponse("PHYSICAL", "Physical"),
+                FormatResponse("DIGITAL", "Digital"),
+            ),
+        )
+        val jsonFormats =
+            """
+            {"en":[{"id":"PHYSICAL","name":"Physical"},{"id":"DIGITAL","name":"Digital"}]}
+            """.trimIndent()
+        every {
+            sharedPreferencesProvider.readString(Preferences.FORMATS_PREFERENCE_NAME, false)
+        } returns jsonFormats
+
+        val result = preferences.formats
+
+        assertEquals(expectedFormats, result)
+        verify(exactly = 1) {
+            sharedPreferencesProvider.readString(Preferences.FORMATS_PREFERENCE_NAME, false)
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN malformed formats in preferences WHEN get formats THEN return value from preferences with known params`() {
+        val expectedFormats = mapOf(
+            "en" to listOf(
+                FormatResponse("PHYSICAL", "Physical"),
+                FormatResponse("DIGITAL", "Digital"),
+            ),
+        )
+        val jsonFormats =
+            """
+            {"en":[{"id":"PHYSICAL","name":"Physical","otherParam":true},{"id":"DIGITAL","name":"Digital","_id":"NEW_ID"}]}
+            """.trimIndent()
+        every {
+            sharedPreferencesProvider.readString(Preferences.FORMATS_PREFERENCE_NAME, false)
+        } returns jsonFormats
+
+        val result = preferences.formats
+
+        assertEquals(expectedFormats, result)
+        verify(exactly = 1) {
+            sharedPreferencesProvider.readString(Preferences.FORMATS_PREFERENCE_NAME, false)
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN no formats in preferences WHEN get formats THEN return empty value`() {
+        every {
+            sharedPreferencesProvider.readString(Preferences.FORMATS_PREFERENCE_NAME, false)
+        } returns null
+
+        val result = preferences.formats
+
+        assertEquals(emptyMap(), result)
+        verify(exactly = 1) {
+            sharedPreferencesProvider.readString(Preferences.FORMATS_PREFERENCE_NAME, false)
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN value WHEN set formats THEN save value in preferences`() {
+        val formats = mapOf(
+            "en" to listOf(
+                FormatResponse("PHYSICAL", "Physical"),
+                FormatResponse("DIGITAL", "Digital"),
+            ),
+        )
+        val jsonFormats =
+            """
+            {"en":[{"id":"PHYSICAL","name":"Physical"},{"id":"DIGITAL","name":"Digital"}]}
+            """.trimIndent()
+        every {
+            sharedPreferencesProvider.writeString(
+                Preferences.FORMATS_PREFERENCE_NAME,
+                any(),
+                false,
+            )
+        } just Runs
+
+        preferences.formats = formats
+
+        verify(exactly = 1) {
+            sharedPreferencesProvider.writeString(
+                Preferences.FORMATS_PREFERENCE_NAME,
+                jsonFormats,
+                false,
+            )
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN genres in preferences WHEN get genres THEN return value from preferences`() {
+        val expectedGenres = mapOf(
+            "en" to listOf(
+                GenreResponse("FICTION", "Fiction"),
+                GenreResponse("HISTORY", "History"),
+            ),
+        )
+        val jsonGenres =
+            """
+            {"en":[{"id":"FICTION","name":"Fiction"},{"id":"HISTORY","name":"History"}]}
+            """.trimIndent()
+        every {
+            sharedPreferencesProvider.readString(Preferences.GENRES_PREFERENCE_NAME, false)
+        } returns jsonGenres
+
+        val result = preferences.genres
+
+        assertEquals(expectedGenres, result)
+        verify(exactly = 1) {
+            sharedPreferencesProvider.readString(Preferences.GENRES_PREFERENCE_NAME, false)
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN malformed genres in preferences WHEN get genres THEN return value from preferences with known params`() {
+        val expectedGenres = mapOf(
+            "en" to listOf(
+                GenreResponse("FICTION", "Fiction"),
+                GenreResponse("HISTORY", "History"),
+            ),
+        )
+        val jsonGenres =
+            """
+            {"en":[{"id":"FICTION","name":"Fiction","otherParam":true},{"id":"HISTORY","name":"History","_id":"NEW_ID"}]}
+            """.trimIndent()
+        every {
+            sharedPreferencesProvider.readString(Preferences.GENRES_PREFERENCE_NAME, false)
+        } returns jsonGenres
+
+        val result = preferences.genres
+
+        assertEquals(expectedGenres, result)
+        verify(exactly = 1) {
+            sharedPreferencesProvider.readString(Preferences.GENRES_PREFERENCE_NAME, false)
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN no genres in preferences WHEN get genres THEN return empty value`() {
+        every {
+            sharedPreferencesProvider.readString(Preferences.GENRES_PREFERENCE_NAME, false)
+        } returns null
+
+        val result = preferences.genres
+
+        assertEquals(emptyMap(), result)
+        verify(exactly = 1) {
+            sharedPreferencesProvider.readString(Preferences.GENRES_PREFERENCE_NAME, false)
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN value WHEN set genres THEN save value in preferences`() {
+        val genres = mapOf(
+            "en" to listOf(
+                GenreResponse("FICTION", "Fiction"),
+                GenreResponse("HISTORY", "History"),
+            ),
+        )
+        val jsonGenres =
+            """
+            {"en":[{"id":"FICTION","name":"Fiction"},{"id":"HISTORY","name":"History"}]}
+            """.trimIndent()
+        every {
+            sharedPreferencesProvider.writeString(
+                Preferences.GENRES_PREFERENCE_NAME,
+                any(),
+                false,
+            )
+        } just Runs
+
+        preferences.genres = genres
+
+        verify(exactly = 1) {
+            sharedPreferencesProvider.writeString(
+                Preferences.GENRES_PREFERENCE_NAME,
+                jsonGenres,
+                false,
+            )
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN states in preferences WHEN get states THEN return value from preferences`() {
+        val expectedStates = mapOf(
+            "en" to listOf(
+                StateResponse("READING", "Reading"),
+                StateResponse("READ", "Read"),
+            ),
+        )
+        val jsonStates =
+            """
+            {"en":[{"id":"READING","name":"Reading"},{"id":"READ","name":"Read"}]}
+            """.trimIndent()
+        every {
+            sharedPreferencesProvider.readString(Preferences.STATES_PREFERENCE_NAME, false)
+        } returns jsonStates
+
+        val result = preferences.states
+
+        assertEquals(expectedStates, result)
+        verify(exactly = 1) {
+            sharedPreferencesProvider.readString(Preferences.STATES_PREFERENCE_NAME, false)
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN malformed states in preferences WHEN get states THEN return value from preferences with known params`() {
+        val expectedStates = mapOf(
+            "en" to listOf(
+                StateResponse("READING", "Reading"),
+                StateResponse("READ", "Read"),
+            ),
+        )
+        val jsonStates =
+            """
+            {"en":[{"id":"READING","name":"Reading","otherParam":true},{"id":"READ","name":"Read","_id":"NEW_ID"}]}
+            """.trimIndent()
+        every {
+            sharedPreferencesProvider.readString(Preferences.STATES_PREFERENCE_NAME, false)
+        } returns jsonStates
+
+        val result = preferences.states
+
+        assertEquals(expectedStates, result)
+        verify(exactly = 1) {
+            sharedPreferencesProvider.readString(Preferences.STATES_PREFERENCE_NAME, false)
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN no states in preferences WHEN get states THEN return empty value`() {
+        every {
+            sharedPreferencesProvider.readString(Preferences.STATES_PREFERENCE_NAME, false)
+        } returns null
+
+        val result = preferences.states
+
+        assertEquals(emptyMap(), result)
+        verify(exactly = 1) {
+            sharedPreferencesProvider.readString(Preferences.STATES_PREFERENCE_NAME, false)
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN value WHEN set states THEN save value in preferences`() {
+        val states = mapOf(
+            "en" to listOf(
+                StateResponse("READING", "Reading"),
+                StateResponse("READ", "Read"),
+            ),
+        )
+        val jsonStates =
+            """
+            {"en":[{"id":"READING","name":"Reading"},{"id":"READ","name":"Read"}]}
+            """.trimIndent()
+        every {
+            sharedPreferencesProvider.writeString(
+                Preferences.STATES_PREFERENCE_NAME,
+                any(),
+                false,
+            )
+        } just Runs
+
+        preferences.states = states
+
+        verify(exactly = 1) {
+            sharedPreferencesProvider.writeString(
+                Preferences.STATES_PREFERENCE_NAME,
+                jsonStates,
+                false,
+            )
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
     fun `GIVEN credentials in preferences WHEN get credentials THEN return value from preferences`() {
         val expectedCredentials = AuthData(uuid = "testUserId")
-        val jsonCredentials = Json.encodeToString(expectedCredentials)
+        val jsonCredentials =
+            """
+            {"token":"testUserId"}
+            """.trimIndent()
+        every {
+            sharedPreferencesProvider.readString(Preferences.AUTH_DATA_PREFERENCES_NAME, true)
+        } returns jsonCredentials
+
+        val result = preferences.credentials
+
+        assertEquals(expectedCredentials, result)
+        verify(exactly = 1) {
+            sharedPreferencesProvider.readString(Preferences.AUTH_DATA_PREFERENCES_NAME, true)
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN malformed credentials in preferences WHEN get credentials THEN return value from preferences with known params`() {
+        val expectedCredentials = AuthData(uuid = "testUserId")
+        val jsonCredentials =
+            """
+            {"token":"testUserId","otherField":true}
+            """.trimIndent()
         every {
             sharedPreferencesProvider.readString(Preferences.AUTH_DATA_PREFERENCES_NAME, true)
         } returns jsonCredentials
@@ -116,7 +435,10 @@ class SharedPreferencesHandlerTest {
     @Test
     fun `GIVEN value WHEN set credentials THEN save value in preferences`() {
         val credentials = AuthData(uuid = "testUserId")
-        val jsonCredentials = Json.encodeToString(credentials)
+        val jsonCredentials =
+            """
+            {"token":"testUserId"}
+            """.trimIndent()
         every {
             sharedPreferencesProvider.writeString(
                 Preferences.AUTH_DATA_PREFERENCES_NAME,
@@ -140,7 +462,30 @@ class SharedPreferencesHandlerTest {
     @Test
     fun `GIVEN userData in preferences WHEN get userData THEN return value from preferences`() {
         val expectedUserData = UserData("testUser", "testPassword", "")
-        val jsonUserData = Json.encodeToString(expectedUserData)
+        val jsonUserData =
+            """
+            {"username":"testUser","email":"testPassword","password":""}
+            """.trimIndent()
+        every {
+            sharedPreferencesProvider.readString(Preferences.USER_DATA_PREFERENCES_NAME, true)
+        } returns jsonUserData
+
+        val result = preferences.userData
+
+        assertEquals(expectedUserData, result)
+        verify(exactly = 1) {
+            sharedPreferencesProvider.readString(Preferences.USER_DATA_PREFERENCES_NAME, true)
+        }
+        confirmVerified(sharedPreferencesProvider)
+    }
+
+    @Test
+    fun `GIVEN malformed userData in preferences WHEN get userData THEN return value from preferences with known params`() {
+        val expectedUserData = UserData("testUser", "testPassword", "")
+        val jsonUserData =
+            """
+            {"username":"testUser","email":"testPassword","password":"","isLoggedIn":true}
+            """.trimIndent()
         every {
             sharedPreferencesProvider.readString(Preferences.USER_DATA_PREFERENCES_NAME, true)
         } returns jsonUserData
@@ -172,7 +517,10 @@ class SharedPreferencesHandlerTest {
     @Test
     fun `GIVEN value WHEN set userData THEN save value in preferences`() {
         val userData = UserData("testUser", "testPassword", "")
-        val jsonUserData = Json.encodeToString(userData)
+        val jsonUserData =
+            """
+            {"username":"testUser","email":"testPassword","password":""}
+            """.trimIndent()
         every {
             sharedPreferencesProvider.writeString(
                 Preferences.USER_DATA_PREFERENCES_NAME,
@@ -195,8 +543,10 @@ class SharedPreferencesHandlerTest {
 
     @Test
     fun `GIVEN credentials with uuid WHEN check isLoggedIn THEN return true`() {
-        val credentials = AuthData(uuid = "testUserId")
-        val jsonCredentials = Json.encodeToString(credentials)
+        val jsonCredentials =
+            """
+            {"token":"testUserId"}
+            """.trimIndent()
         every {
             sharedPreferencesProvider.readString(Preferences.AUTH_DATA_PREFERENCES_NAME, true)
         } returns jsonCredentials
@@ -212,8 +562,10 @@ class SharedPreferencesHandlerTest {
 
     @Test
     fun `GIVEN credentials without uuid WHEN check isLoggedIn THEN return false`() {
-        val credentials = AuthData(uuid = "")
-        val jsonCredentials = Json.encodeToString(credentials)
+        val jsonCredentials =
+            """
+            {"token":""}
+            """.trimIndent()
         every {
             sharedPreferencesProvider.readString(Preferences.AUTH_DATA_PREFERENCES_NAME, true)
         } returns jsonCredentials
@@ -404,11 +756,15 @@ class SharedPreferencesHandlerTest {
 
     @Test
     fun `WHEN storePassword is called THEN update userData with new password`() {
-        val oldUserData = UserData("testUser", "email", "oldPassword")
         val newPassword = "newPassword"
-        val expectedUserData = UserData("testUser", "email", "newPassword")
-        val jsonOldUserData = Json.encodeToString(oldUserData)
-        val jsonNewUserData = Json.encodeToString(expectedUserData)
+        val jsonOldUserData =
+            """
+            {"username":"testUser","email":"email","password":"oldPassword"}
+            """.trimIndent()
+        val jsonNewUserData =
+            """
+            {"username":"testUser","email":"email","password":"newPassword"}
+            """.trimIndent()
 
         every {
             sharedPreferencesProvider.readString(Preferences.USER_DATA_PREFERENCES_NAME, true)
@@ -438,10 +794,14 @@ class SharedPreferencesHandlerTest {
 
     @Test
     fun `WHEN removePassword is called THEN update userData with empty password`() {
-        val oldUserData = UserData("testUser", "email", "oldPassword")
-        val expectedUserData = UserData("testUser", "email", "")
-        val jsonOldUserData = Json.encodeToString(oldUserData)
-        val jsonNewUserData = Json.encodeToString(expectedUserData)
+        val jsonOldUserData =
+            """
+            {"username":"testUser","email":"email","password":"oldPassword"}
+            """.trimIndent()
+        val jsonNewUserData =
+            """
+            {"username":"testUser","email":"email","password":""}
+            """.trimIndent()
 
         every {
             sharedPreferencesProvider.readString(Preferences.USER_DATA_PREFERENCES_NAME, true)

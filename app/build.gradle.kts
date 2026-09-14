@@ -24,10 +24,10 @@ if (keystorePropertiesFile.exists()) {
 
 val appName = "aragones.sergio.readercollection"
 
-val versionMajor = 2
-val versionMinor = 9
-val versionPatch = 1
-val versionBuild = 0 // bump for dogfood builds, public betas, etc.
+val versionMajor = 3
+val versionMinor = 0
+val versionPatch = 0
+val versionBuild = 1 // bump for dogfood builds, public betas, etc.
 
 extensions.configure<ApplicationExtension> {
 
