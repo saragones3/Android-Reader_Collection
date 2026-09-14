@@ -6,8 +6,8 @@
 package aragones.sergio.readercollection.presentation.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import platform.UIKit.UIApplication
@@ -21,12 +21,7 @@ actual object AppUiProvider {
     actual fun isDarkThemeApplied(): Boolean = isSystemInDarkTheme()
 
     @Composable
-    actual fun applyBarsStyle(
-        isDarkTheme: Boolean,
-        colors: ColorScheme,
-        statusBarSameAsBackground: Boolean,
-        navigationBarSameAsBackground: Boolean,
-    ) {}
+    actual fun applyBarsStyle(statusBarColor: Color, navigationBarColor: Color) {}
 
     @Composable
     actual fun isPortrait(): Boolean {

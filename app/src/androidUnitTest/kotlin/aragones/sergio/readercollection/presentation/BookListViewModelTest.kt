@@ -23,6 +23,7 @@ import aragones.sergio.readercollection.data.remote.model.GenreResponse
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.Books
 import aragones.sergio.readercollection.domain.model.ErrorModel
+import aragones.sergio.readercollection.domain.toRemoteData
 import aragones.sergio.readercollection.presentation.booklist.BookListUiState
 import aragones.sergio.readercollection.presentation.booklist.BookListViewModel
 import aragones.sergio.readercollection.presentation.components.UiSortingPickerState
@@ -90,6 +91,24 @@ class BookListViewModelTest {
     )
 
     @Test
+    fun `GIVEN friendId param WHEN friendId property accessed THEN return friendId`() {
+        val testFriendId = "friendId"
+        val savedStateHandle: SavedStateHandle = SavedStateHandle().apply {
+            this["state"] = ""
+            this["sortParam"] = null
+            this["isSortDescending"] = false
+            this["query"] = ""
+            this["friendId"] = testFriendId
+        }
+        val viewModel = BookListViewModel(
+            savedStateHandle,
+            mockk(),
+            mockk(),
+        )
+        assertEquals(testFriendId, viewModel.friendId)
+    }
+
+    @Test
     fun `GIVEN books WHEN fetchBooks THEN return Success state`() = runTest {
         val book1 = Book("1")
         val book2 = Book("2")
@@ -98,12 +117,7 @@ class BookListViewModelTest {
 
         viewModel.state.test {
             assertEquals(
-                BookListUiState(
-                    isLoading = true,
-                    books = Books(),
-                    subtitle = "",
-                    isDraggingEnabled = false,
-                ),
+                BookListUiState.initial(),
                 awaitItem(),
             )
 
@@ -114,6 +128,7 @@ class BookListViewModelTest {
                     isLoading = false,
                     books = Books(listOf(book1, book2, book3)),
                     subtitle = "",
+                    canDrag = false,
                     isDraggingEnabled = false,
                 ),
                 awaitItem(),
@@ -129,12 +144,7 @@ class BookListViewModelTest {
         viewModel.state.test {
             val state = this
             assertEquals(
-                BookListUiState(
-                    isLoading = true,
-                    books = Books(),
-                    subtitle = "",
-                    isDraggingEnabled = false,
-                ),
+                BookListUiState.initial(),
                 awaitItem(),
             )
             viewModel.booksError.test {
@@ -147,6 +157,7 @@ class BookListViewModelTest {
                         isLoading = false,
                         books = Books(),
                         subtitle = "",
+                        canDrag = false,
                         isDraggingEnabled = false,
                     ),
                     state.awaitItem(),
@@ -173,12 +184,7 @@ class BookListViewModelTest {
 
             viewModel.state.test {
                 assertEquals(
-                    BookListUiState(
-                        isLoading = true,
-                        books = Books(),
-                        subtitle = "",
-                        isDraggingEnabled = false,
-                    ),
+                    BookListUiState.initial(),
                     awaitItem(),
                 )
 
@@ -189,6 +195,7 @@ class BookListViewModelTest {
                         isLoading = false,
                         books = Books(listOf(book1, book2, book3)),
                         subtitle = "",
+                        canDrag = false,
                         isDraggingEnabled = false,
                     ),
                     awaitItem(),
@@ -204,6 +211,7 @@ class BookListViewModelTest {
                         isLoading = false,
                         books = Books(listOf(book1Updated, book2Updated, book3Updated)),
                         subtitle = "",
+                        canDrag = false,
                         isDraggingEnabled = false,
                     ),
                     awaitItem(),
@@ -211,6 +219,119 @@ class BookListViewModelTest {
             }
             verify { booksLocalDataSource.getAllBooks() }
         }
+
+    @Test
+    fun `GIVEN friendId WHEN fetchBooks THEN return Success state with friend books`() = runTest {
+        val testFriendId = "friendId"
+        val savedStateHandle: SavedStateHandle = SavedStateHandle().apply {
+            this["state"] = ""
+            this["sortParam"] = null
+            this["isSortDescending"] = false
+            this["query"] = ""
+            this["friendId"] = testFriendId
+        }
+        val viewModel = BookListViewModel(
+            savedStateHandle,
+            BooksRepositoryImpl(
+                booksLocalDataSource,
+                booksRemoteDataSource,
+                mainDispatcherRule.testDispatcher,
+            ),
+            UserRepositoryImpl(
+                userLocalDataSource,
+                userRemoteDataSource,
+                mainDispatcherRule.testDispatcher,
+            ),
+        )
+
+        val book1 = Book("1")
+        val book2 = Book("2")
+        coEvery { booksRemoteDataSource.getBooks(testFriendId) } returns Result.success(
+            listOf(
+                book2.toRemoteData(),
+                book1.toRemoteData(),
+            ),
+        )
+
+        viewModel.state.test {
+            assertEquals(BookListUiState.initial(), awaitItem())
+
+            viewModel.fetchBooks()
+
+            assertEquals(
+                BookListUiState(
+                    isLoading = false,
+                    books = Books(listOf(book1, book2)),
+                    subtitle = "",
+                    isDraggingEnabled = false,
+                    canDrag = false,
+                ),
+                awaitItem(),
+            )
+        }
+        coVerify { booksRemoteDataSource.getBooks(testFriendId) }
+    }
+
+    @Test
+    fun `GIVEN friendId and failure WHEN fetchBooks THEN show server error`() = runTest {
+        val testFriendId = "friendId"
+        val savedStateHandle: SavedStateHandle = SavedStateHandle().apply {
+            this["state"] = ""
+            this["sortParam"] = null
+            this["isSortDescending"] = false
+            this["query"] = ""
+            this["friendId"] = testFriendId
+        }
+        val viewModel = BookListViewModel(
+            savedStateHandle,
+            BooksRepositoryImpl(
+                booksLocalDataSource,
+                booksRemoteDataSource,
+                mainDispatcherRule.testDispatcher,
+            ),
+            UserRepositoryImpl(
+                userLocalDataSource,
+                userRemoteDataSource,
+                mainDispatcherRule.testDispatcher,
+            ),
+        )
+
+        coEvery {
+            booksRemoteDataSource.getBooks(
+                testFriendId,
+            )
+        } returns Result.failure(RuntimeException())
+
+        viewModel.state.test {
+            val state = this
+            assertEquals(BookListUiState.initial(), awaitItem())
+
+            viewModel.booksError.test {
+                assertEquals(null, awaitItem())
+
+                viewModel.fetchBooks()
+
+                assertEquals(
+                    BookListUiState(
+                        isLoading = false,
+                        books = Books(),
+                        subtitle = "",
+                        isDraggingEnabled = false,
+                        canDrag = false,
+                    ),
+                    state.awaitItem(),
+                )
+                assertEquals(
+                    ErrorModel(
+                        Constants.EMPTY_VALUE,
+                        Res.string.error_database,
+                    ),
+                    awaitItem(),
+                )
+            }
+        }
+        coVerify { booksRemoteDataSource.getBooks(testFriendId) }
+    }
 
     @Test
     fun `GIVEN books and new sort param emission WHEN fetchBooks THEN return Success state with books sorted by new param`() =
@@ -222,12 +343,7 @@ class BookListViewModelTest {
 
             viewModel.state.test {
                 assertEquals(
-                    BookListUiState(
-                        isLoading = true,
-                        books = Books(),
-                        subtitle = "",
-                        isDraggingEnabled = false,
-                    ),
+                    BookListUiState.initial(),
                     awaitItem(),
                 )
 
@@ -238,6 +354,7 @@ class BookListViewModelTest {
                         isLoading = false,
                         books = Books(listOf(book1, book2, book3)),
                         subtitle = "",
+                        canDrag = false,
                         isDraggingEnabled = false,
                     ),
                     awaitItem(),
@@ -250,6 +367,7 @@ class BookListViewModelTest {
                         isLoading = false,
                         books = Books(listOf(book2, book1, book3)),
                         subtitle = "",
+                        canDrag = false,
                         isDraggingEnabled = false,
                     ),
                     awaitItem(),
@@ -320,12 +438,7 @@ class BookListViewModelTest {
 
             viewModel.state.test {
                 assertEquals(
-                    BookListUiState(
-                        isLoading = true,
-                        books = Books(),
-                        subtitle = "",
-                        isDraggingEnabled = false,
-                    ),
+                    BookListUiState.initial(),
                     awaitItem(),
                 )
 
@@ -336,6 +449,7 @@ class BookListViewModelTest {
                         isLoading = true,
                         books = Books(),
                         subtitle = "2025,writer,Physical,Fiction",
+                        canDrag = false,
                         isDraggingEnabled = false,
                     ),
                     awaitItem(),
@@ -345,6 +459,7 @@ class BookListViewModelTest {
                         isLoading = false,
                         books = Books(listOf(book2, book3, book1)),
                         subtitle = "2025,writer,Physical,Fiction",
+                        canDrag = false,
                         isDraggingEnabled = false,
                     ),
                     awaitItem(),
@@ -354,16 +469,89 @@ class BookListViewModelTest {
         }
 
     @Test
+    fun `GIVEN pending state and no friendId WHEN fetchBooks THEN canDrag is true`() = runTest {
+        val savedStateHandle: SavedStateHandle = SavedStateHandle().apply {
+            this["state"] = BookState.PENDING
+            this["sortParam"] = null
+            this["isSortDescending"] = false
+            this["query"] = ""
+        }
+        val viewModel = BookListViewModel(
+            savedStateHandle,
+            BooksRepositoryImpl(
+                booksLocalDataSource,
+                booksRemoteDataSource,
+                mainDispatcherRule.testDispatcher,
+            ),
+            UserRepositoryImpl(
+                userLocalDataSource,
+                userRemoteDataSource,
+                mainDispatcherRule.testDispatcher,
+            ),
+        )
+        val book1 = Book("1").copy(state = BookState.PENDING)
+        booksFlow.emit(listOf(book1))
+
+        viewModel.state.test {
+            assertEquals(BookListUiState.initial(), awaitItem())
+
+            viewModel.fetchBooks()
+
+            assertEquals(
+                BookListUiState(
+                    isLoading = true,
+                    books = Books(),
+                    subtitle = "",
+                    isDraggingEnabled = false,
+                    canDrag = true,
+                ),
+                awaitItem(),
+            )
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `GIVEN pending state and friendId WHEN fetchBooks THEN canDrag is false`() = runTest {
+        val testFriendId = "friendId"
+        val savedStateHandle: SavedStateHandle = SavedStateHandle().apply {
+            this["state"] = BookState.PENDING
+            this["sortParam"] = null
+            this["isSortDescending"] = false
+            this["query"] = ""
+            this["friendId"] = testFriendId
+        }
+        val viewModel = BookListViewModel(
+            savedStateHandle,
+            BooksRepositoryImpl(
+                booksLocalDataSource,
+                booksRemoteDataSource,
+                mainDispatcherRule.testDispatcher,
+            ),
+            UserRepositoryImpl(
+                userLocalDataSource,
+                userRemoteDataSource,
+                mainDispatcherRule.testDispatcher,
+            ),
+        )
+        coEvery { booksRemoteDataSource.getBooks(testFriendId) } returns Result.success(emptyList())
+
+        viewModel.state.test {
+            assertEquals(BookListUiState.initial(), awaitItem())
+
+            viewModel.fetchBooks()
+
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `GIVEN Success state with isDraggingEnabled false WHEN switchDraggingState THEN update state with isDraggingEnabled true`() =
         runTest {
             viewModel.state.test {
                 assertEquals(
-                    BookListUiState(
-                        isLoading = true,
-                        books = Books(),
-                        subtitle = "",
-                        isDraggingEnabled = false,
-                    ),
+                    BookListUiState.initial(),
                     awaitItem(),
                 )
 
@@ -374,6 +562,7 @@ class BookListViewModelTest {
                         isLoading = true,
                         books = Books(),
                         subtitle = "",
+                        canDrag = false,
                         isDraggingEnabled = true,
                     ),
                     awaitItem(),
@@ -388,12 +577,7 @@ class BookListViewModelTest {
         val book3 = Book("3").copy(priority = 2)
         viewModel.state.test {
             assertEquals(
-                BookListUiState(
-                    isLoading = true,
-                    books = Books(),
-                    subtitle = "",
-                    isDraggingEnabled = false,
-                ),
+                BookListUiState.initial(),
                 awaitItem(),
             )
 
@@ -410,6 +594,7 @@ class BookListViewModelTest {
                         ),
                     ),
                     subtitle = "",
+                    canDrag = false,
                     isDraggingEnabled = false,
                 ),
                 awaitItem(),
@@ -430,12 +615,7 @@ class BookListViewModelTest {
 
             viewModel.state.test {
                 assertEquals(
-                    BookListUiState(
-                        isLoading = true,
-                        books = Books(),
-                        subtitle = "",
-                        isDraggingEnabled = false,
-                    ),
+                    BookListUiState.initial(),
                     awaitItem(),
                 )
                 viewModel.fetchBooks()
@@ -444,6 +624,7 @@ class BookListViewModelTest {
                         isLoading = false,
                         books = Books(listOf(book1, book2, book3)),
                         subtitle = "",
+                        canDrag = false,
                         isDraggingEnabled = false,
                     ),
                     awaitItem(),
@@ -457,6 +638,7 @@ class BookListViewModelTest {
                         isLoading = false,
                         books = Books(listOf(updatedBook1, updatedBook2, book3)),
                         subtitle = "",
+                        canDrag = false,
                         isDraggingEnabled = false,
                     ),
                     awaitItem(),
@@ -485,12 +667,7 @@ class BookListViewModelTest {
         viewModel.state.test {
             val state = this
             assertEquals(
-                BookListUiState(
-                    isLoading = true,
-                    books = Books(),
-                    subtitle = "",
-                    isDraggingEnabled = false,
-                ),
+                BookListUiState.initial(),
                 awaitItem(),
             )
             viewModel.fetchBooks()
@@ -499,6 +676,7 @@ class BookListViewModelTest {
                     isLoading = false,
                     books = Books(listOf(book1, book2, book3)),
                     subtitle = "",
+                    canDrag = false,
                     isDraggingEnabled = false,
                 ),
                 awaitItem(),
@@ -509,15 +687,6 @@ class BookListViewModelTest {
 
                 viewModel.setPriorityFor(listOf(book1, book2, book3))
 
-                assertEquals(
-                    BookListUiState(
-                        isLoading = false,
-                        books = Books(),
-                        subtitle = "",
-                        isDraggingEnabled = false,
-                    ),
-                    state.awaitItem(),
-                )
                 assertEquals(
                     ErrorModel(
                         Constants.EMPTY_VALUE,

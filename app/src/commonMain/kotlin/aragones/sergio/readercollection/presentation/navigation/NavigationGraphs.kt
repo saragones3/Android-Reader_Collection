@@ -12,13 +12,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import aragones.sergio.readercollection.presentation.account.AccountView
-import aragones.sergio.readercollection.presentation.addfriend.AddFriendsView
 import aragones.sergio.readercollection.presentation.bookdetail.BookDetailView
 import aragones.sergio.readercollection.presentation.booklist.BookListView
 import aragones.sergio.readercollection.presentation.books.BooksView
-import aragones.sergio.readercollection.presentation.datasync.DataSyncView
-import aragones.sergio.readercollection.presentation.displaysettings.DisplaySettingsView
-import aragones.sergio.readercollection.presentation.frienddetail.FriendDetailView
 import aragones.sergio.readercollection.presentation.friends.FriendsView
 import aragones.sergio.readercollection.presentation.login.LoginView
 import aragones.sergio.readercollection.presentation.register.RegisterView
@@ -110,9 +106,9 @@ fun NavGraphBuilder.booksGraph(navController: NavHostController) {
             popExitTransition = { slideOutOfContainer() },
         ) {
             BookListView(
-                onBookClick = { bookId ->
+                onBookClick = { bookId, friendId ->
                     navController.navigate(
-                        Route.BookDetail(bookId),
+                        Route.BookDetail(bookId, friendId),
                     )
                 },
                 onBack = {
@@ -168,9 +164,63 @@ fun NavGraphBuilder.statisticsGraph(navController: NavHostController) {
             popExitTransition = { slideOutOfContainer() },
         ) {
             BookListView(
-                onBookClick = { bookId ->
+                onBookClick = { bookId, friendId ->
                     navController.navigate(
-                        Route.BookDetail(bookId),
+                        Route.BookDetail(bookId, friendId),
+                    )
+                },
+                onBack = {
+                    navController.navigateUp()
+                },
+            )
+        }
+        composable<Route.BookDetail>(
+            enterTransition = { slideIntoContainer() },
+            exitTransition = { slideOutOfContainer() },
+        ) {
+            BookDetailView(
+                onBack = {
+                    navController.navigateUp()
+                },
+            )
+        }
+    }
+}
+
+fun NavGraphBuilder.friendsGraph(navController: NavHostController) {
+    navigation<Route.Friends>(startDestination = Route.FriendsHome) {
+        composable<Route.FriendsHome>(
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+        ) {
+            FriendsView(
+                onBookClick = { bookId, friendId ->
+                    navController.navigate(
+                        Route.BookDetail(bookId, friendId),
+                    )
+                },
+                onShowAll = { state, sortParam, isSortDescending, friendId ->
+                    navController.navigate(
+                        Route.BookList(
+                            state = state,
+                            sortParam = sortParam,
+                            isSortDescending = isSortDescending,
+                            query = "",
+                            friendId = friendId,
+                        ),
+                    )
+                },
+            )
+        }
+        composable<Route.BookList>(
+            enterTransition = { slideIntoContainer() },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { slideOutOfContainer() },
+        ) {
+            BookListView(
+                onBookClick = { bookId, friendId ->
+                    navController.navigate(
+                        Route.BookDetail(bookId, friendId),
                     )
                 },
                 onBack = {
@@ -201,13 +251,11 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController, navigator: N
                 onClickOption = {
                     when (it) {
                         is SettingsOption.Account -> navController.navigate(Route.Account)
-                        is SettingsOption.Friends -> navController.navigate(Route.Friends)
-                        is SettingsOption.DataSync -> navController.navigate(Route.DataSync)
-                        is SettingsOption.DisplaySettings -> navController.navigate(
-                            Route.DisplaySettings,
-                        )
                         is SettingsOption.Logout -> navigator.goToLanding()
                     }
+                },
+                onRelaunch = {
+                    navigator.goToMain(withOptions = false)
                 },
             )
         }
@@ -221,82 +269,6 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController, navigator: N
                 },
                 onLogout = {
                     navigator.goToLanding()
-                },
-            )
-        }
-        composable<Route.Friends>(
-            enterTransition = { slideIntoContainer() },
-            popEnterTransition = { EnterTransition.None },
-            popExitTransition = { slideOutOfContainer() },
-        ) {
-            FriendsView(
-                onBack = {
-                    navController.navigateUp()
-                },
-                onSelectFriend = { userId ->
-                    navController.navigate(Route.FriendDetail(userId))
-                },
-                onAddFriend = {
-                    navController.navigate(Route.AddFriends)
-                },
-            )
-        }
-        composable<Route.FriendDetail>(
-            enterTransition = { slideIntoContainer() },
-            popEnterTransition = { EnterTransition.None },
-            popExitTransition = { slideOutOfContainer() },
-        ) {
-            FriendDetailView(
-                onBack = {
-                    navController.navigateUp()
-                },
-                onBookClick = { bookId, friendId ->
-                    navController.navigate(
-                        Route.BookDetail(bookId, friendId),
-                    )
-                },
-            )
-        }
-        composable<Route.BookDetail>(
-            enterTransition = { slideIntoContainer() },
-            exitTransition = { slideOutOfContainer() },
-        ) {
-            BookDetailView(
-                onBack = {
-                    navController.navigateUp()
-                },
-            )
-        }
-        composable<Route.AddFriends>(
-            enterTransition = { slideIntoContainer() },
-            exitTransition = { slideOutOfContainer() },
-        ) {
-            AddFriendsView(
-                onBack = {
-                    navController.navigateUp()
-                },
-            )
-        }
-        composable<Route.DataSync>(
-            enterTransition = { slideIntoContainer() },
-            exitTransition = { slideOutOfContainer() },
-        ) {
-            DataSyncView(
-                onBack = {
-                    navController.navigateUp()
-                },
-            )
-        }
-        composable<Route.DisplaySettings>(
-            enterTransition = { slideIntoContainer() },
-            exitTransition = { slideOutOfContainer() },
-        ) {
-            DisplaySettingsView(
-                onBack = {
-                    navController.navigateUp()
-                },
-                onRelaunch = {
-                    navigator.goToMain(withOptions = false)
                 },
             )
         }

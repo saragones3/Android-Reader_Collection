@@ -26,7 +26,10 @@ import kotlinx.serialization.json.jsonObject
 class BooksRemoteDataSource(
     private val client: HttpClient,
     private val firebaseProvider: FirebaseProvider,
+    private val json: Json,
 ) {
+
+    private var searchRetries = 0
 
     //region Static properties
     companion object {
@@ -48,32 +51,58 @@ class BooksRemoteDataSource(
         filter: String,
         page: Int,
         order: String?,
-    ): Result<GoogleBookListResponse> = try {
-        val params = mutableMapOf(
-            SEARCH_PARAM to "$query+$filter:$query",
-            PAGE_PARAM to ((page - 1) * RESULTS).toString(),
-            RESULTS_PARAM to RESULTS.toString(),
-        )
-        if (order != null) {
-            params[ORDER_PARAM] = order
-        }
+    ): Result<GoogleBookListResponse> {
+        searchRetries = 0
+        while (true) {
+            val result = try {
+                val params = mutableMapOf(
+                    SEARCH_PARAM to "$query+$filter:$query",
+                    PAGE_PARAM to ((page - 1) * RESULTS).toString(),
+                    RESULTS_PARAM to RESULTS.toString(),
+                )
+                if (order != null) {
+                    params[ORDER_PARAM] = order
+                }
 
-        val response = client.get(VOLUMES_PATH) {
-            url {
-                for (param in params) {
-                    parameters.append(param.key, param.value)
+                val response = client.get(VOLUMES_PATH) {
+                    url {
+                        for (param in params) {
+                            parameters.append(param.key, param.value)
+                        }
+                    }
+                }
+                Result.success(response)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }.mapCatching { response ->
+                when {
+                    response.status == HttpStatusCode.OK -> {
+                        response.body<GoogleBookListResponse>()
+                    }
+                    response.status.value in 500..599 -> {
+                        if (searchRetries < 2) {
+                            searchRetries++
+                            throw Exception("Retry")
+                        } else {
+                            throw IllegalStateException(
+                                "Unexpected status code response ${response.status}",
+                            )
+                        }
+                    }
+                    else -> {
+                        throw IllegalStateException(
+                            "Unexpected status code response ${response.status}",
+                        )
+                    }
                 }
             }
-        }
-        Result.success(response)
-    } catch (e: Exception) {
-        Result.failure(e)
-    }.mapCatching { response ->
-        when (response.status) {
-            HttpStatusCode.OK -> response.body()
-            else -> throw IllegalStateException(
-                "Unexpected status code response ${response.status}",
-            )
+
+            if (result.isSuccess ||
+                (result.isFailure && result.exceptionOrNull()?.message != "Retry")
+            ) {
+                searchRetries = 0
+                return result
+            }
         }
     }
 
@@ -94,17 +123,17 @@ class BooksRemoteDataSource(
     fun fetchRemoteConfigValues(language: String, onCompletion: () -> Unit) {
         firebaseProvider.fetchRemoteConfigString(FORMATS_KEY) {
             ALL_FORMATS = parseValues(it)
-            FORMATS = ALL_FORMATS[language] ?: emptyList()
+            FORMATS = ALL_FORMATS[language].orEmpty()
             onCompletion()
         }
         firebaseProvider.fetchRemoteConfigString(GENRES_KEY) {
             ALL_GENRES = parseValues(it)
-            GENRES = ALL_GENRES[language] ?: emptyList()
+            GENRES = ALL_GENRES[language].orEmpty()
             onCompletion()
         }
         firebaseProvider.fetchRemoteConfigString(STATES_KEY) {
             ALL_STATES = parseValues(it)
-            STATES = ALL_STATES[language] ?: emptyList()
+            STATES = ALL_STATES[language].orEmpty()
             onCompletion()
         }
     }
@@ -133,11 +162,11 @@ class BooksRemoteDataSource(
         values: String,
     ): Map<String, List<T>> = if (values.isNotEmpty()) {
         try {
-            val valuesJson = Json
+            val valuesJson = json
                 .parseToJsonElement(values)
                 .jsonObject
                 .toString()
-            Json
+            json
                 .decodeFromString<Map<String, Array<T>>>(valuesJson)
                 .mapValues { it.value.asList() }
         } catch (e: Exception) {

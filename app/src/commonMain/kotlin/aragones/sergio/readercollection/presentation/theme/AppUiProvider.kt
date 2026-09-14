@@ -5,20 +5,15 @@
 
 package aragones.sergio.readercollection.presentation.theme
 
-import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 expect object AppUiProvider {
     @Composable
     fun isDarkThemeApplied(): Boolean
 
     @Composable
-    fun applyBarsStyle(
-        isDarkTheme: Boolean,
-        colors: ColorScheme,
-        statusBarSameAsBackground: Boolean,
-        navigationBarSameAsBackground: Boolean,
-    )
+    fun applyBarsStyle(statusBarColor: Color, navigationBarColor: Color)
 
     @Composable
     fun isPortrait(): Boolean

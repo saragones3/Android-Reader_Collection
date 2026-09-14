@@ -20,7 +20,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material3.MaterialTheme
@@ -35,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -52,10 +51,8 @@ import aragones.sergio.readercollection.presentation.components.CustomCircularPr
 import aragones.sergio.readercollection.presentation.components.CustomPreviewLightDark
 import aragones.sergio.readercollection.presentation.components.CustomToolbar
 import aragones.sergio.readercollection.presentation.components.ListButton
-import aragones.sergio.readercollection.presentation.components.NoResultsComponent
 import aragones.sergio.readercollection.presentation.components.TopAppBarIcon
 import aragones.sergio.readercollection.presentation.components.withDescription
-import aragones.sergio.readercollection.presentation.search.reachedBottom
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import com.aragones.sergio.util.BookState
 import kotlinx.coroutines.Job
@@ -105,13 +102,13 @@ fun BookListScreen(
         ""
     }
     val actions: @Composable RowScope.() -> Unit = {
-        if (state.books.books.any { it.isPending() }) {
+        if (state.canDrag) {
             TopAppBarIcon(
                 accessibilityPainter = if (state.isDraggingEnabled) {
                     painterResource(Res.drawable.ic_disable_drag)
                         .withDescription(stringResource(Res.string.disable_dragging))
                 } else {
-                    rememberVectorPainter(Icons.Default.DragHandle)
+                    rememberVectorPainter(Icons.Default.DragIndicator)
                         .withDescription(stringResource(Res.string.enable_dragging))
                 },
                 onClick = onDragClick,
@@ -137,9 +134,7 @@ fun BookListScreen(
         Box(
             modifier = Modifier.fillMaxSize(),
         ) {
-            if (state.books.books.isEmpty()) {
-                NoResultsComponent()
-            } else {
+            if (state.books.books.isNotEmpty()) {
                 BookListContent(
                     books = state.books,
                     isDraggingEnabled = state.isDraggingEnabled,
@@ -241,16 +236,14 @@ private fun BookListContent(
                     book = book,
                     onBookClick = onBookClick,
                     modifier = Modifier
-                        .composed {
-                            val offset =
-                                dragAndDropListState.elementDisplacement.takeIf {
-                                    index == dragAndDropListState.currentIndexOfDraggedItem
-                                } ?: 0f
-                            Modifier.graphicsLayer {
-                                translationY = offset
+                        .graphicsLayer {
+                            val currentIndex = dragAndDropListState.currentIndexOfDraggedItem
+                            translationY = if (index == currentIndex) {
+                                dragAndDropListState.elementDisplacement ?: 0f
+                            } else {
+                                0f
                             }
                         }.zIndex(1f.takeIf { draggingIndex == index } ?: 0f),
-                    showDivider = index < books.size - 1,
                     isDraggingEnabled = isDraggingEnabled,
                     isDragging = index == draggingIndex,
                 )
@@ -289,6 +282,12 @@ private fun <T> MutableList<T>.move(from: Int, to: Int) {
     if (from == to) return
     val element = this.removeAt(from)
     this.add(to, element)
+}
+
+private fun LazyListState.reachedBottom(buffer: Int = 1): Boolean {
+    val lastVisibleItem = this.layoutInfo.visibleItemsInfo.lastOrNull()
+    return lastVisibleItem?.index != 0 &&
+        lastVisibleItem?.index == this.layoutInfo.totalItemsCount - buffer
 }
 
 @CustomPreviewLightDark
@@ -334,6 +333,7 @@ private class BookListScreenPreviewParameterProvider :
                     ),
                 ),
                 subtitle = "",
+                canDrag = true,
                 isDraggingEnabled = false,
             ),
             BookListUiState(
@@ -353,6 +353,7 @@ private class BookListScreenPreviewParameterProvider :
                     ),
                 ),
                 subtitle = "2025",
+                canDrag = false,
                 isDraggingEnabled = true,
             ),
         )

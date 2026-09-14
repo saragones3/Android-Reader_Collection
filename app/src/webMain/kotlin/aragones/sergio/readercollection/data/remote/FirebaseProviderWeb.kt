@@ -104,18 +104,17 @@ class FirebaseProviderWeb : FirebaseProvider {
         deleteDocumentJs(getFirestoreJs(), PUBLIC_PROFILES_PATH, userId).await()
     }
 
-    override suspend fun getUserFromDatabase(username: String, userId: String): UserResponse? {
-        val result = queryDocumentsJs(
-            getFirestoreJs(),
-            PUBLIC_PROFILES_PATH,
-            EMAIL_KEY,
-            username,
-        ).await()
+    override suspend fun getPublicUsers(username: String, userId: String): List<UserResponse> {
+        val result = getDocumentsJs(getFirestoreJs(), PUBLIC_PROFILES_PATH).await()
         val docs = json.decodeFromString<List<Map<String, String>>>(result.toString())
-        return docs.firstOrNull()?.let {
+        return docs.mapNotNull {
             val uuid = it[UUID_KEY]
             val email = it[EMAIL_KEY]
-            if (uuid != null && email != null && uuid != userId) {
+            if (uuid != null &&
+                email != null &&
+                uuid != userId &&
+                email.contains(username, true)
+            ) {
                 UserResponse(
                     id = uuid,
                     username = email.split("@").first(),
@@ -227,6 +226,11 @@ class FirebaseProviderWeb : FirebaseProvider {
 
     override suspend fun deleteBooks(userId: String) {
         deleteBooksJs(getFirestoreJs(), userId).await()
+    }
+
+    override suspend fun getLastUpdated(userId: String): Any? {
+        val result = getLastUpdatedJs(getFirestoreJs(), userId).await()
+        return json.decodeFromString<JsonObject>(result.toString()).toAny()
     }
 
     override fun fetchRemoteConfigString(key: String, onCompletion: (String) -> Unit) {
@@ -392,6 +396,9 @@ external fun deleteFriendshipJs(db: JsAny, userId: String, friendId: String): Pr
 
 @JsFun("(db, userId) => window.firebaseFirestoreModule.deleteFriends(db, userId)")
 external fun deleteFriendsJs(db: JsAny, userId: String): Promise<JsAny?>
+
+@JsFun("(db, userId) => window.firebaseFirestoreModule.getLastUpdated(db, userId)")
+external fun getLastUpdatedJs(db: JsAny, userId: String): Promise<JsString?>
 
 @JsFun("() => window.firebaseRemoteConfig")
 external fun getRemoteConfigJs(): JsAny

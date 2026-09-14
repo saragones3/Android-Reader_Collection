@@ -17,7 +17,6 @@ import org.koin.compose.viewmodel.koinViewModel
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.email_info
 import reader_collection.app.generated.resources.profile_delete_confirmation
-import reader_collection.app.generated.resources.public_profile_disable_confirmation
 
 @Composable
 fun AccountView(
@@ -45,13 +44,6 @@ fun AccountView(
             onProfileDataChange = viewModel::profileDataChanged,
             onBack = onBack,
             onSave = viewModel::save,
-            onChangePublicProfile = { enable ->
-                if (enable) {
-                    viewModel.setPublicProfile(true)
-                } else {
-                    viewModel.showConfirmationDialog(Res.string.public_profile_disable_confirmation)
-                }
-            },
             onDeleteAccount = {
                 viewModel.showConfirmationDialog(Res.string.profile_delete_confirmation)
             },
@@ -67,9 +59,6 @@ fun AccountView(
             when (confirmationMessageId) {
                 Res.string.profile_delete_confirmation -> {
                     viewModel.deleteUser()
-                }
-                Res.string.public_profile_disable_confirmation -> {
-                    viewModel.setPublicProfile(false)
                 }
                 null -> {
                     /*no-op*/

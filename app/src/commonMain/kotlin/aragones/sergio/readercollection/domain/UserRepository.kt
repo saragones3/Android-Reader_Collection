@@ -7,6 +7,7 @@ package aragones.sergio.readercollection.domain
 
 import aragones.sergio.readercollection.data.local.model.UserData
 import aragones.sergio.readercollection.domain.model.User
+import kotlinx.datetime.LocalDate
 
 interface UserRepository {
     val usernameOrEmail: String
@@ -29,7 +30,7 @@ interface UserRepository {
     suspend fun updateDisplayName(displayName: String): Result<Unit>
     suspend fun setPublicProfile(value: Boolean): Result<Unit>
     suspend fun loadConfig()
-    suspend fun getUserWith(username: String): Result<User>
+    suspend fun getUsersWith(username: String): Result<List<User>>
     suspend fun getFriends(): List<User>
     suspend fun getFriend(friendId: String): Result<User>
     suspend fun requestFriendship(friend: User): Result<Unit>
@@ -37,6 +38,7 @@ interface UserRepository {
     suspend fun rejectFriendRequest(friendId: String): Result<Unit>
     suspend fun deleteFriend(friendId: String): Result<Unit>
     suspend fun deleteUser(): Result<Unit>
+    suspend fun getLastUpdated(): LocalDate?
     fun storeAutomaticSync(value: Boolean)
     fun storeLanguage(language: String)
     fun storeSortParam(sortParam: String?)

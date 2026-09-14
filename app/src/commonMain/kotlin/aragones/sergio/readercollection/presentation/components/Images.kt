@@ -5,8 +5,10 @@
 
 package aragones.sergio.readercollection.presentation.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -20,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import aragones.sergio.readercollection.Target
 import aragones.sergio.readercollection.getCurrentTarget
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
@@ -30,6 +34,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.book_cover_description
+import reader_collection.app.generated.resources.book_item_background
 import reader_collection.app.generated.resources.ic_default_book_cover_blue
 
 @Composable
@@ -40,6 +45,7 @@ fun ImageWithLoading(
     contentDescription: String? = null,
     contentScale: ContentScale = ContentScale.Fit,
     shape: CornerBasedShape? = null,
+    imagePadding: Dp = 24.dp,
 ) {
     var isLoading by rememberSaveable { mutableStateOf(true) }
 
@@ -52,7 +58,17 @@ fun ImageWithLoading(
         }
     }
 
-    Box(modifier) {
+    Box(
+        modifier = modifier.run {
+            if (shape != null) clip(shape) else this
+        },
+    ) {
+        Image(
+            painter = painterResource(Res.drawable.book_item_background),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillBounds,
+        )
         AsyncImage(
             model = model,
             contentDescription = stringResource(
@@ -61,15 +77,14 @@ fun ImageWithLoading(
             ),
             modifier = Modifier
                 .fillMaxSize()
-                .run {
-                    if (shape != null) clip(shape) else this
-                },
+                .padding(horizontal = 8.dp, vertical = imagePadding),
             placeholder = painterResource(placeholder),
             error = painterResource(placeholder),
             onLoading = { isLoading = true },
             onSuccess = { isLoading = false },
             onError = { isLoading = false },
             contentScale = contentScale,
+            alignment = Alignment.BottomCenter,
         )
         if (isLoading) {
             CircularProgressIndicator(

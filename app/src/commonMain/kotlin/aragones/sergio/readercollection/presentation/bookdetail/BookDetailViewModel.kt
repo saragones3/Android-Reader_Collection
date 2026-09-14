@@ -173,7 +173,7 @@ class BookDetailViewModel(
 
     //region Private methods
     private fun fetchBook() = viewModelScope.launch {
-        if (params.friendId.isNotEmpty()) {
+        if (params.friendId != null) {
             booksRepository.getFriendBook(params.friendId, params.bookId).fold(
                 onSuccess = { book ->
                     currentBook = book

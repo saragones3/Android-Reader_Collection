@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import aragones.sergio.readercollection.presentation.theme.ReaderCollectionTheme
 import aragones.sergio.readercollection.presentation.theme.selector
+import aragones.sergio.readercollection.presentation.theme.titleSmallEmphasized
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
@@ -85,7 +86,7 @@ fun Picker(
                 Text(
                     text = item,
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.displaySmall,
+                    style = MaterialTheme.typography.titleSmallEmphasized,
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

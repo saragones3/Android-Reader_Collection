@@ -8,6 +8,9 @@ package aragones.sergio.readercollection.data.local
 import aragones.sergio.readercollection.data.remote.model.ALL_FORMATS
 import aragones.sergio.readercollection.data.remote.model.ALL_GENRES
 import aragones.sergio.readercollection.data.remote.model.ALL_STATES
+import aragones.sergio.readercollection.data.remote.model.FORMATS
+import aragones.sergio.readercollection.data.remote.model.GENRES
+import aragones.sergio.readercollection.data.remote.model.STATES
 import aragones.sergio.readercollection.domain.model.Book
 import com.aragones.sergio.BooksLocalDataSource as RoomBooksLocalDataSource
 import kotlinx.coroutines.flow.Flow
@@ -62,9 +65,13 @@ class DatabaseBooksLocalDataSource(
     }
 
     override fun retrieveRemoteConfigValues() {
+        val language = preferences.language
         ALL_FORMATS = preferences.formats
+        FORMATS = ALL_FORMATS[language] ?: emptyList()
         ALL_GENRES = preferences.genres
+        GENRES = ALL_GENRES[language] ?: emptyList()
         ALL_STATES = preferences.states
+        STATES = ALL_STATES[language] ?: emptyList()
     }
     //endregion
 }

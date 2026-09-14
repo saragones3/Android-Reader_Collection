@@ -12,7 +12,7 @@ class ListConverter {
 
     @TypeConverter
     fun stringToStringList(data: String?): List<String>? =
-        data?.let { Json.decodeFromString<List<String>>(it) } ?: emptyList()
+        data?.let { Json.decodeFromString<List<String>>(it) }.orEmpty()
 
     @TypeConverter
     fun stringListToString(elements: List<String>?): String? =

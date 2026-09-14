@@ -21,7 +21,7 @@ interface FirebaseProvider {
     suspend fun registerPublicProfile(username: String, userId: String)
     suspend fun isPublicProfileActive(username: String): Boolean
     suspend fun deletePublicProfile(userId: String)
-    suspend fun getUserFromDatabase(username: String, userId: String): UserResponse?
+    suspend fun getPublicUsers(username: String, userId: String): List<UserResponse>
     suspend fun getFriends(userId: String): List<UserResponse>
     suspend fun getFriend(userId: String, friendId: String): UserResponse?
     suspend fun requestFriendship(user: UserResponse, friend: UserResponse)
@@ -38,6 +38,7 @@ interface FirebaseProvider {
         booksToRemove: List<BookResponse>,
     )
     suspend fun deleteBooks(userId: String)
+    suspend fun getLastUpdated(userId: String): Any?
     fun fetchRemoteConfigString(key: String, onCompletion: (String) -> Unit)
     suspend fun getRemoteConfigString(key: String): String
 }

@@ -93,9 +93,9 @@ class UserLocalDataSource(
     fun storeLanguage(language: String) {
         preferences.language = language
         appInfoProvider.changeLocale(language)
-        FORMATS = ALL_FORMATS[language] ?: emptyList()
-        GENRES = ALL_GENRES[language] ?: emptyList()
-        STATES = ALL_STATES[language] ?: emptyList()
+        FORMATS = ALL_FORMATS[language].orEmpty()
+        GENRES = ALL_GENRES[language].orEmpty()
+        STATES = ALL_STATES[language].orEmpty()
     }
 
     fun storeSortParam(sortParam: String?) {

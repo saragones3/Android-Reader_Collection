@@ -48,7 +48,8 @@ import kotlinx.serialization.json.Json
 class BooksRemoteDataSourceTest {
 
     private val firebaseProvider: FirebaseProvider = mockk()
-    private val dataSource = BooksRemoteDataSource(mockk(), firebaseProvider)
+    private val json = Json { ignoreUnknownKeys = true }
+    private val dataSource = BooksRemoteDataSource(mockk(), firebaseProvider, json)
 
     @Test
     fun `GIVEN params without order and api success response WHEN search books is called THEN api is called without order param and return response`() =
@@ -89,7 +90,7 @@ class BooksRemoteDataSourceTest {
                 )
             }
             val client: HttpClient = getHttpClient(mockEngine)
-            val dataSource = BooksRemoteDataSource(client, firebaseProvider)
+            val dataSource = BooksRemoteDataSource(client, firebaseProvider, json)
 
             val result = dataSource.searchBooks(
                 query = query,
@@ -143,7 +144,7 @@ class BooksRemoteDataSourceTest {
                 )
             }
             val client: HttpClient = getHttpClient(mockEngine)
-            val dataSource = BooksRemoteDataSource(client, firebaseProvider)
+            val dataSource = BooksRemoteDataSource(client, firebaseProvider, json)
 
             val result = dataSource.searchBooks(
                 query = query,
@@ -185,7 +186,7 @@ class BooksRemoteDataSourceTest {
             )
         }
         val client: HttpClient = getHttpClient(mockEngine)
-        val dataSource = BooksRemoteDataSource(client, firebaseProvider)
+        val dataSource = BooksRemoteDataSource(client, firebaseProvider, json)
 
         val result = dataSource.searchBooks(
             query = query,
@@ -201,6 +202,56 @@ class BooksRemoteDataSourceTest {
             result.exceptionOrNull()?.message,
         )
     }
+
+    @Test
+    fun `GIVEN api failure response with 500 error code WHEN search books is called THEN api is called 3 times and return failure`() =
+        runTest {
+            val query = "bookTitle"
+            val page = 1
+            val order = "newest"
+            val params = mutableMapOf(
+                "q" to "$query+intitle:$query",
+                "startIndex" to "0",
+                "maxResults" to "20",
+                "orderBy" to order,
+                "key" to "apiKey",
+            )
+            val url = URLBuilder("/books/v1/volumes")
+                .apply {
+                    for (param in params) {
+                        parameters.append(param.key, param.value)
+                    }
+                }.build()
+                .encodedPathAndQuery
+            val error = HttpStatusCode(500, "Server Error")
+            var callCount = 0
+            val mockEngine = MockEngine { request ->
+                callCount++
+                assertEquals(url, request.url.encodedPathAndQuery)
+                respond(
+                    content = "{}",
+                    status = error,
+                    headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                )
+            }
+            val client: HttpClient = getHttpClient(mockEngine)
+            val dataSource = BooksRemoteDataSource(client, firebaseProvider, json)
+
+            val result = dataSource.searchBooks(
+                query = query,
+                filter = "intitle",
+                page = page,
+                order = order,
+            )
+
+            assertEquals(3, callCount)
+            assertEquals(true, result.isFailure)
+            assertIs<IllegalStateException>(result.exceptionOrNull())
+            assertEquals(
+                "Unexpected status code response ${error.value} ${error.description}",
+                result.exceptionOrNull()?.message,
+            )
+        }
 
     @Test
     fun `GIVEN book id and api success response WHEN get book is called THEN return response`() =
@@ -262,7 +313,7 @@ class BooksRemoteDataSourceTest {
                 )
             }
             val client: HttpClient = getHttpClient(mockEngine)
-            val dataSource = BooksRemoteDataSource(client, firebaseProvider)
+            val dataSource = BooksRemoteDataSource(client, firebaseProvider, json)
 
             val result = dataSource.getBook(bookId)
 
@@ -292,7 +343,7 @@ class BooksRemoteDataSourceTest {
                 )
             }
             val client: HttpClient = getHttpClient(mockEngine)
-            val dataSource = BooksRemoteDataSource(client, firebaseProvider)
+            val dataSource = BooksRemoteDataSource(client, firebaseProvider, json)
 
             val result = dataSource.getBook(bookId)
 

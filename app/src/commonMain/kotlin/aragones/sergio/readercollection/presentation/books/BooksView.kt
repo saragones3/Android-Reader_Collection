@@ -5,6 +5,7 @@
 
 package aragones.sergio.readercollection.presentation.books
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,7 +27,7 @@ fun BooksView(
     val sortingPickerState by viewModel.sortingPickerState.collectAsState()
     val error by viewModel.booksError.collectAsState()
 
-    ReaderCollectionApp(navigationBarSameAsBackground = false) {
+    ReaderCollectionApp(navigationBarColor = MaterialTheme.colorScheme.primary) {
         BooksScreen(
             state = state,
             onSortClick = {

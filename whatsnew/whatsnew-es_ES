@@ -1,1 +1,5 @@
-- Minor fixes
+- Rediseño de la aplicación
+- Se ha mejorado el sistema de arrastre para ordenar el listado de libros pendientes
+- Se ha implementado un sistema de reintentos al buscar libros para mejorar la búsqueda
+- Al borrar la cuenta se elimina tu perfil de los amigos añadidos
+- Se ha activado el perfil público por defecto al crear una cuenta, para que tus amigos puedan buscarte desde el principio

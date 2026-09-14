@@ -48,6 +48,7 @@ class RegisterViewModel(
             onSuccess = {
                 userRepository.login(username, password).fold(
                     onSuccess = {
+                        userRepository.setPublicProfile(true)
                         state.value = state.value.copy(isLoading = false)
                         registerSuccess.value = true
                     },

@@ -17,7 +17,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun BookListView(
-    onBookClick: (String) -> Unit,
+    onBookClick: (String, String?) -> Unit,
     onBack: () -> Unit,
     viewModel: BookListViewModel = koinViewModel(),
 ) {
@@ -33,7 +33,9 @@ fun BookListView(
     ReaderCollectionApp {
         BookListScreen(
             state = uiState,
-            onBookClick = onBookClick,
+            onBookClick = {
+                onBookClick(it, viewModel.friendId)
+            },
             onBack = onBack,
             onDragClick = {
                 viewModel.switchDraggingState()

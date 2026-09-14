@@ -13,7 +13,6 @@ data class AccountUiState(
     val password: String,
     val emailError: StringResource?,
     val passwordError: StringResource?,
-    val isProfilePublic: Boolean,
     val isLoading: Boolean,
 ) {
     companion object {
@@ -23,7 +22,6 @@ data class AccountUiState(
             password = "",
             emailError = null,
             passwordError = null,
-            isProfilePublic = false,
             isLoading = false,
         )
     }
