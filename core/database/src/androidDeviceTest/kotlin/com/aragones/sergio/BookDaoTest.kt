@@ -52,6 +52,7 @@ class BookDaoTest {
         thumbnail = "thumbnail",
         image = "image",
         format = "PHYSICAL",
+        language = null,
         state = "PENDING",
         priority = -1,
     )
@@ -279,8 +280,8 @@ class BookDaoTest {
         books.forEach {
             databaseHelper.writableDatabase.execSQL(
                 """
-                INSERT INTO Book (id, title, subtitle, authors, publisher, publishedDate, readingDate, description, summary, isbn, pageCount, categories, averageRating, ratingsCount, rating, thumbnail, image, format, state, priority) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO Book (id, title, subtitle, authors, publisher, publishedDate, readingDate, description, summary, isbn, pageCount, categories, averageRating, ratingsCount, rating, thumbnail, image, format, language, state, priority) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """.trimIndent(),
                 it.toSql(),
             )
@@ -321,8 +322,9 @@ class BookDaoTest {
         thumbnail = cursor.getString(15),
         image = cursor.getString(16),
         format = cursor.getString(17),
-        state = cursor.getString(18),
-        priority = cursor.getInt(19),
+        language = cursor.getString(18),
+        state = cursor.getString(19),
+        priority = cursor.getInt(20),
     )
 
     private fun Book.toSql(): Array<out Any?> = arrayOf<Any?>(
@@ -344,6 +346,7 @@ class BookDaoTest {
         thumbnail,
         image,
         format,
+        language,
         state,
         priority,
     )
