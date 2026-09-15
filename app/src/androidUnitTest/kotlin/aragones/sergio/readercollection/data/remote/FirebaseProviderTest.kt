@@ -1531,6 +1531,7 @@ class FirebaseProviderTest {
             every { documentSnapshot.getString("thumbnail") } returns book.thumbnail
             every { documentSnapshot.getString("image") } returns book.image
             every { documentSnapshot.getString("format") } returns book.format
+            every { documentSnapshot.getString("language") } returns book.language
             every { documentSnapshot.getString("state") } returns book.state
             every { documentSnapshot.get("priority") } returns book.priority
         }
