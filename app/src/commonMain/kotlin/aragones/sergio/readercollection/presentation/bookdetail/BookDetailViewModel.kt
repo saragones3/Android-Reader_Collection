@@ -174,38 +174,24 @@ class BookDetailViewModel(
     //region Private methods
     private fun fetchBook() = viewModelScope.launch {
         if (params.friendId != null) {
-            booksRepository.getFriendBook(params.friendId, params.bookId).fold(
-                onSuccess = { book ->
-                    currentBook = book
-                    state.update {
-                        it.copy(
-                            book = book,
-                            isEditable = true,
-                            isAlreadySaved = false,
-                        )
-                    }
-                },
-                onFailure = {
-                    bookDetailError.value = ErrorModel("", Res.string.error_no_book)
-                },
-            )
+            booksRepository.getFriendBook(params.friendId, params.bookId).map { it to false }
         } else {
-            booksRepository.getBook(params.bookId).fold(
-                onSuccess = { (book, isAlreadySaved) ->
-                    currentBook = book
-                    state.update {
-                        it.copy(
-                            book = book,
-                            isEditable = !isAlreadySaved,
-                            isAlreadySaved = isAlreadySaved,
-                        )
-                    }
-                },
-                onFailure = {
-                    bookDetailError.value = ErrorModel("", Res.string.error_no_book)
-                },
-            )
-        }
+            booksRepository.getBook(params.bookId)
+        }.fold(
+            onSuccess = { (book, isAlreadySaved) ->
+                currentBook = book
+                state.update {
+                    it.copy(
+                        book = book,
+                        isEditable = !isAlreadySaved,
+                        isAlreadySaved = isAlreadySaved,
+                    )
+                }
+            },
+            onFailure = {
+                bookDetailError.value = ErrorModel("", Res.string.error_no_book)
+            },
+        )
     }
     //endregion
 }
