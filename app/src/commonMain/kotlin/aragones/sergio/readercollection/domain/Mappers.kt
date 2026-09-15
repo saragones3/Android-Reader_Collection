@@ -35,6 +35,7 @@ fun Book.toRemoteData(): BookResponse = BookResponse(
     thumbnail = thumbnail,
     image = image,
     format = format,
+    language = language,
     state = state,
     priority = priority,
 )
@@ -61,6 +62,7 @@ fun BookResponse.toDomain(): Book = Book(
     thumbnail = thumbnail,
     image = image,
     format = format,
+    language = language,
     state = state,
     priority = priority,
 )
@@ -88,6 +90,7 @@ fun GoogleBookResponse.toDomain(): Book = Book(
     thumbnail = getGoogleBookThumbnail(),
     image = getGoogleBookImage(),
     format = FORMATS.firstOrNull()?.id,
+    language = volumeInfo.language,
     state = STATES.firstOrNull()?.id,
     priority = -1,
 )

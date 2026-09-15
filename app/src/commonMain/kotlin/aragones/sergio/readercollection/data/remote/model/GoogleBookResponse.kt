@@ -75,6 +75,8 @@ data class GoogleVolumeResponse(
     val industryIdentifiers: List<GoogleIsbnResponse>? = null,
     @SerialName("pageCount")
     val pageCount: Int? = null,
+    @SerialName("language")
+    val language: String? = null,
     @SerialName("categories")
     val categories: List<String>? = null,
     @SerialName("averageRating")

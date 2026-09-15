@@ -30,6 +30,7 @@ data class Book(
     val thumbnail: String? = null,
     val image: String? = null,
     val format: String? = null,
+    val language: String? = null,
     var state: String? = null,
     var priority: Int,
 ) {
@@ -50,6 +51,7 @@ data class Book(
         0.0,
         0,
         0.0,
+        null,
         null,
         null,
         null,

@@ -29,6 +29,7 @@ data class Book(
     val thumbnail: String?,
     val image: String?,
     val format: String?,
+    val language: String?,
     var state: String?,
     var priority: Int,
 ) : BaseEntity<String>

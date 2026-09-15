@@ -5,6 +5,7 @@
 
 package com.aragones.sergio
 
+import androidx.room.AutoMigration
 import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
@@ -15,7 +16,10 @@ import com.aragones.sergio.model.Book
 
 @Database(
     entities = [Book::class],
-    version = 4,
+    version = 5,
+    autoMigrations = [
+        AutoMigration(from = 4, to = 5),
+    ],
 )
 @TypeConverters(
     ListConverter::class,

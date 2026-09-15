@@ -31,6 +31,7 @@ fun Book.toLocalData(): BookLocal = BookLocal(
     thumbnail = thumbnail,
     image = image,
     format = format,
+    language = language,
     state = state,
     priority = priority,
 )
@@ -59,6 +60,7 @@ fun BookLocal.toDomain(): Book = Book(
     thumbnail = thumbnail,
     image = image,
     format = format,
+    language = language,
     state = state,
     priority = priority,
 )
