@@ -397,6 +397,7 @@ extension DocumentSnapshot {
             "thumbnail" : get("thumbnail") as? String ?? NSNull(),
             "image" : get("image") as? String ?? NSNull(),
             "format" : get("format") as? String ?? NSNull(),
+            "language" : get("language") as? String ?? NSNull(),
             "state" : get("state") as? String ?? NSNull(),
             "priority" : get("priority") ?? NSNull()
         ]

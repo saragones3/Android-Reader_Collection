@@ -104,6 +104,15 @@
     <string name="book_saved">¡Libro guardado!</string>
     <string name="book_removed">¡Libro eliminado!</string>
     <string name="by_author">Por %1$s</string>
+    <string name="language">Idioma</string>
+    <string-array name="language_values">
+        <item>Español</item>
+        <item>Inglés</item>
+        <item>Francés</item>
+        <item>Alemán</item>
+        <item>Italiano</item>
+        <item>Portugués</item>
+    </string-array>
 
     //SETTINGS
     <string name="title_settings">Configuración</string>

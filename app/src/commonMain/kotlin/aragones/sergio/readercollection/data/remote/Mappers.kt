@@ -30,6 +30,7 @@ fun Map<String, Any?>.toBook(id: String): BookResponse? {
             thumbnail = getValueOrNull<String>("thumbnail"),
             image = getValueOrNull<String>("image"),
             format = getValueOrNull<String>("format"),
+            language = getValueOrNull<String>("language"),
             state = getValueOrNull("state"),
             priority = getValueOrNull<Number>("priority")?.toInt() ?: -1,
         )
@@ -57,6 +58,7 @@ fun BookResponse.toMap(): Map<String, Any?> = mapOf(
     "thumbnail" to thumbnail,
     "image" to image,
     "format" to format,
+    "language" to language,
     "state" to state,
     "priority" to priority,
 )
