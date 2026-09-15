@@ -387,13 +387,13 @@ private fun ReadingBooksContentSection(
     modifier: Modifier = Modifier,
 ) {
     val screenWidthDp = getScreenWidth()
-    LazyRow(modifier) {
+    LazyRow(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(books.books) { book ->
             ReadingBookItem(
                 book = book,
                 onBookClick = onBookClick,
                 onLongClick = onLongClick,
-                modifier = Modifier.width(screenWidthDp.dp),
+                modifier = Modifier.width(screenWidthDp.dp - 48.dp),
             )
         }
     }

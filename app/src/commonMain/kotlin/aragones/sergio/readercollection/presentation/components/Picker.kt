@@ -71,7 +71,7 @@ fun Picker(
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = currentIndexSelected)
     val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 
-    Box(modifier = modifier.background(MaterialTheme.colorScheme.secondary)) {
+    Box(modifier = modifier.background(MaterialTheme.colorScheme.background)) {
         LazyColumn(
             state = listState,
             flingBehavior = flingBehavior,
