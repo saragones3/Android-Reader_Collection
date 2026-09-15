@@ -383,6 +383,7 @@ class FirebaseProviderAndroid(
         "thumbnail" to getString("thumbnail"),
         "image" to getString("image"),
         "format" to getString("format"),
+        "language" to getString("language"),
         "state" to getString("state"),
         "priority" to get("priority"),
     )

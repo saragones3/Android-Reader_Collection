@@ -50,6 +50,8 @@ data class BookResponse(
     val image: String? = null,
     @SerialName("format")
     val format: String? = null,
+    @SerialName("language")
+    val language: String? = null,
     @SerialName("state")
     var state: String? = null,
     @SerialName("priority")
