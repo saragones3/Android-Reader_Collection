@@ -91,6 +91,7 @@ import com.aragones.sergio.util.CustomInputType
 import com.aragones.sergio.util.extensions.currentLocalDate
 import com.aragones.sergio.util.extensions.isNotBlank
 import com.aragones.sergio.util.extensions.toLocalDate
+import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 import reader_collection.app.generated.resources.Res
 import reader_collection.app.generated.resources.add_author
@@ -111,6 +112,9 @@ import reader_collection.app.generated.resources.edit_book
 import reader_collection.app.generated.resources.format_title
 import reader_collection.app.generated.resources.ic_default_book_cover_blue
 import reader_collection.app.generated.resources.isbn
+import reader_collection.app.generated.resources.language
+import reader_collection.app.generated.resources.language_keys
+import reader_collection.app.generated.resources.language_values
 import reader_collection.app.generated.resources.pages
 import reader_collection.app.generated.resources.published_date
 import reader_collection.app.generated.resources.publisher
@@ -581,6 +585,17 @@ private fun ReadingInfo(book: Book, onChangeData: (Book) -> Unit, isEditable: Bo
                 formatValues.firstOrNull() ?: ""
             }
         }
+    val languageValues = stringArrayResource(Res.array.language_values)
+    val languageKeys = stringArrayResource(Res.array.language_keys)
+    val bookLanguage =
+        (book.language ?: language).run {
+            val index = languageKeys.indexOf(book.language ?: language)
+            if (index != -1 && index < languageValues.size) {
+                languageValues[index]
+            } else {
+                languageValues.firstOrNull() ?: ""
+            }
+        }
 
     SectionContainer(title = "") {
         Spacer(Modifier.height(12.dp))
@@ -622,33 +637,46 @@ private fun ReadingInfo(book: Book, onChangeData: (Book) -> Unit, isEditable: Bo
             )
         }
         Spacer(Modifier.height(8.dp))
+        DateCustomOutlinedTextField(
+            text = book.readingDate.getValueToShow(language)
+                ?: Constants.NO_VALUE.takeIf { !isEditable }
+                ?: Constants.EMPTY_VALUE,
+            labelText = stringResource(Res.string.reading_date),
+            onTextChanged = {
+                onChangeData(
+                    book.copy(
+                        readingDate = it.toLocalDate(language),
+                        state = BookState.READ,
+                    ),
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            placeholderText = stringResource(Res.string.select_a_date),
+            endIcon = rememberVectorPainter(Icons.Default.Clear)
+                .withDescription(stringResource(Res.string.clear_text))
+                .takeIf { isEditable && book.readingDate != null },
+            enabled = isEditable,
+            onEndIconClicked = {
+                onChangeData(book.copy(readingDate = null))
+            }.takeIf { isEditable },
+            language = language,
+        )
+        Spacer(Modifier.height(8.dp))
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.Top,
         ) {
-            DateCustomOutlinedTextField(
-                text = book.readingDate.getValueToShow(language)
-                    ?: Constants.NO_VALUE.takeIf { !isEditable }
-                    ?: Constants.EMPTY_VALUE,
-                labelText = stringResource(Res.string.reading_date),
-                onTextChanged = {
-                    onChangeData(
-                        book.copy(
-                            readingDate = it.toLocalDate(language),
-                            state = BookState.READ,
-                        ),
-                    )
+            DropdownOutlinedTextField(
+                currentValue = bookLanguage,
+                values = DropdownValues(languageValues),
+                labelText = stringResource(Res.string.language),
+                onOptionSelected = {
+                    val index = languageValues.indexOf(it)
+                    val newLanguage = languageKeys.getOrNull(index)?.takeIf { index != 0 }
+                    onChangeData(book.copy(language = newLanguage))
                 },
-                modifier = Modifier.weight(2f),
-                placeholderText = stringResource(Res.string.select_a_date),
-                endIcon = rememberVectorPainter(Icons.Default.Clear)
-                    .withDescription(stringResource(Res.string.clear_text))
-                    .takeIf { isEditable && book.readingDate != null },
+                modifier = Modifier.weight(1f),
                 enabled = isEditable,
-                onEndIconClicked = {
-                    onChangeData(book.copy(readingDate = null))
-                }.takeIf { isEditable },
-                language = language,
             )
             CustomOutlinedTextField(
                 text = book.pageCount
