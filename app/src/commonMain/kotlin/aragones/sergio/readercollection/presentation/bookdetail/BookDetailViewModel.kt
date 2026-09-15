@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import aragones.sergio.readercollection.domain.BooksRepository
+import aragones.sergio.readercollection.domain.UserRepository
 import aragones.sergio.readercollection.domain.model.Book
 import aragones.sergio.readercollection.domain.model.ErrorModel
 import aragones.sergio.readercollection.presentation.navigation.Route
@@ -28,6 +29,7 @@ import reader_collection.app.generated.resources.error_no_book
 class BookDetailViewModel(
     state: SavedStateHandle,
     private val booksRepository: BooksRepository,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
     //region Private properties
@@ -179,10 +181,16 @@ class BookDetailViewModel(
             booksRepository.getBook(params.bookId)
         }.fold(
             onSuccess = { (book, isAlreadySaved) ->
-                currentBook = book
+                currentBook = book.let {
+                    if (it.language == null) {
+                        it.copy(language = userRepository.language)
+                    } else {
+                        it
+                    }
+                }
                 state.update {
                     it.copy(
-                        book = book,
+                        book = currentBook,
                         isEditable = !isAlreadySaved,
                         isAlreadySaved = isAlreadySaved,
                     )

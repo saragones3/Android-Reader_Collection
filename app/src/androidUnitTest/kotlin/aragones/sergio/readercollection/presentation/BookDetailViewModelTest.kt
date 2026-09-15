@@ -11,8 +11,11 @@ package aragones.sergio.readercollection.presentation
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import aragones.sergio.readercollection.data.BooksRepositoryImpl
+import aragones.sergio.readercollection.data.UserRepositoryImpl
 import aragones.sergio.readercollection.data.local.BooksLocalDataSource
+import aragones.sergio.readercollection.data.local.UserLocalDataSource
 import aragones.sergio.readercollection.data.remote.BooksRemoteDataSource
+import aragones.sergio.readercollection.data.remote.UserRemoteDataSource
 import aragones.sergio.readercollection.data.remote.model.GoogleBookResponse
 import aragones.sergio.readercollection.data.remote.model.GoogleVolumeResponse
 import aragones.sergio.readercollection.domain.model.Book
@@ -63,11 +66,20 @@ class BookDetailViewModelTest {
         every { getAllBooks() } returns booksFlow
     }
     private val booksRemoteDataSource: BooksRemoteDataSource = mockk()
+    private val userLocalDataSource: UserLocalDataSource = mockk {
+        every { language } returns "en"
+    }
+    private val userRemoteDataSource: UserRemoteDataSource = mockk()
     private val viewModel = BookDetailViewModel(
         savedStateHandle,
         BooksRepositoryImpl(
             booksLocalDataSource,
             booksRemoteDataSource,
+            mainDispatcherRule.testDispatcher,
+        ),
+        UserRepositoryImpl(
+            userLocalDataSource,
+            userRemoteDataSource,
             mainDispatcherRule.testDispatcher,
         ),
     )
@@ -85,6 +97,11 @@ class BookDetailViewModelTest {
                 BooksRepositoryImpl(
                     booksLocalDataSource,
                     booksRemoteDataSource,
+                    mainDispatcherRule.testDispatcher,
+                ),
+                UserRepositoryImpl(
+                    userLocalDataSource,
+                    userRemoteDataSource,
                     mainDispatcherRule.testDispatcher,
                 ),
             )
@@ -107,7 +124,7 @@ class BookDetailViewModelTest {
 
                 assertEquals(
                     BookDetailUiState(
-                        book = book,
+                        book = book.copy(language = "en"),
                         isEditable = true,
                         isAlreadySaved = false,
                     ),
@@ -132,6 +149,11 @@ class BookDetailViewModelTest {
                 booksRemoteDataSource,
                 mainDispatcherRule.testDispatcher,
             ),
+            UserRepositoryImpl(
+                userLocalDataSource,
+                userRemoteDataSource,
+                mainDispatcherRule.testDispatcher,
+            ),
         )
         coEvery {
             booksRemoteDataSource.getFriendBook(any(), any())
@@ -154,7 +176,7 @@ class BookDetailViewModelTest {
     @Test
     fun `GIVEN no friend id and saved book WHEN onCreate THEN update state with book and isAlreadySaved true and isEditable false`() =
         runTest {
-            val book = Book(testBookId)
+            val book = Book(testBookId).copy(language = "es")
             coEvery { booksLocalDataSource.getBook(any()) } returns book
 
             viewModel.state.test {
@@ -221,7 +243,7 @@ class BookDetailViewModelTest {
 
                 assertEquals(
                     BookDetailUiState(
-                        book = book.toDomain(),
+                        book = book.toDomain().copy(language = "en"),
                         isAlreadySaved = false,
                         isEditable = true,
                     ),
@@ -421,7 +443,7 @@ class BookDetailViewModelTest {
                     viewModel.onCreate()
                     assertEquals(
                         BookDetailUiState(
-                            book = book.toDomain(),
+                            book = book.toDomain().copy(language = "en"),
                             isAlreadySaved = false,
                             isEditable = true,
                         ),
@@ -494,7 +516,7 @@ class BookDetailViewModelTest {
                     viewModel.onCreate()
                     assertEquals(
                         BookDetailUiState(
-                            book = book.toDomain(),
+                            book = book.toDomain().copy(language = "en"),
                             isAlreadySaved = false,
                             isEditable = true,
                         ),
